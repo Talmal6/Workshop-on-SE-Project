@@ -52,6 +52,7 @@ public class PaymentServiceTests {
     public void GivenNonWinningLotteryOutcome_WhenBuyingItemInLottery_ThenPurchaseNotCompleted() {
         // Empty body for negative acceptance test scenario
     }
+
 }
 
 
