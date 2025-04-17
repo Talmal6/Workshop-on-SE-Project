@@ -1,46 +1,66 @@
 package com.SEGroup.Service;
 
-
 import com.SEGroup.Domain.UserDTO;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 
 public class UserService {
-    // UserService class implementation goes here
-    // This class will handle user-related operations and business logic
-    // For example, user registration, login, profile management, etc.
+    private final IUserRepository userRepository;
+    private final IAuthenticationService authenticationService;
 
-    private IUserRepository userRepository;
-    private IAuthenticationService authenticationService;
-    
-    public UserService(IUserRepository userRepository, IAuthenticationService authenticationService) {
+    public UserService(IUserRepository userRepository,
+                       IAuthenticationService authenticationService) {
         this.userRepository = userRepository;
         this.authenticationService = authenticationService;
+      
     }
 
-
-    public void registerUser(String email, String password) {
-       UserDTO user = new UserDTO(email, password);
-       this.userRepository.addUser(user);
-        // Logic for user registration
-    }
-    
-    public String loginUser(String email, String password) {
-        String sessionKey = authenticationService.authenticate(email, password);
-        if (sessionKey == null) {
-            throw new IllegalArgumentException("Invalid email or password");
+    public Result<Void> registerUser(String email, String password) {
+        try {
+            if (userRepository.findByUsername(email) != null) {
+                return Result.failure("Email already registered: " + email);
+            }
+            UserDTO user = new UserDTO(email, password);
+            userRepository.addUser(user);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Failed to register user: " + e.getMessage());
         }
-        return sessionKey;
     }
-    
 
-    // Other user-related methods can be added here
-    public void deleteUser(String email) {
-        UserDTO user = this.userRepository.findByUsername(email);
-        if (user == null) {
-            throw new IllegalArgumentException("User not found: " + email);
+    public Result<String> loginUser(String email, String password) {
+        try {
+            String sessionKey = authenticationService.authenticate(email, password);
+            if (sessionKey == null) {
+                return Result.failure("Invalid email or password");
+            }
+            return Result.success(sessionKey);
+        } catch (Exception e) {
+            return Result.failure("Failed to login: " + e.getMessage());
         }
-        this.userRepository.deleteUser(email);
     }
-    
+
+    public Result<Void> logoutUser(String sessionKey) {
+        try {
+            authenticationService.invalidateSession(sessionKey);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Failed to logout: " + e.getMessage());
+        }
+    }
+
+    public Result<Void> deleteUser(String email) {
+        try {
+            UserDTO user = userRepository.findByUsername(email);
+            if (user == null) {
+                return Result.failure("User not found: " + email);
+            }
+            userRepository.deleteUser(email);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Failed to delete user: " + e.getMessage());
+        }
+    }
+
+
 }

@@ -1,13 +1,10 @@
 package com.SEGroup.Infrastructure;
 import java.util.List;
+import com.SEGroup.Domain.UserDTO;
 
 public interface IAuthenticationService {
-
     String authenticate(String email, String password);
-    boolean register(String email, String password, String emailAddress);
-    boolean resetPassword(String email, String newPassword);
-    List<String> getUserRoles(String email);
-    boolean isUserAuthenticated(String email);
-    void logout(String email);
-    boolean checkSessionKey(String sessionKey);
+    void checkSessionKey(String sessionKey);
+    void invalidateSession(String sessionKey);
+    UserDTO getUserBySession(String sessionKey);
 }

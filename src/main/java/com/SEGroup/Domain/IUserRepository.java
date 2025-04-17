@@ -3,13 +3,7 @@ import java.util.List;
 
 
 public interface IUserRepository {
-    // Define methods for user-related operations
+    UserDTO findByUsername(String email);
     void addUser(UserDTO user);
-    UserDTO getUserById(int id);
-    void updateUser(UserDTO user);
     void deleteUser(String email);
-    List<UserDTO> getAllUsers();
-    UserDTO findByUsername(String username);
-    boolean existsByUsername(String username);
-    
 }
