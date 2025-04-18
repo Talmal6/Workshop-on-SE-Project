@@ -12,6 +12,7 @@ import static org.mockito.Mockito.mock;
 
 public class UserServiceTests {
     UserService userService;
+    IAuthenticationService authenticationService;
     String defaultUserEmail = "default_Email@myEmail.com";
     String defaultUserPassword = "defaultPassword123";
     String defaultToken;
@@ -98,8 +99,11 @@ public class UserServiceTests {
     @Test
     public void GivenExpiredSession_WhenLoggingOut_ThenLogoutHandledGracefully() {
         //todo: need  to check what is the expiration timeout for the session and expected behavior
+        assert userService.registerUser(defaultUserEmail, defaultUserPassword).isSuccess();
+        String sessionKey = authenticationService.authenticate(defaultUserEmail, defaultUserPassword);
+        authenticationService.invalidateSession(sessionKey);
+        assert userService.logoutUser(sessionKey).isSuccess();
     }
-
     // ---------- Personal Purchase History Tests ----------
 
     // Positive Test: A logged-in user can retrieve their purchase history.
