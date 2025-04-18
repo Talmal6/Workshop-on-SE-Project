@@ -9,4 +9,5 @@ public interface ITransactionRepository {
     List<TransactionDTO> getAllTransactions();
     void updateTransaction(TransactionDTO transaction);
     void deleteTransaction(int id); 
+    List<TransactionDTO> getTransactionsByUserEmail(String userEmail);
 } 
