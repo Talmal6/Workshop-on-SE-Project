@@ -1,20 +1,73 @@
 package com.SEGroup.acceptance;
 
+import com.SEGroup.Domain.IProductRepository;
+import com.SEGroup.Domain.IStoreRepository;
+import com.SEGroup.Domain.ITransactionRepository;
+import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Infrastructure.IPaymentGateway;
+import com.SEGroup.Service.TransactionService;
+import com.SEGroup.Service.StoreService;
+import com.SEGroup.Service.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 public class PaymentServiceTests {
 
     // 2.5 - Immediate Purchase of Shopping Cart
+    static TransactionService paymentService;
+    static IAuthenticationService authenticationService;
+    static IPaymentGateway paymentGateway;
+    static ITransactionRepository transactionRepository;
+    static IStoreRepository storeRepository;
+    static IUserRepository userRepository;
+    static IProductRepository productRepository;
+    static StoreService storeService;
+    static UserService userService;
+
+    @BeforeAll
+    static void init() {
+        authenticationService = mock(IAuthenticationService.class);
+        paymentGateway = mock(IPaymentGateway.class);
+        transactionRepository = mock(ITransactionRepository.class);
+        storeRepository = mock(IStoreRepository.class);
+        userRepository = mock(IUserRepository.class);
+        productRepository = mock(IProductRepository.class);
+        storeService = new StoreService(storeRepository, productRepository, authenticationService);
+        userService = new UserService(userRepository, authenticationService);
+
+        paymentService = new TransactionService(authenticationService, paymentGateway, transactionRepository, storeService, userService);
+        paymentService.processPayment("testsessionKey", "testuserEmail", 100.0);
+    }
 
     @Test
     public void GivenValidPurchaseConditions_WhenImmediatePurchase_ThenOrderPlacedAndPaymentApproved() {
         // Empty body for positive acceptance test scenario
+        //lets create a user
+        userService.register("testSellerUserName", "testSellerEmail", "testPassword");
+        //lets login the user
+        String sellerSessionKey = userService.login("testSellerEmail", "testPassword").getData();
+        //lets create a store
+        storeService.createStore(sellerSessionKey, "testStore", "testSellerEmail");
+
+        //lets add a product to the store
+        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+
+        //create a customer
+        userService.register("testCustomerUserName","testCustomerEmail", "testPassword");
+        //login the customer
+        String customerSessionKey = userService.login("testCustomerEmail", "testPassword").getData();
+        //add the product to the cart
+        //todo when methods are implemented complete this test
+        //storeService.addToCart(customerSessionKey, "testProduct", 1);
+
     }
 
     @Test
     public void GivenPurchaseConstraintFailure_WhenImmediatePurchase_ThenPurchaseCancelled() {
-        // Empty body for negative acceptance test scenario
+
     }
 
     // 3.9 - Submitting a Purchase Offer (Bid)
