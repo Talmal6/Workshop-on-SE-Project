@@ -1,13 +1,24 @@
 package com.SEGroup.acceptance;
 
+import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Service.StoreService;
+import com.SEGroup.Service.UserService;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class StoreServiceTests {
-
+    StoreService storeService;
+    UserService userService;
+    IAuthenticationService authenticationService;
+    String defaultUserEmail = "default_Email@myEmail.com";
+    String defaultUserPassword = "defaultPassword123";
     // 3.2 - Create New Store
     @Test
     public void GivenLoggedInUser_WhenCreatingNewStore_ThenStoreCreatedSuccessfully() {
+        assert userService.registerUser(defaultUserEmail,defaultUserPassword).isSuccess();
+        String sessionKey = authenticationService.authenticate(defaultUserEmail,defaultUserPassword);
+        assert storeService.createStore(sessionKey, "Super-pharm", defaultUserEmail).isSuccess();
     }
 
     @Test
@@ -17,10 +28,12 @@ public class StoreServiceTests {
     // 4.1 - Manage Store Inventory
     @Test
     public void GivenValidProductDetails_WhenManagingStoreInventory_ThenInventoryUpdated() {
+
     }
 
     @Test
     public void GivenInvalidProductDetailsOrUnauthorizedUser_WhenManagingStoreInventory_ThenOperationFails() {
+
     }
 
     // 4.2 - Change Store Purchase and Discount Policies

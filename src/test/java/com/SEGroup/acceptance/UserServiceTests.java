@@ -85,7 +85,7 @@ public class UserServiceTests {
         Result<Void> result = userService.register(userName,userEmail, userPassword);
         assert result.isSuccess() : "Expected registration to succeed, but it failed.";
         Result<String> loginResult = userService.login(userEmail, "fakePassword");
-    assert !loginResult.isSuccess() : "Expected login to fail due to incorrect password, but it succeeded.";
+        assert !loginResult.isSuccess() : "Expected login to fail due to incorrect password, but it succeeded.";
     }
 
     // ---------- User Logout Tests ----------
