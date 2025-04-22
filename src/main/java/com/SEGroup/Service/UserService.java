@@ -15,7 +15,7 @@ public class UserService {
       
     }
 
-    public Result<Void> registerUser(String email, String password) {
+    public Result<Void> register(String username, String email, String password) {
         try {
             if (userRepository.findByUsername(email) != null) {
                 return Result.failure("Email already registered: " + email);
@@ -28,7 +28,7 @@ public class UserService {
         }
     }
 
-    public Result<String> loginUser(String email, String password) {
+    public Result<String> login(String email, String password) {
         try {
             String sessionKey = authenticationService.authenticate(email, password);
             if (sessionKey == null) {
@@ -40,7 +40,7 @@ public class UserService {
         }
     }
 
-    public Result<Void> logoutUser(String sessionKey) {
+    public Result<Void> logout(String sessionKey) {
         try {
             authenticationService.invalidateSession(sessionKey);
             return Result.success(null);
