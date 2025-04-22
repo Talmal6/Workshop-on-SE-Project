@@ -36,6 +36,7 @@ public class UserService {
             }
             return Result.success(sessionKey);
         } catch (Exception e) {
+
             return Result.failure("Failed to login: " + e.getMessage());
         }
     }
