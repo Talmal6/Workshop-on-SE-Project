@@ -1,18 +1,45 @@
 package com.SEGroup.acceptance;
 
+import com.SEGroup.Domain.IProductRepository;
+import com.SEGroup.Domain.IStoreRepository;
+import com.SEGroup.Domain.ITransactionRepository;
+import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Infrastructure.IPaymentGateway;
 import com.SEGroup.Service.StoreService;
+import com.SEGroup.Service.TransactionService;
 import com.SEGroup.Service.UserService;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class StoreServiceTests {
-    StoreService storeService;
-    UserService userService;
-    IAuthenticationService authenticationService;
+
+    static IAuthenticationService authenticationService;
+    static ITransactionRepository transactionRepository;
+    static IStoreRepository storeRepository;
+    static IUserRepository userRepository;
+    static IProductRepository productRepository;
+    static StoreService storeService;
+    static UserService userService;
     String defaultUserEmail = "default_Email@myEmail.com";
     String defaultUserPassword = "defaultPassword123";
+
+    @BeforeEach
+    static void init() {
+        authenticationService = mock(IAuthenticationService.class);
+        transactionRepository = mock(ITransactionRepository.class);
+        storeRepository = mock(IStoreRepository.class);
+        userRepository = mock(IUserRepository.class);
+        productRepository = mock(IProductRepository.class);
+        storeService = new StoreService(storeRepository, productRepository, authenticationService);
+        userService = new UserService(userRepository, authenticationService);
+    }
     // 3.2 - Create New Store
     @Test
     public void GivenLoggedInUser_WhenCreatingNewStore_ThenStoreCreatedSuccessfully() {
@@ -28,12 +55,18 @@ public class StoreServiceTests {
     // 4.1 - Manage Store Inventory
     @Test
     public void GivenValidProductDetails_WhenManagingStoreInventory_ThenInventoryUpdated() {
-
+        userService.register("Student1",defaultUserEmail,defaultUserPassword).isSuccess();
+        String sessionKey = authenticationService.authenticate(defaultUserEmail,defaultUserPassword);
+        storeService.createStore(sessionKey, "Supermarket", defaultUserEmail);
+        assert storeService.addProduct(sessionKey, "Supermarket", "Milk", 7.18).isSuccess();
     }
 
     @Test
     public void GivenInvalidProductDetailsOrUnauthorizedUser_WhenManagingStoreInventory_ThenOperationFails() {
-
+        userService.register("Student2",defaultUserEmail,defaultUserPassword).isSuccess();
+        String sessionKey = authenticationService.authenticate(defaultUserEmail,defaultUserPassword);
+        storeService.createStore(sessionKey, "Supermarket", defaultUserEmail);
+        assert !storeService.addProduct(sessionKey, "Supermarket", "Milk", -10).isSuccess();
     }
 
     // 4.2 - Change Store Purchase and Discount Policies
