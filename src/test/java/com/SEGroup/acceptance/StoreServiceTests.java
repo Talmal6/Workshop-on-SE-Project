@@ -16,7 +16,7 @@ public class StoreServiceTests {
     // 3.2 - Create New Store
     @Test
     public void GivenLoggedInUser_WhenCreatingNewStore_ThenStoreCreatedSuccessfully() {
-        assert userService.registerUser(defaultUserEmail,defaultUserPassword).isSuccess();
+        assert userService.register("Student1",defaultUserEmail,defaultUserPassword).isSuccess();
         String sessionKey = authenticationService.authenticate(defaultUserEmail,defaultUserPassword);
         assert storeService.createStore(sessionKey, "Super-pharm", defaultUserEmail).isSuccess();
     }

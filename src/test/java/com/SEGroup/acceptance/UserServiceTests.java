@@ -3,14 +3,24 @@ package com.SEGroup.acceptance;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Service.Result;
+import com.SEGroup.Service.TransactionService;
 import com.SEGroup.Service.UserService;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 
 public class UserServiceTests {
+    @Mock
+    IAuthenticationService authenticationService;
+    @Mock
+    IUserRepository userRepository;
+    @Mock
+    TransactionService transactionService;
     static UserService userService;
     String defaultUserName = "default_Email";
     String defaultUserEmail = "default_Email@myEmail.com";
@@ -20,10 +30,11 @@ public class UserServiceTests {
     boolean isLoggedIn = false;
 
     @BeforeAll
-
-    static void init() {
-        IUserRepository userRepository = mock(IUserRepository.class);
-        IAuthenticationService authenticationService = mock(IAuthenticationService.class);
+    void init() {
+        MockitoAnnotations.openMocks(this);
+        userRepository = mock(IUserRepository.class);
+        authenticationService = mock(IAuthenticationService.class);
+        transactionService = mock(TransactionService.class);
         userService = new UserService(userRepository, authenticationService);
     }
     //constructor
@@ -108,6 +119,14 @@ public class UserServiceTests {
     // Negative Test: Logout is handled gracefully if the session is already expired.
     @Test
     public void GivenExpiredSession_WhenLoggingOut_ThenLogoutHandledGracefully() {
+        String userName = "test4";
+        String userEmail = "test4@muEmail.com";
+        String userPassword = "testPassword1234";
+        Result<Void> result = userService.register(userName,userEmail, userPassword);
+        when(authenticationService.authenticate(userEmail,userPassword)).thenReturn("a123");
+        String sessionKey = authenticationService.authenticate(userEmail,userPassword);
+        authenticationService.invalidateSession(sessionKey);
+        AsserEquals userService.logout(sessionKey).isSuccess();
         //todo: need  to check what is the expiration timeout for the session and expected behavior
     }
 
@@ -116,10 +135,14 @@ public class UserServiceTests {
     // Positive Test: A logged-in user can retrieve their purchase history.
     @Test
     public void GivenLoggedInUser_WhenRequestingPurchaseHistory_ThenPurchaseHistoryIsRetrieved() {
-        loginDefaultUser();
+        String userName = "test4";
+        String userEmail = "test4@muEmail.com";
+        String userPassword = "testPassword1234";
+        Result<Void> result = userService.register(userName,userEmail, userPassword);
+        when(authenticationService.authenticate(userEmail,userPassword)).thenReturn("a123");
+        String sessionKey = authenticationService.authenticate(userEmail, userPassword);
+        assert transactionService.getTransactionHistory(sessionKey, userEmail).isSuccess();
         //todo: need to check what is the expected behavior
-
-
     }
 
     // Negative Test: A guest or unregistered user cannot retrieve purchase history.
