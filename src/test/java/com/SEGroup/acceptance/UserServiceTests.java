@@ -126,7 +126,7 @@ public class UserServiceTests {
         when(authenticationService.authenticate(userEmail,userPassword)).thenReturn("a123");
         String sessionKey = authenticationService.authenticate(userEmail,userPassword);
         authenticationService.invalidateSession(sessionKey);
-        AsserEquals userService.logout(sessionKey).isSuccess();
+        assert userService.logout(sessionKey).isSuccess();
         //todo: need  to check what is the expiration timeout for the session and expected behavior
     }
 
@@ -135,11 +135,11 @@ public class UserServiceTests {
     // Positive Test: A logged-in user can retrieve their purchase history.
     @Test
     public void GivenLoggedInUser_WhenRequestingPurchaseHistory_ThenPurchaseHistoryIsRetrieved() {
-        String userName = "test4";
-        String userEmail = "test4@muEmail.com";
-        String userPassword = "testPassword1234";
+        String userName = "test5";
+        String userEmail = "test5@muEmail.com";
+        String userPassword = "testPassword12345";
         Result<Void> result = userService.register(userName,userEmail, userPassword);
-        when(authenticationService.authenticate(userEmail,userPassword)).thenReturn("a123");
+        when(authenticationService.authenticate(userEmail,userPassword)).thenReturn("a1234");
         String sessionKey = authenticationService.authenticate(userEmail, userPassword);
         assert transactionService.getTransactionHistory(sessionKey, userEmail).isSuccess();
         //todo: need to check what is the expected behavior
