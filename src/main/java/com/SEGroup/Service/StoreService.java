@@ -90,8 +90,7 @@ public class StoreService {
             if (productDTO == null) {
                 return Result.failure("Product not found: " + productId);
             }
-            productDTO.setName(productName);
-            productDTO.setPrice(price);
+            
             productRepository.updateProduct(productDTO);
             return Result.success(null);
         } catch (Exception e) {
