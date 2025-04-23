@@ -4,6 +4,8 @@ import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import java.util.List;
 
+import javax.naming.AuthenticationException;
+
 /**
  * StoreService: handles store-related operations (public browsing, management)
  */
@@ -53,7 +55,7 @@ public class StoreService {
     }
 
     // === Authenticated Operations ===
-    private void ensureAuthenticated(String sessionKey) {
+    private void ensureAuthenticated(String sessionKey)  throws AuthenticationException{
         authenticationService.checkSessionKey(sessionKey);
     }
 

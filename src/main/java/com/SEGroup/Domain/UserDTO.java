@@ -8,4 +8,10 @@ public class UserDTO {
         // Getter implementation
         return null;
     }
+
+    //5-adapter add getPassword
+    public String getPassword(){
+        return null;
+    }
 }
+
