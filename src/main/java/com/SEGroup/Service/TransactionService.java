@@ -32,9 +32,10 @@ public class TransactionService {
      */
     public Result<Void> processPayment(String sessionKey, String userEmail, double amount) {
         try {
-            // Prepare payment details
+            // Validate session key and user email
+            authenticationService.checkSessionKey(sessionKey);
             String paymentDetails = String.format("User: %s, Amount: %.2f", userEmail, amount);
-            paymentGateway.validatePayment(paymentDetails)
+            paymentGateway.validatePayment(paymentDetails);
             paymentGateway.processPayment(paymentDetails);
             Transaction transaction = new Transaction(userEmail, amount);
             transactionRepository.addTransaction(transaction);
@@ -47,7 +48,7 @@ public class TransactionService {
 
     public Result<List<Transaction>> getTransactionHistory(String sessionKey, String userEmail) {
         try {
-            // Fetch transaction history
+            authenticationService.checkSessionKey(sessionKey);
             List<Transaction> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
             return Result.success(transactions);
         } catch (Exception e) {
@@ -57,14 +58,10 @@ public class TransactionService {
 
     public Result<Void> addToCart(String sessionKey, String userEmail, String storeName, String shoppingProductId) {
         try {
-            Result<Product> productResult = storeService.getProductFromStore(sessionKey,shoppingProductId);
-            // Add to user's cart
-            Result<Void> result = userService.addToCart(userEmail, shoppingProductId);
-            if (result.isSuccess()) {
-                return Result.success(null);
-            } else {
-                return Result.failure(result.getErrorMessage());
-            }
+            authenticationService.checkSessionKey(sessionKey);
+            Result<Product> product  = storeService.getProduct(sessionKey,storeName ,shoppingProductId);
+            userService.addToUserCart(sessionKey,userEmail, shoppingProductId,storeName);
+            return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
@@ -72,29 +69,37 @@ public class TransactionService {
 
     public Result<Boolean> purchaseShoppingItem(String sessionKey, String userEmail, String storeName, String shoppingProductId) {
         try {
-            // Get product details
-            Result<Product> productResult = storeService.getProductFromStore(sessionKey, storeName, shoppingProductId);
-            if (productResult.isFailure()) {
-                return Result.failure("Product does not exist");
+            authenticationService.checkSessionKey(sessionKey);
+            Result<Product> product = storeService.getProduct(sessionKey, storeName, shoppingProductId);
+            double amount = product.getData().getPrice(); 
+            Result<Void> res = storeService.checkIfStoreExist(sessionKey, storeName);
+
+            if (res.isFailure()){
+                return Result.failure("Store does not exist: " + storeName);
             }
 
-            // Process payment for the user
-            double amount = productResult.getData().getPrice(); // Assuming ProductDTO has a getPrice() method
-            Result<Void> paymentResult = processPayment(sessionKey, userEmail, amount);
-            if (paymentResult.isFailure()) {
-                return Result.failure("Payment failed");
-            }
-
-            // Update store balance
-            Result<Store> storeResult = storeService.viewStore(sessionKey, storeName);
-            Store store = storeResult.getData();
-            double storeBalance = store.getBalance(); // Assuming StoreDTO has a getBalance() method
-            store.setBalance(storeBalance + amount); // Update the store's balance
-
-            // Return success after completing the purchase
+            processPayment(sessionKey, userEmail, amount);
+            storeService.addToStoreBalance(sessionKey, storeName, amount); 
             return Result.success(true);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
+
+
+    public Result<Void> viewPurcaseHistory(String sessionKey, String userEmail) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            List<Transaction> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
+            for (Transaction transaction : transactions) {
+                System.out.println(transaction.toString());
+            }
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    
 }

@@ -5,26 +5,24 @@ import java.util.UUID;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User;
 import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Infrastructure.PasswordEncoder;
 
 public class UserService {
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
+    private PasswordEncoder passwordEncoder;
 
     public UserService(IUserRepository userRepository,
-                       IAuthenticationService authenticationService) {
+            IAuthenticationService authenticationService) {
         this.userRepository = userRepository;
         this.authenticationService = authenticationService;
-      
+        passwordEncoder = new PasswordEncoder();
+
     }
 
     public Result<Void> register(String username, String email, String password) {
         try {
-            if (userRepository.findByUsername(email) != null) {
-                return Result.failure("Email already registered: " + email);
-            }
-            // 5-adapted changed register logic
-            User user = new User(email, authenticationService.encryptPassword(password));
-            userRepository.addUser(user);
+            userRepository.addUser(username, email, passwordEncoder.encrypt(password));
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure("Failed to register user: " + e.getMessage());
@@ -33,20 +31,18 @@ public class UserService {
 
     public Result<String> login(String email, String password) {
         try {
-            User user = userRepository.findByUsername(email);
-            if(user == null){
-                return Result.failure("Invalid email");
-            }
-            authenticationService.matchPassword(user.getPassword(), password);
+            User user = userRepository.findUserByEmail(email);
+            authenticationService.matchPassword(user.getPassword(), passwordEncoder.encrypt(password));
             String sessionKey = authenticationService.authenticate(email);
             return Result.success(sessionKey);
         } catch (Exception e) {
-            return Result.failure("Failed to login: " + e.getMessage());
+            return Result.failure("Failed to login ");
         }
     }
 
     public Result<Void> logout(String sessionKey) {
         try {
+            authenticationService.checkSessionKey(sessionKey);
             authenticationService.invalidateSession(sessionKey);
             return Result.success(null);
         } catch (Exception e) {
@@ -56,7 +52,7 @@ public class UserService {
 
     public Result<Void> deleteUser(String email) {
         try {
-            User user = userRepository.findByUsername(email);
+            User user = userRepository.findUserByEmail(email);
             if (user == null) {
                 return Result.failure("User not found: " + email);
             }
@@ -67,20 +63,61 @@ public class UserService {
         }
     }
 
-        // Use Case 1.1 GuestLogin
-    public Result<String> guestLogin(){
+    // Use Case 1.1 GuestLogin
+    public Result<String> guestLogin() {
         String guestName = "g_" + UUID.randomUUID().toString();
         userRepository.addNewGuest(guestName);
         return Result.success(authenticationService.authenticate(guestName));
     }
 
-    public Result<String> addToCart(String sessionKey, int storeID, String productID){
+    public Result<String> addToUserCart(String sessionKey, String email, String productID,String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            //userRepository.addToCart(userRepository.findByUsername(authenticationService.getUserBySession(sessionKey)), storeID, productID);
-            return Result.success("Add item to cart succsesfully!");    
+            User user = userRepository.findUserByEmail(email);
+            user.addToCart(storeName,productID);
+            return Result.success("Add item to cart succsesfully!");
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
+
+    public Result<Void> purchaseShoppingCart(String sessionKey, String email) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkIfExist(email);
+
+            //WILL ADD METHODS TO HERE
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Failed to purchase shopping cart: " + e.getMessage());
+        }
+    }
+
+    public Result<String> removeFromUserCart(String sessionKey, String email, String productID, String storeName) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            User user = userRepository.findUserByEmail(email);
+            user.removeFromCart(storeName, productID);
+            return Result.success("Removed item from cart successfully!");
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<String> modifyProductQuantityInCartItem(
+            String sessionKey,
+            String email,
+            String productID,
+            String storeName,
+            int quantity) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            User user = userRepository.findUserByEmail(email);
+            user.modifyProductQuantityInCart(storeName, productID, quantity);
+            return Result.success("Modified product quantity in cart successfully!");
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
 }

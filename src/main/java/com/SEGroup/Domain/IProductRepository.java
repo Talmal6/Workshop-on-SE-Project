@@ -12,4 +12,6 @@ public interface IProductRepository {
     void deleteProduct(String productName, String storeName);
     Product findById(String productId);
     void checkIfExist(String productId);
+    Product getProduct(String productId);
+    
 }

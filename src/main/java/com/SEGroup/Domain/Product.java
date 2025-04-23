@@ -5,6 +5,10 @@ public class Product {
         
     }
 
+    public String getId(){
+        return null;
+    }
+
     public String getName() {
         return null;
     }
@@ -17,8 +21,12 @@ public class Product {
     public double getPrice() {
         return 0;
     }
-
-    
+    public void addReview(int rating, String review) {
+        
+    }
+    public void submitBidToShoppingItem(String userId, double bidAmount) {
+        // Logic to submit a bid for the shopping item
+    }
 
     
 }

@@ -13,5 +13,20 @@ public class User {
     public String getPassword(){
         return null;
     }
+
+    public void addToCart(String storeName, String productID) {
+        // Method implementation
+    }
+
+
+    public void removeFromCart(String storeName, String productID) {
+        // Method implementation
+    }
+    
+    public void modifyProductQuantityInCart(String storeName, String productID, int quantity) {
+        // Method implementation
+    }
+
+
 }
 

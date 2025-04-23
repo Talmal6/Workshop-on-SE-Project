@@ -8,4 +8,5 @@ public interface IStoreRepository {
     void addStore(Store store);
     void updateStore(Store store);
     void deleteStore(String storeId);
+    void changeStoreName(String oldName, String newName);
 }
