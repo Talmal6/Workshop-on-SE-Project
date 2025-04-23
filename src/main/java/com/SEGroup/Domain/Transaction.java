@@ -1,11 +1,11 @@
 package com.SEGroup.Domain;
 
-public class TransactionDTO {
+public class Transaction {
     private String userEmail;
     private double amount;
 
     // Constructor to match the usage in PaymentService
-    public TransactionDTO(String userEmail, double amount) {
+    public Transaction(String userEmail, double amount) {
         this.userEmail = userEmail;
         this.amount = amount;
     }

@@ -1,7 +1,7 @@
 package com.SEGroup.Domain;
 
-public class StoreDTO {
-    public StoreDTO(String name, String ownerEmail){
+public class Store {
+    public Store(String name, String ownerEmail){
 
         
     }
@@ -13,7 +13,7 @@ public class StoreDTO {
         
     }
 
-    public ProductDTO getProduct(String productId){
+    public Product getProduct(String productId){
         return null;
     }
 

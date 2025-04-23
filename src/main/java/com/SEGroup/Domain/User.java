@@ -1,7 +1,7 @@
 package com.SEGroup.Domain;
 
-public class UserDTO {
-    public UserDTO(String email, String password) {
+public class User {
+    public User(String email, String password) {
         // Constructor implementation
     }
     public String getEmail() {

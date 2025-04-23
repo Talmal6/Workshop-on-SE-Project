@@ -1,5 +1,5 @@
 package com.SEGroup.Domain;
 
-public class CatalogProductDTO {
+public class CatalogProduct {
     
 }

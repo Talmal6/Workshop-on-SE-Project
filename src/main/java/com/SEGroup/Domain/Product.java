@@ -1,7 +1,7 @@
 package com.SEGroup.Domain;
 
-public class ProductDTO {
-    public ProductDTO(String name,String storeName, double price) {
+public class Product {
+    public Product(String name,String storeName, double price) {
         
     }
 
@@ -9,7 +9,7 @@ public class ProductDTO {
         return null;
     }
 
-    public void setProduct(ProductDTO product) {
+    public void setProduct(Product product) {
         
     }
 

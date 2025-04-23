@@ -3,7 +3,7 @@ package com.SEGroup.Service;
 import java.util.UUID;
 
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.UserDTO;
+import com.SEGroup.Domain.User;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 
 public class UserService {
@@ -23,7 +23,7 @@ public class UserService {
                 return Result.failure("Email already registered: " + email);
             }
             // 5-adapted changed register logic
-            UserDTO user = new UserDTO(email, authenticationService.encryptPassword(password));
+            User user = new User(email, authenticationService.encryptPassword(password));
             userRepository.addUser(user);
             return Result.success(null);
         } catch (Exception e) {
@@ -33,7 +33,7 @@ public class UserService {
 
     public Result<String> login(String email, String password) {
         try {
-            UserDTO user = userRepository.findByUsername(email);
+            User user = userRepository.findByUsername(email);
             if(user == null){
                 return Result.failure("Invalid email");
             }
@@ -56,7 +56,7 @@ public class UserService {
 
     public Result<Void> deleteUser(String email) {
         try {
-            UserDTO user = userRepository.findByUsername(email);
+            User user = userRepository.findByUsername(email);
             if (user == null) {
                 return Result.failure("User not found: " + email);
             }
