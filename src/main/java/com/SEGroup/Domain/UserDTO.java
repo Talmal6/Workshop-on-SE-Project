@@ -8,4 +8,9 @@ public class UserDTO {
         // Getter implementation
         return null;
     }
+
+    public String getCart() {
+        // Getter implementation for cart
+        return null;
+    }
 }

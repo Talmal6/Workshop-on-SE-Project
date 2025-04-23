@@ -67,7 +67,7 @@ public class StoreService {
             if (store == null) {
                 return Result.failure("Store not found: " + storeName);
             }
-            ProductDTO product = new ProductDTO(productName);
+            ProductDTO product = new ProductDTO(productName,storeName, price);
             productRepository.addProduct(product);
             return Result.success(null);
         } catch (Exception e) {
@@ -77,20 +77,28 @@ public class StoreService {
 
     public Result<Void> updateProduct(String sessionKey,
                                       String storeName,
+                                      String productId,
                                       String productName,
-                                      double newPrice) {
+                                      double price) {
         try {
             ensureAuthenticated(sessionKey);
-            StoreDTO store = storeRepository.findByName(storeName);
-            if (store == null) {
+            StoreDTO storeDTO = storeRepository.findByName(storeName);
+            if (storeDTO == null) {
                 return Result.failure("Store not found: " + storeName);
             }
-            productRepository.updateProduct(productName, storeName, newPrice);
+            ProductDTO productDTO = productRepository.findById(productId);
+            if (productDTO == null) {
+                return Result.failure("Product not found: " + productId);
+            }
+            productDTO.setName(productName);
+            productDTO.setPrice(price);
+            productRepository.updateProduct(productDTO);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
+
 
     public Result<Void> deleteProduct(String sessionKey,
                                       String storeName,
@@ -227,4 +235,54 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+
+    public Result<ProductDTO> getProductFromStore(String sessionKey, String storeName, String shoppingProductId) {
+        try {
+            ensureAuthenticated(sessionKey);
+            StoreDTO store = storeRepository.findByName(storeName);
+            if (store == null) {
+                return Result.failure("Store not found: " + storeName);
+            }
+            ProductDTO product = store.getProduct(shoppingProductId);
+            if (product == null) {
+                return Result.failure("Product not found: " + shoppingProductId);
+            }
+            return Result.success(product);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    public Result<Void> rateProduct(String sessionKey,
+                                   String storeName,
+                                   String productName,
+                                   int rating,
+                                   String review) {
+        try {
+            ensureAuthenticated(sessionKey);
+            StoreDTO storeDTO = storeRepository.findByName(storeName);
+            if (storeDTO == null) {
+                return Result.failure("Store not found: " + storeName);
+            }
+            ProductDTO productDTO = productRepository.findById(productName);
+            if (productDTO == null) {
+                return Result.failure("Product not found: " + productName);
+            }
+            
+
+            //Product prodcut  = new Product(ProductDTO);
+            //Store store = new Store(StoreDTO);
+            //store.addProduct(product);
+
+            //productDTO.setProduct(productDTO);
+            productRepository.updateProduct(productDTO);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 }
+
+ 

@@ -23,6 +23,10 @@ public class Result<T> {
         return success;
     }
 
+    public boolean isFailure() {
+        return !success;
+    }
+
     public T getData() {
         return data;
     }

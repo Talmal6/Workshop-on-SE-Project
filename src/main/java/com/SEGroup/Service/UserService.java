@@ -63,4 +63,21 @@ public class UserService {
     }
 
 
+    public Result<Void> addToCart(String userEmail, String shoppingProductId) {
+        try {
+            UserDTO user = userRepository.findByUsername(userEmail);
+            if (user == null) {
+                return Result.failure("User not found: " + userEmail);
+            }
+            //user.getCart().add(shoppingProductId);
+            //userRepository.updateUser(user);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Failed to add product to cart: " + e.getMessage());
+        }
+    }
+
+
+
+
 }
