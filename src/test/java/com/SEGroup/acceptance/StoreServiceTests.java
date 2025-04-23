@@ -36,7 +36,7 @@ public class StoreServiceTests {
     @Test
     public void GivenLoggedInUser_WhenCreatingNewStore_ThenStoreCreatedSuccessfully() {
         assert userService.register("Student1",defaultUserEmail,defaultUserPassword).isSuccess();
-        String sessionKey = authenticationService.authenticate(defaultUserEmail,defaultUserPassword);
+        String sessionKey = authenticationService.authenticate(defaultUserEmail);
         assert storeService.createStore(sessionKey, "Super-pharm", defaultUserEmail).isSuccess();
     }
 
@@ -51,8 +51,8 @@ public class StoreServiceTests {
         userService = new UserService(userRepository, authenticationService);
         //register and login default user
         userService.register("defaultUser", defaultUserEmail, defaultUserPassword);
-        defaultSessionKey = authenticationService.authenticate(defaultUserEmail, defaultUserPassword);
-        when(authenticationService.authenticate(defaultUserEmail, defaultUserPassword)).thenReturn(defaultSessionKey);
+        defaultSessionKey = authenticationService.authenticate(defaultUserEmail);
+        when(authenticationService.authenticate(defaultUserEmail)).thenReturn(defaultSessionKey);
     }
 
     @AfterAll
@@ -84,7 +84,7 @@ public class StoreServiceTests {
 
     @Test
     public void GivenInvalidProductDetailsOrUnauthorizedUser_WhenManagingStoreInventory_ThenOperationFails() {
-        String sessionKey = authenticationService.authenticate(defaultUserEmail,defaultUserPassword);
+        String sessionKey = authenticationService.authenticate(defaultUserEmail);
         storeService.createStore(sessionKey, "Supermarket", defaultUserEmail);
         assert !storeService.addProduct(sessionKey, "Supermarket", "Milk", -10).isSuccess();
     }

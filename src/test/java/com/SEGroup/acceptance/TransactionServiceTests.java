@@ -74,8 +74,8 @@ public class TransactionServiceTests {
             String userEmail = "test5@muEmail.com";
             String userPassword = "testPassword12345";
             Result<Void> result = userService.register(userName,userEmail, userPassword);
-            when(authenticationService.authenticate(userEmail,userPassword)).thenReturn("a1234");
-            String sessionKey = authenticationService.authenticate(userEmail, userPassword);
+            when(authenticationService.authenticate(userEmail)).thenReturn("a1234");
+            String sessionKey = authenticationService.authenticate(userEmail);
             assert transactionService.getTransactionHistory(sessionKey, userEmail).isSuccess();
             //todo: need to check what is the expected behavior
     }
