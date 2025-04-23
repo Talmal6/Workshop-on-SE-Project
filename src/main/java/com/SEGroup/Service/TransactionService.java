@@ -34,7 +34,7 @@ public class TransactionService {
         try {
             // Prepare payment details
             String paymentDetails = String.format("User: %s, Amount: %.2f", userEmail, amount);
-            paymentGateway.validatePayment(paymentDetails)
+            paymentGateway.validatePayment(paymentDetails);
             paymentGateway.processPayment(paymentDetails);
             Transaction transaction = new Transaction(userEmail, amount);
             transactionRepository.addTransaction(transaction);
@@ -57,9 +57,10 @@ public class TransactionService {
 
     public Result<Void> addToCart(String sessionKey, String userEmail, String storeName, String shoppingProductId) {
         try {
-            Result<Product> productResult = storeService.getProductFromStore(sessionKey,shoppingProductId);
+            Result<Product> productResult = storeService.getProductFromStore(sessionKey,storeName,shoppingProductId);
             // Add to user's cart
-            Result<Void> result = userService.addToCart(userEmail, shoppingProductId);
+            int storeID = Integer.parseInt(storeName);
+            Result<String> result = userService.addToCart(sessionKey, storeID, shoppingProductId);
             if (result.isSuccess()) {
                 return Result.success(null);
             } else {
