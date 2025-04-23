@@ -1,7 +1,9 @@
 package com.SEGroup.Service;
 
-import com.SEGroup.Domain.UserDTO;
+import java.util.UUID;
+
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.UserDTO;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 
 public class UserService {
@@ -20,7 +22,8 @@ public class UserService {
             if (userRepository.findByUsername(email) != null) {
                 return Result.failure("Email already registered: " + email);
             }
-            UserDTO user = new UserDTO(email, password);
+            // 5-adapted changed register logic
+            UserDTO user = new UserDTO(email, authenticationService.encryptPassword(password));
             userRepository.addUser(user);
             return Result.success(null);
         } catch (Exception e) {
@@ -30,10 +33,12 @@ public class UserService {
 
     public Result<String> loginUser(String email, String password) {
         try {
-            String sessionKey = authenticationService.authenticate(email, password);
-            if (sessionKey == null) {
-                return Result.failure("Invalid email or password");
+            UserDTO user = userRepository.findByUsername(email);
+            if(user == null){
+                return Result.failure("Invalid email");
             }
+            authenticationService.matchPassword(user.getPassword(), password);
+            String sessionKey = authenticationService.authenticate(email);
             return Result.success(sessionKey);
         } catch (Exception e) {
             return Result.failure("Failed to login: " + e.getMessage());
@@ -62,5 +67,20 @@ public class UserService {
         }
     }
 
+        // Use Case 1.1 GuestLogin
+    public Result<String> guestLogin(){
+        String guestName = "g_" + UUID.randomUUID().toString();
+        userRepository.addNewGuest(guestName);
+        return Result.success(authenticationService.authenticate(guestName));
+    }
 
+    public Result<String> addToCart(String sessionKey, int storeID, int productID){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.addToCart(userRepository.findByUsername(authenticationService.getUserBySession(sessionKey)), storeID, productID);
+            return Result.success("Add item to cart succsesfully");    
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 }
