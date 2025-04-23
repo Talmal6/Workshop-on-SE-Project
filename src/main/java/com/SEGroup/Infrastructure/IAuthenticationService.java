@@ -1,9 +1,5 @@
 package com.SEGroup.Infrastructure;
-import java.util.List;
-
 import javax.naming.AuthenticationException;
-
-import com.SEGroup.Domain.UserDTO;
 
 public interface IAuthenticationService {
     // 5-adapter changed String authenticate(String email, String password) -> String authenticate(String email)
@@ -16,5 +12,5 @@ public interface IAuthenticationService {
 
     // 5-adapter add 2 password encryption functions
     String encryptPassword(String password);
-    void matchPassword(String encryptedPassword, String realPassword) throws AuthenticationException;
+    void matchPassword(String encryptedPassword, String userPassword) throws AuthenticationException;
 }
