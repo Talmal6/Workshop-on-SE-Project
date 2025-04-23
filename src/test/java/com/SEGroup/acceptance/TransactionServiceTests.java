@@ -6,18 +6,20 @@ import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.IPaymentGateway;
+import com.SEGroup.Service.Result;
 import com.SEGroup.Service.TransactionService;
 import com.SEGroup.Service.StoreService;
 import com.SEGroup.Service.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
-public class PaymentServiceTests {
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class TransactionServiceTests {
 
     // 2.5 - Immediate Purchase of Shopping Cart
-    static TransactionService paymentService;
+    static TransactionService transactionService;
     static IAuthenticationService authenticationService;
     static IPaymentGateway paymentGateway;
     static ITransactionRepository transactionRepository;
@@ -38,8 +40,8 @@ public class PaymentServiceTests {
         storeService = new StoreService(storeRepository, productRepository, authenticationService);
         userService = new UserService(userRepository, authenticationService);
 
-        paymentService = new TransactionService(authenticationService, paymentGateway, transactionRepository, storeService, userService);
-        paymentService.processPayment("testsessionKey", "testuserEmail", 100.0);
+        transactionService = new TransactionService(authenticationService, paymentGateway, transactionRepository, storeService, userService);
+        transactionService.processPayment("testsessionKey", "testuserEmail", 100.0);
     }
 
     @Test
@@ -66,6 +68,18 @@ public class PaymentServiceTests {
     }
 
     @Test
+    public void GivenLoggedInUser_WhenRequestingPurchaseHistory_ThenPurchaseHistoryIsRetrieved() {
+            String userName = "test5";
+            String userEmail = "test5@muEmail.com";
+            String userPassword = "testPassword12345";
+            Result<Void> result = userService.register(userName,userEmail, userPassword);
+            when(authenticationService.authenticate(userEmail,userPassword)).thenReturn("a1234");
+            String sessionKey = authenticationService.authenticate(userEmail, userPassword);
+            assert transactionService.getTransactionHistory(sessionKey, userEmail).isSuccess();
+            //todo: need to check what is the expected behavior
+    }
+
+    @Test
     public void GivenPurchaseConstraintFailure_WhenImmediatePurchase_ThenPurchaseCancelled() {
 
     }
@@ -75,8 +89,22 @@ public class PaymentServiceTests {
     @Test
     public void GivenValidBidAndOfferConfirmed_WhenSubmittingPurchaseOffer_ThenOfferAcceptedAndPurchaseEnabled() {
         // Empty body for positive acceptance test scenario
+
     }
 
+    @Test
+    public void GivenTwoUsersAttemptToPurchaseLastItemSimultaneously_WhenSubmittingPurchaseOffer_ThenOnlyOnePurchaseIsAccepted(){
+
+    }
+
+    @Test
+    public void GivenProductDeletedWhileUserAttemptsPurchase_WhenSubmittingPurchaseOffer_ThenPurchaseFailsWithProductNotAvailable(){
+
+    }
+
+    public void GivenTwoOwnersAssignSameUserAsManagerSimultaneously_WhenSubmittingAssignmentRequest_ThenOnlyOneAssignmentIsPersisted(){
+
+    }
     @Test
     public void GivenInvalidBidOrPolicyViolation_WhenSubmittingPurchaseOffer_ThenOfferRejected() {
         // Empty body for negative acceptance test scenario

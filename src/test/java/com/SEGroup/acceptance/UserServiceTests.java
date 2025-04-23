@@ -6,11 +6,12 @@ import com.SEGroup.Service.Result;
 import com.SEGroup.Service.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 public class UserServiceTests {
+    static IAuthenticationService authenticationService;
     static UserService userService;
     String defaultUserName = "default_Email";
     String defaultUserEmail = "default_Email@myEmail.com";
@@ -23,7 +24,7 @@ public class UserServiceTests {
 
     static void init() {
         IUserRepository userRepository = mock(IUserRepository.class);
-        IAuthenticationService authenticationService = mock(IAuthenticationService.class);
+        authenticationService = mock(IAuthenticationService.class);
         userService = new UserService(userRepository, authenticationService);
     }
     //constructor
@@ -115,13 +116,7 @@ public class UserServiceTests {
     // ---------- Personal Purchase History Tests ----------
 
     // Positive Test: A logged-in user can retrieve their purchase history.
-    @Test
-    public void GivenLoggedInUser_WhenRequestingPurchaseHistory_ThenPurchaseHistoryIsRetrieved() {
-        loginDefaultUser();
-        //todo: need to check what is the expected behavior
 
-
-    }
 
     // Negative Test: A guest or unregistered user cannot retrieve purchase history.
     @Test
