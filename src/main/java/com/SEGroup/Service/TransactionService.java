@@ -90,12 +90,12 @@ public class TransactionService {
                     : "Product does not exist");
             }
             // Check if the user exists in the user service
-            Result<Void> result = userService.addToCart(userEmail, shoppingProductId);
-            if (result.isSuccess()) {
-                return Result.success(null);
-            } else {
-                return Result.failure(result.getErrorMessage());
-            }
+            //Result<Void> result = userService.addToCart(userEmail, shoppingProductId);
+            // if (result.isSuccess()) {
+            //     return Result.success(null);
+            // } else {
+            //     return Result.failure(result.getErrorMessage());
+            // }
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }

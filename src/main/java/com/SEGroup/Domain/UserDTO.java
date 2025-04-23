@@ -9,8 +9,9 @@ public class UserDTO {
         return null;
     }
 
-    public String getCart() {
-        // Getter implementation for cart
+    //5-adapter add getPassword
+    public String getPassword(){
         return null;
     }
 }
+
