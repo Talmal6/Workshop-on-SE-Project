@@ -1,5 +1,7 @@
 package com.SEGroup.Infrastructure;
 import java.util.List;
+
+import com.SEGroup.Domain.ShoppingCart;
 import com.SEGroup.Domain.UserDTO;
 
 public interface IAuthenticationService {
@@ -7,4 +9,6 @@ public interface IAuthenticationService {
     void checkSessionKey(String sessionKey);
     void invalidateSession(String sessionKey);
     UserDTO getUserBySession(String sessionKey);
+    String createGuestSession();
+    ShoppingCart guestCart(String token);
 }

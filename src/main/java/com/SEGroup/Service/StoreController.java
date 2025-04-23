@@ -21,7 +21,7 @@ public class StoreController {
     // Use Case 2.1a - View market stores
     @GetMapping("/active")
     public ResponseEntity<?> viewActiveStores() {
-        Result<List<String>> result = storeService.viewActiveStores();
+        Result<List<String>> result = store();
         return ResponseEntity.ok(result.getData());
     }
 

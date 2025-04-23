@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.stereotype.Service;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -17,35 +17,43 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    // use case 1.1 - guest viewing
+    @PostMapping("/guest")                        // 1.1 Guest Viewing
+    public ResponseEntity<?> guest(){
+        var res = userService.createGuest();
+        return res.isSuccess()
+                ? ResponseEntity.ok(res.getData())   // returns JWT
+                : ResponseEntity.internalServerError().body(res.getErrorMessage());
+    }
     // ✅ Use Case 1.3 - User Registration
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestParam String username, @RequestParam String email, @RequestParam String password) {
-        Result<Void> result = userService.register(username, email, password);
+    public ResponseEntity<?> register(@RequestParam String email, @RequestParam String password) {
+        Result<Void> result = userService.register( email, password);
         if (result.isSuccess()) return ResponseEntity.ok("User registered");
         return ResponseEntity.badRequest().body(result.getErrorMessage());
     }
 
-    // ✅ Use Case 1.4 - User Login
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
-        Result<Void> result = userService.login(email, password);
-        if (result.isSuccess()) return ResponseEntity.ok("Login successful");
-        return ResponseEntity.status(401).body(result.getErrorMessage());
+    public ResponseEntity<?> login(@RequestParam String email,
+                                   @RequestParam String password) {
+        Result<String> result = userService.login(email,password);
+        return result.isSuccess()
+                ? ResponseEntity.ok(result.getData())   // ← returns JWT token
+                : ResponseEntity.status(401).body(result.getErrorMessage());
     }
 
-    // ✅ Use Case 3.1 - User Logout
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestParam String email) {
-        Result<Void> result = userService.logout(email);
-        if (result.isSuccess()) return ResponseEntity.ok("Logout successful");
-        return ResponseEntity.badRequest().body(result.getErrorMessage());
+    public ResponseEntity<?> logout(@RequestParam String token) {
+        return userService.logout(token).isSuccess()
+                ? ResponseEntity.ok("Logout successful")
+                : ResponseEntity.badRequest().body("Invalid session");
     }
 
-    // ✅ Use Case 3.7 - View Personal Purchase History
-    @GetMapping("/history") 
-    public ResponseEntity<?> getUserHistory(@RequestParam String email) {
-        Result<?> history = userService.getUserHistory(email);
-        if (history.isSuccess()) return ResponseEntity.ok(history.getData());
-        return ResponseEntity.badRequest().body(history.getErrorMessage());
+    @GetMapping("/history")
+    public ResponseEntity<?> history(@RequestParam String token) {
+        var res = userService.history(token);
+        return res.isSuccess()
+                ? ResponseEntity.ok(res.getData())
+                : ResponseEntity.badRequest().body(res.getErrorMessage());
     }
 }

@@ -2,11 +2,15 @@ package com.SEGroup.Service;
 
 import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.IAuthenticationService;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
  */
+
+@Service
 public class StoreService {
     private final IStoreRepository storeRepository;
     private final IProductRepository productRepository;

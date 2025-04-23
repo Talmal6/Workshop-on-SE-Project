@@ -1,7 +1,9 @@
 package com.SEGroup.Domain;
 
-import java.util.List;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
+@Repository
 public interface IProductRepository {
     List<ProductDTO> getAllProducts();
     List<ProductDTO> getProductsByStoreName(String storeName);
