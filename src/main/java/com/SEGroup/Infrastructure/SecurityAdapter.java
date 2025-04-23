@@ -45,7 +45,7 @@ public class SecurityAdapter implements IAuthenticationService{
     @Override
     public void matchPassword(String encryptedPassword, String realPassword) throws AuthenticationException {
         if(!passwordEncoder.checkPassword(realPassword, encryptedPassword)){
-            throw new AuthenticationException("Wrong password!");
+            throw new AuthenticationException("Wrong password.");
         }
     }
 

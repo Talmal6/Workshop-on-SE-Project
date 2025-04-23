@@ -78,7 +78,7 @@ public class UserService {
         try {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.addToCart(userRepository.findByUsername(authenticationService.getUserBySession(sessionKey)), storeID, productID);
-            return Result.success("Add item to cart succsesfully");    
+            return Result.success("Add item to cart succsesfully!");    
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
