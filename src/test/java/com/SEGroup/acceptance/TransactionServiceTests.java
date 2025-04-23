@@ -12,6 +12,7 @@ import com.SEGroup.Service.StoreService;
 import com.SEGroup.Service.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.config.Task;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -132,6 +133,71 @@ public class TransactionServiceTests {
     @Test
     public void GivenNonWinningLotteryOutcome_WhenBuyingItemInLottery_ThenPurchaseNotCompleted() {
         // Empty body for negative acceptance test scenario
+    }
+
+    // multithreading test
+    @Test
+    public void GivenMultipleUsersAttemptingToPurchaseSimultaneously_WhenBuyingItem_ThenOnlyOnePurchaseIsSuccessful() {
+        //initialize the users
+        String userName1 = "testUser1";
+        String userName2 = "testUser2";
+        String email1 = "email1@mymail.com";
+        String email2 = "email2@mymail.com";
+        String password1 = "testPassword123";
+        String password2 = "testPassword123";
+        Result<Void> result1 = userService.register(userName1, email1, password1);
+        Result<Void> result2 = userService.register(userName2, email2, password2);
+        String sessionKey1 = userService.login(email1, password1).getData();
+        String sessionKey2 = userService.login(email2, password2).getData();
+        //create a store
+        storeService.createStore(sessionKey1, "testStore", email1);
+        //add a product to the store
+        storeService.addProduct(sessionKey1, "testStore", "testProduct", 10.0);
+        //add the product to the cart
+        //userService.addToCart(sessionKey1, "testProduct", 1);... add 10 unique products to the shop
+        //create 2 threads to simulate the purchase
+        Task task1 = new Task(() -> {
+            for (int i = 0; i < 10; i++) {
+                try{
+                    //add item i to cart
+                    //sleep a random ammount of time in range of 0-1000ms
+                    Thread.sleep((long) (Math.random() * 1000));
+                    //userService.purchaseItem(sessionKey1, "testProduct", 1);
+                } catch (InterruptedException e) {}
+            }
+            //todo: add item to cart
+            //userService.purchaseItem(sessionKey1, "testProduct", 1);
+        });
+        //initialize an int array to store the results
+        int[] results = new int[10];
+        Task task2 = new Task(() -> {
+            for (int i = 0; i < 10; i++) {
+                try{
+                    //add item i to cart
+                    //sleep a random ammount of time in range of 0-1000ms
+                    Thread.sleep((long) (Math.random() * 1000));
+                    //userService.purchaseItem(sessionKey2, "testProduct", 1);
+                    //if result is successfull add 1 to the result array in index i
+                } catch (InterruptedException e) {
+                    //log to file the error
+                }
+            }
+            //todo: add item to cart
+            //userService.purchaseItem(sessionKey1, "testProduct", 1);
+            //assert that all the results are exactly 1
+            //assert results[i] == 1;
+            for (int result : results) {
+                assert result == 1 : "Expected exactly one purchase to be successful, but got " + result;
+
+            }
+        });
+        //start the threads
+        Thread thread1 = new Thread(task1.getRunnable());
+        Thread thread2 = new Thread(task2.getRunnable());
+        thread1.start();
+        thread2.start();
+        //wait for the threads to finish
+
     }
 
 }
