@@ -109,6 +109,7 @@ public class UserServiceTests {
     @Test
     public void GivenExpiredSession_WhenLoggingOut_ThenLogoutHandledGracefully() {
         //todo: need  to check what is the expiration timeout for the session and expected behavior
+
     }
 
     // ---------- Personal Purchase History Tests ----------
