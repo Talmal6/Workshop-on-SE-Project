@@ -29,6 +29,15 @@ public class TransactionServiceTests {
     static IProductRepository productRepository;
     static StoreService storeService;
     static UserService userService;
+    static String defaultSellerUserName = "seller";
+    static String defaultBuyerUserName = "buyer";
+    static String defaultSellerEmail = "seller@gmail.com";
+    static String defaultBuyerEmail = "buyer@gmail.com";
+    static String sellerPassword = "Pass123";
+    static String buyerPassword = "Pass456";
+    static String sellerSessionKey;
+    static String buyerSessionKey;
+
 
     @BeforeAll
     static void init() {
@@ -40,49 +49,36 @@ public class TransactionServiceTests {
         productRepository = mock(IProductRepository.class);
         storeService = new StoreService(storeRepository, productRepository, authenticationService);
         userService = new UserService(userRepository, authenticationService);
-
+        userService.register(defaultBuyerUserName, defaultBuyerEmail, buyerPassword);
+        userService.register(defaultSellerUserName, defaultSellerEmail, sellerPassword);
+        sellerSessionKey = userService.login(defaultSellerEmail, sellerPassword).getData();
+        buyerSessionKey = userService.login(defaultBuyerEmail, buyerPassword).getData();
         transactionService = new TransactionService(authenticationService, paymentGateway, transactionRepository, storeService, userService);
         transactionService.processPayment("testsessionKey", "testuserEmail", 100.0);
     }
 
     @Test
     public void GivenValidPurchaseConditions_WhenImmediatePurchase_ThenOrderPlacedAndPaymentApproved() {
-        // Empty body for positive acceptance test scenario
-        //lets create a user
-        userService.register("testSellerUserName", "testSellerEmail", "testPassword");
-        //lets login the user
-        String sellerSessionKey = userService.login("testSellerEmail", "testPassword").getData();
         //lets create a store
-        storeService.createStore(sellerSessionKey, "testStore", "testSellerEmail");
+        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
 
         //lets add a product to the store
         storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
 
-        //create a customer
-        userService.register("testCustomerUserName","testCustomerEmail", "testPassword");
-        //login the customer
-        String customerSessionKey = userService.login("testCustomerEmail", "testPassword").getData();
         //add the product to the cart
-        //todo when methods are implemented complete this test
-        //storeService.addToCart(customerSessionKey, "testProduct", 1);
+        userService.addToCart(buyerSessionKey, 1, 1);
+        assert userService.purchaseCart().isSuccess();
 
     }
 
     @Test
     public void GivenLoggedInUser_WhenRequestingPurchaseHistory_ThenPurchaseHistoryIsRetrieved() {
-            String userName = "test5";
-            String userEmail = "test5@muEmail.com";
-            String userPassword = "testPassword12345";
-            Result<Void> result = userService.register(userName,userEmail, userPassword);
-            when(authenticationService.authenticate(userEmail)).thenReturn("a1234");
-            String sessionKey = authenticationService.authenticate(userEmail);
-            assert transactionService.getTransactionHistory(sessionKey, userEmail).isSuccess();
-            //todo: need to check what is the expected behavior
+        assert transactionService.getTransactionHistory(buyerSessionKey, defaultBuyerEmail).isSuccess();
     }
 
     @Test
     public void GivenPurchaseConstraintFailure_WhenImmediatePurchase_ThenPurchaseCancelled() {
-
+        //not relevant until V2
     }
 
     // 3.9 - Submitting a Purchase Offer (Bid)
@@ -92,12 +88,6 @@ public class TransactionServiceTests {
         // Empty body for positive acceptance test scenario
 
     }
-
-    @Test
-    public void GivenTwoUsersAttemptToPurchaseLastItemSimultaneously_WhenSubmittingPurchaseOffer_ThenOnlyOnePurchaseIsAccepted(){
-
-    }
-
     @Test
     public void GivenProductDeletedWhileUserAttemptsPurchase_WhenSubmittingPurchaseOffer_ThenPurchaseFailsWithProductNotAvailable(){
 
