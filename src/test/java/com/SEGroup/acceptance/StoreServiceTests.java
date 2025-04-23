@@ -10,6 +10,8 @@ import com.SEGroup.Service.StoreService;
 import com.SEGroup.Service.TransactionService;
 import com.SEGroup.Service.UserService;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -27,19 +29,9 @@ public class StoreServiceTests {
     static IProductRepository productRepository;
     static StoreService storeService;
     static UserService userService;
-    String defaultUserEmail = "default_Email@myEmail.com";
-    String defaultUserPassword = "defaultPassword123";
-
-    @BeforeEach
-    static void init() {
-        authenticationService = mock(IAuthenticationService.class);
-        transactionRepository = mock(ITransactionRepository.class);
-        storeRepository = mock(IStoreRepository.class);
-        userRepository = mock(IUserRepository.class);
-        productRepository = mock(IProductRepository.class);
-        storeService = new StoreService(storeRepository, productRepository, authenticationService);
-        userService = new UserService(userRepository, authenticationService);
-    }
+    static String defaultUserEmail = "default_Email@myEmail.com";
+    static String defaultUserPassword = "defaultPassword123";
+    static String defaultSessionKey;
     // 3.2 - Create New Store
     @Test
     public void GivenLoggedInUser_WhenCreatingNewStore_ThenStoreCreatedSuccessfully() {
@@ -48,22 +40,50 @@ public class StoreServiceTests {
         assert storeService.createStore(sessionKey, "Super-pharm", defaultUserEmail).isSuccess();
     }
 
+    @BeforeAll
+    public static void init() {
+        authenticationService = mock(IAuthenticationService.class);
+        transactionRepository = mock(ITransactionRepository.class);
+        storeRepository = mock(IStoreRepository.class);
+        userRepository = mock(IUserRepository.class);
+        productRepository = mock(IProductRepository.class);
+        storeService = new StoreService(storeRepository, productRepository, authenticationService);
+        userService = new UserService(userRepository, authenticationService);
+        //register and login default user
+        userService.register("defaultUser", defaultUserEmail, defaultUserPassword);
+        defaultSessionKey = authenticationService.authenticate(defaultUserEmail, defaultUserPassword);
+        when(authenticationService.authenticate(defaultUserEmail, defaultUserPassword)).thenReturn(defaultSessionKey);
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        // Clean up resources or reset states if necessary
+        authenticationService = null;
+        transactionRepository = null;
+        storeRepository = null;
+        userRepository = null;
+        productRepository = null;
+        storeService = null;
+        userService = null;
+        defaultSessionKey = null;
+        defaultUserEmail = null;
+        defaultUserPassword = null;
+    }
+
     @Test
     public void GivenGuestUser_WhenCreatingNewStore_ThenStoreCreationFails() {
+        //todo: when guest logic will be implemented in service layer we will implement this test
     }
 
     // 4.1 - Manage Store Inventory
     @Test
     public void GivenValidProductDetails_WhenManagingStoreInventory_ThenInventoryUpdated() {
-        userService.register("Student1",defaultUserEmail,defaultUserPassword).isSuccess();
-        String sessionKey = authenticationService.authenticate(defaultUserEmail,defaultUserPassword);
-        storeService.createStore(sessionKey, "Supermarket", defaultUserEmail);
-        assert storeService.addProduct(sessionKey, "Supermarket", "Milk", 7.18).isSuccess();
+        storeService.createStore(defaultSessionKey, "Supermarket", defaultUserEmail);
+        assert storeService.addProduct(defaultSessionKey, "Supermarket", "Milk", 7.18).isSuccess();
     }
 
     @Test
     public void GivenInvalidProductDetailsOrUnauthorizedUser_WhenManagingStoreInventory_ThenOperationFails() {
-        userService.register("Student2",defaultUserEmail,defaultUserPassword).isSuccess();
         String sessionKey = authenticationService.authenticate(defaultUserEmail,defaultUserPassword);
         storeService.createStore(sessionKey, "Supermarket", defaultUserEmail);
         assert !storeService.addProduct(sessionKey, "Supermarket", "Milk", -10).isSuccess();
@@ -72,24 +92,30 @@ public class StoreServiceTests {
     // 4.2 - Change Store Purchase and Discount Policies
     @Test
     public void GivenValidPolicyChanges_WhenChangingStorePolicies_ThenPoliciesUpdated() {
+        //no need  to implement yet im V1
     }
 
     @Test
     public void GivenInvalidPolicyValuesOrUnauthorizedUser_WhenChangingStorePolicies_ThenOperationFails() {
+        //no need  to implement yet im V1
+
     }
 
     // 4.3 - Appoint Co-Owner
     @Test
     public void GivenValidCoOwnerDetails_WhenAppointingCoOwner_ThenCoOwnerAdded() {
+        //todo
     }
 
     @Test
     public void GivenDuplicateOrInvalidCoOwnerDetails_WhenAppointingCoOwner_ThenOperationFails() {
+        //todo
     }
 
     // 4.4 - Remove Co-Owner
     @Test
     public void GivenValidCoOwnerRemoval_WhenRemovingCoOwner_ThenCoOwnerRemoved() {
+        //todo
     }
 
     @Test

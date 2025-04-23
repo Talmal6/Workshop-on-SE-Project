@@ -6,7 +6,7 @@ import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.IPaymentGateway;
 import java.util.List;
 
-public class TransactionService {
+public class    TransactionService {
     private final IAuthenticationService authenticationService;
     private final IPaymentGateway paymentGateway;
     private final ITransactionRepository transactionRepository;
