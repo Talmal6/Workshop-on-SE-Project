@@ -1,6 +1,7 @@
 package com.SEGroup.Service;
 
 import com.SEGroup.Domain.*;
+import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import java.util.List;
 
@@ -217,7 +218,7 @@ public class StoreService {
         }
     }
 
-
+    //3.4
     public Result<Void> rateProduct(String sessionKey,
                                    String storeName,
                                    String productName,
@@ -259,7 +260,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    //3.3
     public Result<Void> rateStore(String sessionKey,
                                   String storeName,
                                   int rating,
@@ -287,7 +288,7 @@ public class StoreService {
         }
     }
 
-
+    //3.9
     public Result<Void> submitBidToShoppingItem(String sessionKey,
                                                 String storeName,
                                                 String productId,
@@ -304,7 +305,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    //3.11
     public Result<Void> sendAuctionOffer(String sessionKey,
                                                 String storeName,
                                                 String productId,
