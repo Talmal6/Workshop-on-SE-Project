@@ -61,13 +61,11 @@ public class TransactionServiceTests {
     public void GivenValidPurchaseConditions_WhenImmediatePurchase_ThenOrderPlacedAndPaymentApproved() {
         //lets create a store
         storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
-
         //lets add a product to the store
         storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
-
         //add the product to the cart
         userService.addToCart(buyerSessionKey, 1, 1);
-        assert userService.purchaseCart().isSuccess();
+        assert userService.immediatePurchase("testStore","testProduct",defaultBuyerEmail).isSuccess();
 
     }
 
@@ -76,54 +74,90 @@ public class TransactionServiceTests {
         assert transactionService.getTransactionHistory(buyerSessionKey, defaultBuyerEmail).isSuccess();
     }
 
-    @Test
-    public void GivenPurchaseConstraintFailure_WhenImmediatePurchase_ThenPurchaseCancelled() {
-        //not relevant until V2
-    }
+//    @Test
+//    public void GivenPurchaseConstraintFailure_WhenImmediatePurchase_ThenPurchaseCancelled() {
+//        //not relevant until V2
+//    }
 
     // 3.9 - Submitting a Purchase Offer (Bid)
 
     @Test
     public void GivenValidBidAndOfferConfirmed_WhenSubmittingPurchaseOffer_ThenOfferAcceptedAndPurchaseEnabled() {
-        // Empty body for positive acceptance test scenario
-
+        //lets create a store
+        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
+        //lets add a product to the store
+        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+        double offered_price = 5;
+        assert userService.bidPurchase(offered_price,"testStore","testProduct",defaultBuyerEmail).isSuccess();
     }
     @Test
     public void GivenProductDeletedWhileUserAttemptsPurchase_WhenSubmittingPurchaseOffer_ThenPurchaseFailsWithProductNotAvailable(){
-
+        //lets create a store
+        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
+        //lets add a product to the store
+        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+        //add the product to the cart
+        userService.addToCart(buyerSessionKey, 1, 1);
+        storeService.deleteProduct(sellerSessionKey,"testStore","testProduct");
+        userService.immediatePurchase("testStore","testProduct",defaultBuyerEmail);
     }
 
+    @Test
     public void GivenTwoOwnersAssignSameUserAsManagerSimultaneously_WhenSubmittingAssignmentRequest_ThenOnlyOneAssignmentIsPersisted(){
 
     }
-    @Test
-    public void GivenInvalidBidOrPolicyViolation_WhenSubmittingPurchaseOffer_ThenOfferRejected() {
-        // Empty body for negative acceptance test scenario
-    }
+//    @Test
+//    public void GivenInvalidBidOrPolicyViolation_WhenSubmittingPurchaseOffer_ThenOfferRejected() {
+//        // not relevant
+//
+//    }
 
     // 3.10 - Buying an Item in Auction
 
     @Test
     public void GivenHighestBid_WhenBuyingItemInAuction_ThenItemSoldToUser() {
-        // Empty body for positive acceptance test scenario
+        //lets create a store
+        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
+        //lets add a product to the store
+        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+        //add the product to the cart
+        double offered_price1 = 12;
+        userService.bidPurchase(offered_price1,"testStore","testProduct",defaultBuyerEmail);
+        userService.register("buyer2","buyer2@gmail.com","Abc123");
+        String sessionKey2 = userService.login("buyer2@gmail.com","Abc123").getData();
+        double offered_price2 = 15;
+        userService.bidPurchase(offered_price2,"testStore","testProduct","buyer2@gmail.com");
+        assert userService.addToCart(sessionKey2, 1,1).isSuccess();
+
     }
 
     @Test
     public void GivenBidBelowCurrentHighest_WhenBuyingItemInAuction_ThenPurchaseFails() {
-        // Empty body for negative acceptance test scenario
+        //lets create a store
+        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
+        //lets add a product to the store
+        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+        //add the product to the cart
+        double offered_price1 = 12;
+        userService.bidPurchase(offered_price1,"testStore","testProduct",defaultBuyerEmail);
+        userService.register("buyer2","buyer2@gmail.com","Abc123");
+        String sessionKey2 = userService.login("buyer2@gmail.com","Abc123").getData();
+        double offered_price2 = 11;
+        userService.bidPurchase(offered_price2,"testStore","testProduct","buyer2@gmail.com");
+        assert !userService.addToCart(sessionKey2, 1,1).isSuccess();
     }
 
     // 3.11 - Buying an Item in Lottery
 
-    @Test
-    public void GivenWinningLotteryOutcome_WhenBuyingItemInLottery_ThenItemPurchased() {
-        // Empty body for positive acceptance test scenario
-    }
+//    @Test
+//    public void GivenWinningLotteryOutcome_WhenBuyingItemInLottery_ThenItemPurchased() {
+//        // not relevant
+//    }
 
-    @Test
-    public void GivenNonWinningLotteryOutcome_WhenBuyingItemInLottery_ThenPurchaseNotCompleted() {
-        // Empty body for negative acceptance test scenario
-    }
+//    @Test
+//    public void GivenNonWinningLotteryOutcome_WhenBuyingItemInLottery_ThenPurchaseNotCompleted() {
+//        // not relevant
+//    }
 
     // multithreading test
     @Test
