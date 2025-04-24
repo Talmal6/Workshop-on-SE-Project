@@ -1,7 +1,6 @@
 package com.SEGroup.Domain;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ProductRepository implements IProductRepository {
     private final Map<String, List<Product>> storeProducts = new HashMap<>(); // A map to hold store names and their products <storeName, List<Product>>
@@ -100,5 +99,9 @@ public class ProductRepository implements IProductRepository {
         if (findById(productName) == null) {
             throw new IllegalArgumentException("Product with name '" + productName + "' does not exist.");
         }
+    }
+    @Override
+    public Product getProduct(String productName) {
+        return findById(productName);
     }
 }
