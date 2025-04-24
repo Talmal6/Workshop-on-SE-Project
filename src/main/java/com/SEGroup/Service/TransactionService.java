@@ -3,7 +3,6 @@ package com.SEGroup.Service;
 import com.SEGroup.Domain.Transaction;
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.Product;
-import com.SEGroup.Domain.Store;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.IPaymentGateway;
 import java.util.List;

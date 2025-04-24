@@ -1,4 +1,6 @@
 package com.SEGroup.Domain;
+import com.SEGroup.Domain.Store.Store;
+
 import java.util.List;
 
 public interface IStoreRepository {
