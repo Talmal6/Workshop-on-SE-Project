@@ -8,7 +8,9 @@ public class ShoppingProduct {
     private double price;
     private int quantity;
 
+    //bids and auction
     private final List<Bid> bids;
+    private Auction auction;
     private BuyingPolicy buyingPolicy;
 
     public ShoppingProduct(String productId, String name, double price, int quantity) {
@@ -61,5 +63,12 @@ public class ShoppingProduct {
 
     public Optional<Bid> getHighestBid() {
         return bids.stream().max(Comparator.comparingDouble(Bid::getAmount));
+    }
+    public void startAuction(double startingPrice, Date endTime) {
+        this.auction = new Auction(startingPrice, endTime);
+    }
+
+    public Auction getAuction() {
+        return auction;
     }
 }
