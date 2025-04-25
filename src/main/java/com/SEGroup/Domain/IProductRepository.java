@@ -2,6 +2,8 @@ package com.SEGroup.Domain;
 
 import java.util.List;
 
+import com.SEGroup.DTO.ProductDTO;
+
 public interface IProductRepository {
 
     List<ProductDTO> getAllProducts();
@@ -10,6 +12,8 @@ public interface IProductRepository {
 
     List<ProductDTO> getProductsFromCategory(String category);
 
-    void addNewProductToCatalog(String catalogID, String );
+    void addNewProductToCatalog(String catalogID );
+
+    ProductDTO  getProduct(String productId);
 
 }

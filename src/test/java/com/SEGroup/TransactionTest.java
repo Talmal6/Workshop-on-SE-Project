@@ -1,7 +1,9 @@
 package com.SEGroup;
 
-import com.SEGroup.Domain.Transaction;
 import org.junit.jupiter.api.Test;
+
+import com.SEGroup.Domain.Product.Transaction;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TransactionTest {

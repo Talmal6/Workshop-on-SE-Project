@@ -3,6 +3,8 @@ package com.SEGroup.Domain;
 import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
+import com.SEGroup.DTO.BasketDTO;
+
 
 import java.util.List;
 import java.util.Set;
@@ -27,6 +29,10 @@ public interface IUserRepository {
     void appointManager(String storeName, String Email);
 
     void deleteRoles(List<String> Emails,String storeName); //function that delete all emails roles that connected to sepecific store
+
+    List<BasketDTO> getUserCart(String email); //get cart DTO and 
+
+    void clearUserCart(String email);
 
 
 

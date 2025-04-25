@@ -2,6 +2,7 @@ package com.SEGroup.Domain;
 
 import java.util.List;
 
+import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.StoreDTO;
 
 public interface IStoreRepository {
@@ -44,5 +45,11 @@ public interface IStoreRepository {
     List<String> getAllManagers(String storeName, String operatorEmail);
 
     void addToBalance(String userBySession, String storeName, double amount);
+
+    void removeItemsFromStores(List<BasketDTO> basketDTO);
+
+    void rollBackItemsToStores(List<BasketDTO> basketDTO);
+
+    
 
 }
