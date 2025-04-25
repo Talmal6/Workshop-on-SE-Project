@@ -6,7 +6,7 @@ import java.util.List;
 public class ProductCatalog {
     private final String storeName;
     private final List<Product> products;
-    private final Map<String, List<String>>
+
     public ProductCatalog(String storeName) {
         this.storeName = storeName;
         this.products = new ArrayList<>();

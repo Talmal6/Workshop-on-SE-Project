@@ -1,20 +1,25 @@
-package com.SEGroup.Domain;
-
+package com.SEGroup.DTO;
 import java.util.List;
 
 
-public class Transaction {
+
+
+public class TransactionDTO {
     private List<String> itemsToTransact;
     private double cost;
     private String buyersEmail;
-    private String storeName;
+    private String sellerStore;
 
-    // Constructor
-    public Transaction(List<String> shoppingProductIds, double cost, String buyersEmail, String storeName) {
-        this.itemsToTransact = shoppingProductIds;
+    // Default constructor
+    public TransactionDTO() {
+    }
+
+    // Parameterized constructor
+    public TransactionDTO(List<String> itemsToTransact, double cost, String buyersEmail, String sellerStore) {
+        this.itemsToTransact = itemsToTransact;
         this.cost = cost;
         this.buyersEmail = buyersEmail;
-        this.storeName = storeName;
+        this.sellerStore = sellerStore;
     }
 
     // Getters and setters
@@ -42,15 +47,11 @@ public class Transaction {
         this.buyersEmail = buyersEmail;
     }
 
-    public String getStoreName() {
-        return storeName;
+    public String getSellerStore() {
+        return sellerStore;
     }
 
-    public void setStoreName(String sellerStore) {
-        this.storeName = sellerStore;
+    public void setSellerStore(String sellerStore) {
+        this.sellerStore = sellerStore;
     }
-
-
-
-
 }

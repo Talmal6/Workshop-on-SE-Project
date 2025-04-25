@@ -28,7 +28,7 @@ public class TransactionServiceTests {
     static IUserRepository userRepository;
     static IProductRepository productRepository;
     static StoreService storeService;
-    static UserService userService;
+    static UserService שuserService;
     static String defaultSellerUserName = "seller";
     static String defaultBuyerUserName = "buyer";
     static String defaultSellerEmail = "seller@gmail.com";

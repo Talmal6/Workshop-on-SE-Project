@@ -65,10 +65,10 @@ public class Store {
     public void open(){
         this.isActive = true;
     }
-
     // Products (ShoppingProduct) 4.1
-    public void addProduct(ShoppingProduct product) {
-        products.put(product.getProductId(), product);
+    public void addProductToStore(String product_name, String catalogID, double price, int quantity){
+        ShoppingProduct product = new ShoppingProduct(catalogID, product_name, price, quantity);
+        products.put(catalogID, product);
     }
 
     public ShoppingProduct getProduct(String productId) {
