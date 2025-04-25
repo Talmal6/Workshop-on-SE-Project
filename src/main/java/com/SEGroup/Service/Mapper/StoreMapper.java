@@ -28,7 +28,8 @@ public class StoreMapper {
                 domainInstance.getfounderEmail(),
                 domainInstance.isActive(),
                 domainInstance.getBalance(),
-                productDTOs);
+                productDTOs
+                        ,domainInstance.averageRating());
     }
 
     public List<StoreDTO> toDTOs(List<Store> domainInstances) {
