@@ -3,6 +3,7 @@ package com.SEGroup.Service;
 import java.util.ArrayList;
 
 import com.SEGroup.DTO.ProductDTO;
+import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.*;
@@ -90,14 +91,20 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
-    public Result<Void> addProductToStore(String sessionKey, String storeName, String catalogID, double price,
-            int quantity) {
+    public Result<Void> reopenStore(String sessionKey, String storeName) {
+        try {
+            storeRepository.reopenStore(authenticationService.getUserBySession(sessionKey), storeName);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    public Result<Void> addProductToStore(String sessionKey, String category, String storeName, String catalogID, String product_name,String description, double price,
+                                          int quantity) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            ProductDTO product = productRepository.getProduct(catalogID);
             storeRepository.addProductToStore(authenticationService.getUserBySession(sessionKey), storeName, catalogID,
-                    price, quantity, product);
+                   category, product_name ,description, price, quantity);
             //productRepository.addStoreToProduct(catalogID, storeName);
 
             return Result.success(null);
@@ -106,7 +113,7 @@ public class StoreService {
         }
     }
 
-    public Result<Void> updateShoppingProduct(String sessionKey, String storeName, int productID, String description,
+    public Result<Void> updateShoppingProduct(String sessionKey, String storeName, String productID, String description,
             Double price) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -118,7 +125,7 @@ public class StoreService {
         }
     }
 
-    public Result<Void> deleteShoppingProduct(String sessionKey, String storeName, int productID) {
+    public Result<Void> deleteShoppingProduct(String sessionKey, String storeName, String productID) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             storeRepository.deleteShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName,
@@ -211,7 +218,7 @@ public class StoreService {
         }
     }
 
-    public Result<String> getManagerPermission(String sessionKey, String storeName, String managerEmail) {
+    public Result<List<String>> getManagerPermission(String sessionKey, String storeName, String managerEmail) {
         try {
             authenticationService.authenticate(sessionKey);
             return Result.success(storeRepository.getManagerPermissions(
