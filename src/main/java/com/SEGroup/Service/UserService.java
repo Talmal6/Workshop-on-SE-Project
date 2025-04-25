@@ -3,7 +3,7 @@ package com.SEGroup.Service;
 import java.util.UUID;
 
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.User;
+import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 
@@ -113,7 +113,7 @@ public class UserService {
         try {
             authenticationService.checkSessionKey(sessionKey);
             User user = userRepository.findUserByEmail(email);
-            user.modifyProductQuantityInCart(storeName, productID, quantity);
+            user.cart().changeQty(storeName, productID, quantity);
             return Result.success("Modified product quantity in cart successfully!");
         } catch (Exception e) {
             return Result.failure(e.getMessage());
