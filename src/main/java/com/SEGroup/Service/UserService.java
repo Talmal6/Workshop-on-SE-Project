@@ -3,6 +3,7 @@ package com.SEGroup.Service;
 import java.util.UUID;
 
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
@@ -82,12 +83,14 @@ public class UserService {
             return Result.failure(e.getMessage());
         }
     }
+    public Result<String> addToGuestCart(String guestToken,
+                                         String productId,
+                                         String storeName) {
 
-    public Result<String> addToGuestCart(String guestTok,
-                                         String productId, String store) {
         try {
-            authenticationService.guestCart(guestTok).add(store, productId, 1);
-            return Result.success("added");
+            ShoppingCart cart = guestService.cart(guestToken);   // ← new helper
+            cart.add(storeName, productId, 1);
+            return Result.success("Added item to guest cart successfully!");
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
