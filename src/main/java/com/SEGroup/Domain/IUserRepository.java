@@ -1,5 +1,7 @@
 package com.SEGroup.Domain;
 
+import com.SEGroup.Domain.User.User;
+
 public interface IUserRepository {
     User findUserByEmail(String email);
 
