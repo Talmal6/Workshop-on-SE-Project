@@ -1,12 +1,13 @@
 package com.SEGroup.Service;
 
-import com.SEGroup.Domain.TransactionDTO;
+import com.SEGroup.Domain.Transaction;
 import com.SEGroup.Domain.ITransactionRepository;
+import com.SEGroup.Domain.Product;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.IPaymentGateway;
 import java.util.List;
 
-public class    TransactionService {
+public class TransactionService {
     private final IAuthenticationService authenticationService;
     private final IPaymentGateway paymentGateway;
     private final ITransactionRepository transactionRepository;
@@ -30,24 +31,12 @@ public class    TransactionService {
      */
     public Result<Void> processPayment(String sessionKey, String userEmail, double amount) {
         try {
-            // Validate session
+            // Validate session key and user email
             authenticationService.checkSessionKey(sessionKey);
-
-            // Prepare payment details
             String paymentDetails = String.format("User: %s, Amount: %.2f", userEmail, amount);
-
-            // Process payment through gateway
+            paymentGateway.validatePayment(paymentDetails);
             paymentGateway.processPayment(paymentDetails);
-
-            // Validate payment
-            if (!paymentGateway.validatePayment(paymentDetails)) {
-                return Result.failure("Payment validation failed");
-            }
-            // MAYBE MORE MANIPULATIONS HERE ON STORES AND USERS LIKE NOTIFY AND UPDATE
-            // BALANCE
-
-            // Record transaction
-            TransactionDTO transaction = new TransactionDTO(userEmail, amount);
+            Transaction transaction = new Transaction(userEmail, amount);
             transactionRepository.addTransaction(transaction);
 
             return Result.success(null);
@@ -56,16 +45,56 @@ public class    TransactionService {
         }
     }
 
-
-    public Result<List<TransactionDTO>> getTransactionHistory(String sessionKey, String userEmail) {
+    public Result<List<Transaction>> getTransactionHistory(String sessionKey, String userEmail) {
         try {
-            // Validate session
             authenticationService.checkSessionKey(sessionKey);
+            List<Transaction> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
+            return Result.success(transactions);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 
-            // Fetch transaction history
-        List<TransactionDTO> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
-        return Result.success(transactions);
+    public Result<Void> addToCart(String sessionKey, String userEmail, String storeName, String shoppingProductId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            Result<Product> product  = storeService.getProduct(sessionKey,storeName ,shoppingProductId);
+            userService.addToUserCart(sessionKey,userEmail, shoppingProductId,storeName);
+            return Result.success(null);
 
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Boolean> purchaseShoppingItem(String sessionKey, String userEmail, String storeName, String shoppingProductId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            Result<Product> product = storeService.getProduct(sessionKey, storeName, shoppingProductId);
+            double amount = product.getData().getPrice(); 
+            Result<Void> res = storeService.checkIfStoreExist(sessionKey, storeName);
+
+            if (res.isFailure()){
+                return Result.failure("Store does not exist: " + storeName);
+            }
+
+            processPayment(sessionKey, userEmail, amount);
+            storeService.addToStoreBalance(sessionKey, storeName, amount); 
+            return Result.success(true);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    public Result<Void> viewPurcaseHistory(String sessionKey, String userEmail) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            List<Transaction> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
+            for (Transaction transaction : transactions) {
+                System.out.println(transaction.toString());
+            }
+            return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }

@@ -1,6 +1,7 @@
 package com.SEGroup.Service;
 
 import com.SEGroup.Domain.*;
+import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import java.util.List;
 
@@ -23,31 +24,28 @@ public class StoreService {
     }
 
     // === Guest / Public Viewing ===
-    public Result<List<StoreDTO>> viewPublicStores() {
+    public Result<List<Store>> viewPublicStores() {
         try {
-            List<StoreDTO> allStores = storeRepository.getAllStores();
+            List<Store> allStores = storeRepository.getAllStores();
             return Result.success(allStores);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<List<ProductDTO>> viewPublicProductCatalog() {
+    public Result<List<Product>> viewPublicProductCatalog() {
         try {
-            List<ProductDTO> catalog = productRepository.getAllProducts();
+            List<Product> catalog = productRepository.getAllProducts();
             return Result.success(catalog);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<List<ProductDTO>> viewPublicStoreProducts(String storeName) {
+    public Result<List<Product>> viewPublicStoreProducts(String storeName) {
         try {
-            StoreDTO store = storeRepository.findByName(storeName);
-            if (store == null) {
-                return Result.failure("Store not found: " + storeName);
-            }
-            List<ProductDTO> products = productRepository.getProductsByStoreName(storeName);
+            storeRepository.checkIfExist(storeName);
+            List<Product> products = productRepository.getProductsByStoreName(storeName);
             return Result.success(products);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -65,12 +63,8 @@ public class StoreService {
                                    double price) {
         try {
             ensureAuthenticated(sessionKey);
-            StoreDTO store = storeRepository.findByName(storeName);
-            if (store == null) {
-                return Result.failure("Store not found: " + storeName);
-            }
-            ProductDTO product = new ProductDTO(productName);
-            productRepository.addProduct(product);
+            storeRepository.checkIfExist(storeName);
+            productRepository.addProduct(productName,storeName, price);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -79,30 +73,27 @@ public class StoreService {
 
     public Result<Void> updateProduct(String sessionKey,
                                       String storeName,
+                                      String productId,
                                       String productName,
-                                      double newPrice) {
+                                      double price) {
         try {
             ensureAuthenticated(sessionKey);
-            StoreDTO store = storeRepository.findByName(storeName);
-            if (store == null) {
-                return Result.failure("Store not found: " + storeName);
-            }
-            productRepository.updateProduct(productName, storeName, newPrice);
+            storeRepository.checkIfExist(storeName);
+            Product product = productRepository.findById(productId);
+            productRepository.updateProduct(product);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
+
     public Result<Void> deleteProduct(String sessionKey,
                                       String storeName,
                                       String productName) {
         try {
             ensureAuthenticated(sessionKey);
-            StoreDTO store = storeRepository.findByName(storeName);
-            if (store == null) {
-                return Result.failure("Store not found: " + storeName);
-            }
+            storeRepository.checkIfExist(storeName);
             productRepository.deleteProduct(productName, storeName);
             return Result.success(null);
         } catch (Exception e) {
@@ -115,10 +106,7 @@ public class StoreService {
                                     String ownerEmail) {
         try {
             ensureAuthenticated(sessionKey);
-            if (storeRepository.existsByName(storeName)) {
-                return Result.failure("Store already exists: " + storeName);
-            }
-            StoreDTO store = new StoreDTO(storeName, ownerEmail);
+            Store store = new Store(storeName, ownerEmail);
             storeRepository.addStore(store);
             return Result.success(null);
         } catch (Exception e) {
@@ -131,11 +119,8 @@ public class StoreService {
                                         String newStoreName) {
         try {
             ensureAuthenticated(sessionKey);
-            StoreDTO store = storeRepository.findByName(storeName);
-            if (store == null) {
-                return Result.failure("Store not found: " + storeName);
-            }
-            store.setName(newStoreName);
+            Store store = storeRepository.findByName(storeName);
+            storeRepository.changeStoreName(storeName,newStoreName);
             storeRepository.updateStore(store);
             return Result.success(null);
         } catch (Exception e) {
@@ -147,60 +132,51 @@ public class StoreService {
                                     String storeName) {
         try {
             ensureAuthenticated(sessionKey);
-            StoreDTO store = storeRepository.findByName(storeName);
-            if (store == null) {
-                return Result.failure("Store not found: " + storeName);
-            }
-            storeRepository.deleteStore(store.getName());
+            storeRepository.checkIfExist(storeName);
+            storeRepository.deleteStore(storeName);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<StoreDTO> viewStore(String sessionKey,
+    public Result<Store> viewStore(String sessionKey,
                                       String storeName) {
         try {
             ensureAuthenticated(sessionKey);
-            StoreDTO store = storeRepository.findByName(storeName);
-            if (store == null) {
-                return Result.failure("Store not found: " + storeName);
-            }
+            Store store = storeRepository.findByName(storeName);
             return Result.success(store);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<List<StoreDTO>> viewAllStores(String sessionKey) {
+    public Result<List<Store>> viewAllStores(String sessionKey) {
         try {
             ensureAuthenticated(sessionKey);
-            List<StoreDTO> allStores = storeRepository.getAllStores();
+            List<Store> allStores = storeRepository.getAllStores();
             return Result.success(allStores);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<List<ProductDTO>> viewStoreProducts(String sessionKey,
+    public Result<List<Product>> viewStoreProducts(String sessionKey,
                                                        String storeName) {
         try {
             ensureAuthenticated(sessionKey);
-            StoreDTO store = storeRepository.findByName(storeName);
-            if (store == null) {
-                return Result.failure("Store not found: " + storeName);
-            }
-            List<ProductDTO> products = productRepository.getProductsByStoreName(storeName);
+            storeRepository.checkIfExist(storeName);
+            List<Product> products = productRepository.getProductsByStoreName(storeName);
             return Result.success(products);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<List<ProductDTO>> viewProductCatalog(String sessionKey) {
+    public Result<List<Product>> viewProductCatalog(String sessionKey) {
         try {
             ensureAuthenticated(sessionKey);
-            List<ProductDTO> catalog = productRepository.getAllProducts();
+            List<Product> catalog = productRepository.getAllProducts();
             return Result.success(catalog);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -208,25 +184,144 @@ public class StoreService {
     }
 
     // === Search/Browse ===
-    public Result<List<ProductDTO>> searchProducts(String sessionKey, String query) {
+    public Result<List<Product>> searchProducts(String sessionKey, String query) {
         try {
             ensureAuthenticated(sessionKey);
-            List<ProductDTO> matches = productRepository.searchProducts(query);
+            List<Product> matches = productRepository.searchProducts(query);
             return Result.success(matches);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<List<ProductDTO>> searchProductsInStore(String sessionKey,
+    public Result<List<Product>> searchProductsInStore(String sessionKey,
                                                            String storeName,
                                                            String query) {
         try {
             ensureAuthenticated(sessionKey);
-            List<ProductDTO> matches = productRepository.searchInStore(storeName, query);
+            List<Product> matches = productRepository.searchInStore(storeName, query);
             return Result.success(matches);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
+
+
+    public Result<Product> getProduct(String sessionKey, String storeName, String shoppingProductId) {
+        try {
+            ensureAuthenticated(sessionKey);
+            storeRepository.checkIfExist(storeName);
+            Product product = productRepository.getProduct(shoppingProductId);
+            return Result.success(product);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    //3.4
+    public Result<Void> rateProduct(String sessionKey,
+                                   String storeName,
+                                   String productName,
+                                   int rating,
+                                   String review) {
+        try {
+            ensureAuthenticated(sessionKey);
+            storeRepository.checkIfExist(storeName);
+            Product product = productRepository.findById(productName);
+            product.addReview(rating, review);
+            productRepository.updateProduct(product);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Void> addToStoreBalance(String sessionKey,
+                                        String storeName,
+                                        double amount ) {
+        try {
+            ensureAuthenticated(sessionKey);
+            Store store = storeRepository.findByName(storeName);
+            store.addToBalance(amount);
+            storeRepository.updateStore(store);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    public Result<Void> checkIfStoreExist(String sessionKey, String storeName) {
+        try {
+            ensureAuthenticated(sessionKey);
+            storeRepository.checkIfExist(storeName);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    //3.3
+    public Result<Void> rateStore(String sessionKey,
+                                  String storeName,
+                                  int rating,
+                                  String review) {
+        try {
+            ensureAuthenticated(sessionKey);
+            Store store = storeRepository.findByName(storeName);
+            store.rateStore(rating, review);
+            storeRepository.updateStore(store);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    public Result<List<Product>> getStoreProductsWithQuery(String sessionKey, String storeName, String query) {
+        try {
+            ensureAuthenticated(sessionKey);
+            storeRepository.checkIfExist(storeName);
+            List<Product> matches = productRepository.searchInStore(storeName, query);
+            return Result.success(matches);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    //3.9
+    public Result<Void> submitBidToShoppingItem(String sessionKey,
+                                                String storeName,
+                                                String productId,
+                                                double bidAmount,
+                                                String bidderEmail) {
+        try {
+            ensureAuthenticated(sessionKey);
+            storeRepository.checkIfExist(storeName);
+            productRepository.checkIfExist(productId);
+            Store store = storeRepository.findByName(storeName);
+            store.submitBidToShoppingItem(productId, bidAmount, bidderEmail);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    //3.11
+    public Result<Void> sendAuctionOffer(String sessionKey,
+                                                String storeName,
+                                                String productId,
+                                                double bidAmount,
+                                                String bidderEmail) {
+        try {
+            ensureAuthenticated(sessionKey);
+            storeRepository.checkIfExist(storeName);
+            productRepository.checkIfExist(productId);
+            Store store = storeRepository.findByName(storeName);
+            store.submitAuctionOffer(productId, bidAmount, bidderEmail);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 }
+
+ 
