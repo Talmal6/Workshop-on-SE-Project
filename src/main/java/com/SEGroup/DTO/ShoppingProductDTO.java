@@ -8,8 +8,9 @@ public class ShoppingProductDTO {
     private int quantity;
     private String category;
     private String storeName;
+    private double avgRating;
 
-    public ShoppingProductDTO(String storeName, String category,String productId, String name,String description, double price, int quantity) {
+    public ShoppingProductDTO(String storeName, String category,String productId, String name,String description, double price, int quantity,double avgRating) {
         this.productId = productId;
         this.name = name;
         this.description= description;
@@ -17,6 +18,7 @@ public class ShoppingProductDTO {
         this.quantity = quantity;
         this.category = category;
         this.storeName = storeName;
+        this.avgRating = avgRating;
     }
 
     public String getProductId() {

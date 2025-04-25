@@ -18,10 +18,15 @@ public class StoreMapper {
 
         for (ShoppingProduct product : domainInstance.getAllProducts()) {
             productDTOs.add(new ShoppingProductDTO(
+                    product.getStoreName(),
+                    product.getCategory(),
                     product.getProductId(),
                     product.getName(),
+                    product.getDescription(),
                     product.getPrice(),
-                    product.getQuantity()));
+                    product.getQuantity(),
+                    product.averageRating()
+            ));
         }
         return new StoreDTO(domainInstance.getId(),
                 domainInstance.getName(),

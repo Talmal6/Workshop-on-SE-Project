@@ -35,4 +35,10 @@ public class Basket {
 
         return storeId;
     }
+    public void clear() {
+
+        product2qty.clear();
+    }
+
+
 }

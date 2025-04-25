@@ -1,5 +1,6 @@
 package com.SEGroup.Domain.Store;
 
+import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IStoreRepository;
@@ -232,9 +233,58 @@ public class StoreRepository implements IStoreRepository {
                     product.getName(),
                     product.getDescription(),
                     product.getPrice(),
-                    product.getQuantity()
+                    product.getQuantity(),
+                    product.averageRating()
             ));
         }
         return dtos;
+    }
+
+    @Override
+    public void removeItemsFromStores(List<BasketDTO> basketDTOList) {
+        List<BasketDTO> succeededRemovals = new ArrayList<>();
+        try {
+            for (BasketDTO basketDTO : basketDTOList) {
+                Store store = findByName(basketDTO.storeId());
+
+                for (Map.Entry<String, Integer> entry : basketDTO.prod2qty().entrySet()) {
+                    String productId = entry.getKey();
+                    int quantityToRemove = entry.getValue();
+
+                    ShoppingProduct product = store.getProduct(productId);
+                    if (product == null) {
+                        throw new RuntimeException("Product not found: " + productId);
+                    }
+
+                    if (product.getQuantity() < quantityToRemove) {
+                        throw new RuntimeException("Not enough quantity for product: " + productId);
+                    }
+
+                    product.setQuantity(product.getQuantity() - quantityToRemove);
+                }
+
+                succeededRemovals.add(basketDTO);
+            }
+        } catch (Exception e) {
+            // Rollback all previously succeeded removals
+            rollBackItemsToStores(succeededRemovals);
+            throw new RuntimeException("Failed to remove items from stores: " + e.getMessage());
+        }
+    }
+    @Override
+    public void rollBackItemsToStores(List<BasketDTO> basketDTOList) {
+        for (BasketDTO basketDTO : basketDTOList) {
+            Store store = findByName(basketDTO.storeId());
+
+            for (Map.Entry<String, Integer> entry : basketDTO.prod2qty().entrySet()) {
+                String productId = entry.getKey();
+                int quantityToAddBack = entry.getValue();
+
+                ShoppingProduct product = store.getProduct(productId);
+                if (product != null) {
+                    product.setQuantity(product.getQuantity() + quantityToAddBack);
+                }
+            }
+        }
     }
 }

@@ -26,6 +26,11 @@ public class ShoppingCart {
     public Map<String, Basket> snapShot(){
         return Collections.unmodifiableMap(storeToBasket);
 
+    }
 
+    public void clear() {
+
+        storeToBasket.values().forEach(Basket::clear);
+        storeToBasket.clear();
     }
 }

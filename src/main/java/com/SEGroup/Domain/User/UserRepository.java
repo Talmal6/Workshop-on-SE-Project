@@ -1,6 +1,9 @@
 package com.SEGroup.Domain.User;
 
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Service.Mapper.BasketMapper;
+import com.SEGroup.DTO.BasketDTO;
+
 
 import java.util.EnumSet;
 import java.util.List;
@@ -35,9 +38,14 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
-    public ShoppingCart getUserCart(String email) {
-        User u = requireUser(email);
-        return u.cart();
+    public List<BasketDTO> getUserCart(String email) {
+        User user = requireUser(email);
+
+        return user.cart().snapShot()            // Map<storeId, Basket>
+                .entrySet()
+                .stream()
+                .map(e -> BasketMapper.toDTO(e.getKey(), e.getValue()))
+                .toList();                     // Java 17+, else collect(Collectors.toList())
     }
 
     @Override
@@ -99,7 +107,13 @@ public class UserRepository implements IUserRepository {
         }
     }
 
-
+    @Override
+    public void clearUserCart(String email) {
+        User u = requireUser(email);        // will throw if not found
+        synchronized (u) {
+            u.cart().clear();
+        }
+    }
 
 
 
