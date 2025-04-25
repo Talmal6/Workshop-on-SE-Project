@@ -34,8 +34,11 @@ public class UserRepository implements IUserRepository {
             throw new IllegalArgumentException("User not found: " + email);
     }
 
-
-
+    @Override
+    public ShoppingCart getUserCart(String email) {
+        User u = requireUser(email);
+        return u.cart();
+    }
 
     @Override
     public void addToCart(User user, int storeID, int productID) {
@@ -95,6 +98,8 @@ public class UserRepository implements IUserRepository {
                     forEach(role->u.removeRole(storeName,role));
         }
     }
+
+
 
 
 }

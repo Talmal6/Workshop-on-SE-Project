@@ -22,14 +22,16 @@ public class GuestService {
         return Result.success(guestId);
     }
 
-    public Result<ShoppingCart> guestCart(String guestToken) {
-        try {
-            auth.checkSessionKey(guestToken);
-            String guestId = auth.getUserBySession(guestToken);
-            return Result.success(guests.cartOf(guestId));
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
+    public ShoppingCart cart(String guestToken) throws Exception {
+
+        auth.checkSessionKey(guestToken);
+        String subject = auth.getUserBySession(guestToken);
+        if (!subject.startsWith("guest:"))
+            throw new IllegalArgumentException("token does not belong to a guest");
+
+        String guestId = subject.substring("guest:".length());
+
+        return guests.cartOf(guestId);
     }
 
 }

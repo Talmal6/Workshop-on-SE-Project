@@ -28,6 +28,7 @@ public interface IUserRepository {
 
     void deleteRoles(List<String> Emails,String storeName); //function that delete all emails roles that connected to sepecific store
 
+    ShoppingCart getUserCart(String email);
 
 
 }
