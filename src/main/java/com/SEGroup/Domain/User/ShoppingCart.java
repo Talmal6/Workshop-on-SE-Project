@@ -22,7 +22,6 @@ public class ShoppingCart {
     }
 
 
-
     public Map<String, Basket> snapShot(){
         return Collections.unmodifiableMap(storeToBasket);
 

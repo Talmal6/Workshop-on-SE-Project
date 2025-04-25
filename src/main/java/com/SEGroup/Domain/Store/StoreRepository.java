@@ -15,6 +15,7 @@ public class StoreRepository implements IStoreRepository {
         return new ArrayList<>(stores);
     }
 
+
     @Override
     public Store findByName(String name) {
         Store find_store = stores.stream()
