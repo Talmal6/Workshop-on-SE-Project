@@ -6,6 +6,7 @@ import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.IPaymentGateway;
+import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.StoreService;
 import com.SEGroup.Service.TransactionService;
 import com.SEGroup.Service.UserService;
@@ -32,6 +33,7 @@ public class StoreServiceTests {
     static String defaultUserEmail = "default_Email@myEmail.com";
     static String defaultUserPassword = "defaultPassword123";
     static String defaultSessionKey;
+    static GuestService guestService;
     static String defaultStoreName = "Supermarket";
 
     // 3.2 - Create New Store
@@ -39,23 +41,23 @@ public class StoreServiceTests {
     public void GivenLoggedInUser_WhenCreatingNewStore_ThenStoreCreatedSuccessfully() {
         assert userService.register("Student1", defaultUserEmail, defaultUserPassword).isSuccess();
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
-        assert storeService.createStore(defaultSessionKey, "Super-pharm", defaultUserEmail).isSuccess();
+        assert storeService.createStore(defaultSessionKey, "Super-pharm").isSuccess();
     }
 
-    @BeforeAll
+    @BeforeEach
     public static void init() {
         authenticationService = mock(IAuthenticationService.class);
         transactionRepository = mock(ITransactionRepository.class);
         storeRepository = mock(IStoreRepository.class);
         userRepository = mock(IUserRepository.class);
         productRepository = mock(IProductRepository.class);
-        storeService = new StoreService(storeRepository, productRepository, authenticationService);
-        userService = new UserService(userRepository, authenticationService);
+        storeService = new StoreService(storeRepository, productRepository, authenticationService,userRepository);
+        userService = new UserService(guestService, userRepository, authenticationService);
         // register and login default user
         userService.register("defaultUser", defaultUserEmail, defaultUserPassword);
         defaultSessionKey = authenticationService.authenticate(defaultUserEmail);
-        when(authenticationService.authenticate(defaultUserEmail)).thenReturn(defaultSessionKey);
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
+        defaultSessionKey = authenticationService.authenticate(defaultUserEmail);
+        storeService.createStore(defaultSessionKey, defaultStoreName);
 
     }
 
@@ -78,21 +80,21 @@ public class StoreServiceTests {
     public void GivenGuestUser_WhenCreatingNewStore_ThenStoreCreationFails() {
         // login as guest
         String guestSessionKey = userService.guestLogin().getData();
-        assert !storeService.createStore(guestSessionKey, "Guest-Store", defaultUserEmail).isSuccess();
+        assert !storeService.createStore(guestSessionKey, "Guest-Store").isSuccess();
     }
 
     // 4.1 - Manage Store Inventory
     @Test
     public void GivenValidProductDetails_WhenManagingStoreInventory_ThenInventoryUpdated() {
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
-        assert storeService.addProduct(defaultSessionKey, defaultStoreName, "Milk", 7.18).isSuccess();
+        storeService.createStore(defaultSessionKey, defaultStoreName);
+        assert storeService.addProductToStore(defaultSessionKey, defaultStoreName, "Milk", 7.18,2).isSuccess();
     }
 
     @Test
     public void GivenInvalidProductDetailsOrUnauthorizedUser_WhenManagingStoreInventory_ThenOperationFails() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
 
-        assert !storeService.addProduct(defaultSessionKey, defaultStoreName, "Milk", -10).isSuccess();
+        assert !storeService.addProductToStore(defaultSessionKey, defaultStoreName, "Milk", -10,1).isSuccess();
     }
 
     // 4.2 - Change Store Purchase and Discount Policies
@@ -110,67 +112,52 @@ public class StoreServiceTests {
     // 4.3 - Appoint Co-Owner
     @Test
     public void GivenValidCoOwnerDetails_WhenAppointingCoOwner_ThenCoOwnerAdded() {
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
-        assert storeService.addCoOwner(defaultSessionKey, defaultStoreName, "CoOwner1", defaultUserEmail).isSuccess();
+        storeService.createStore(defaultSessionKey, defaultStoreName);
+        assert storeService.appointOwner(defaultSessionKey, defaultStoreName, "CoOwner1@gmail.com").isSuccess();
     }
 
     @Test
     public void GivenDuplicateOrInvalidCoOwnerDetails_WhenAppointingCoOwner_ThenOperationFails() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
 
-        assert !storeService.addCoOwner(defaultSessionKey, defaultStoreName, "CoOwner1", defaultUserEmail).isSuccess();
+        assert !storeService.appointOwner(defaultSessionKey, defaultStoreName, "CoOwner1@gmail.com").isSuccess();
     }
 
     // 4.4 - Remove Co-Owner
     @Test
     public void GivenValidCoOwnerRemoval_WhenRemovingCoOwner_ThenCoOwnerRemoved() {
 
-        assert storeService.removeCoOwner(defaultSessionKey, defaultStoreName, "CoOwner1").isSuccess();
+        assert storeService.removeOwner(defaultSessionKey, defaultStoreName, "CoOwner1@gmail.com").isSuccess();
     }
 
     @Test
     public void GivenInvalidOrUnauthorizedCoOwnerRemoval_WhenRemovingCoOwner_ThenOperationFails() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
 
-        assert !storeService.removeCoOwner(defaultSessionKey, defaultStoreName, "NonExistentCoOwner").isSuccess();
+        assert !storeService.removeOwner(defaultSessionKey, defaultStoreName, "NonExistentCoOwner").isSuccess();
     }
 
-    // 4.6(a) - Proposing a Store Manager Appointment for a Subscribed User
-    @Test
-    public void GivenValidManagerDetails_WhenProposingStoreManagerAppointment_ThenAppointmentProcessed() {
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
-        assert storeService.proposeStoreManager(defaultSessionKey, defaultStoreName, "Manager1", defaultUserEmail)
-                .isSuccess();
-    }
-
-    @Test
-    public void GivenInvalidManagerDetailsOrUnauthorizedUser_WhenProposingStoreManagerAppointment_ThenOperationFails() {
-        String sessionKey = authenticationService.authenticate(defaultUserEmail);
-
-        assert !storeService
-                .proposeStoreManager(defaultSessionKey, defaultStoreName, "InvalidManager", defaultUserEmail)
-                .isSuccess();
-    }
-
-    // 4.6(b) - Approving Store Manager Appointment Proposal
     @Test
     public void GivenPendingAppointmentProposal_WhenApprovingStoreManagerAppointment_ThenManagerAppointed() {
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
-        assert storeService.approveStoreManager(defaultSessionKey, defaultStoreName, "Manager1").isSuccess();
+        storeService.createStore(defaultSessionKey, defaultStoreName);
+        assert storeService.appointManager(defaultSessionKey, defaultStoreName, "Manager1@gmail.com", null)
+                .isSuccess();
     }
 
     @Test
     public void GivenInvalidOrMultipleAppointmentRequests_WhenApprovingStoreManagerAppointment_ThenOperationFails() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
 
-        assert !storeService.approveStoreManager(defaultSessionKey, defaultStoreName, "InvalidManager").isSuccess();
+        assert !storeService
+                .appointManager(defaultSessionKey, defaultStoreName, "InvalidManager", null)
+                .isSuccess();
     }
 
     // 4.7 - Changing Store Manager Permissions
     @Test
     public void GivenValidPermissionUpdate_WhenChangingStoreManagerPermissions_ThenPermissionsUpdated() {
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
-        assert storeService.updateStoreManagerPermissions(defaultSessionKey, defaultStoreName, "Manager1", true)
+        storeService.createStore(defaultSessionKey, defaultStoreName);
+        assert storeService.updateManagerPermissions(defaultSessionKey, defaultStoreName, "Manager1@gmail.com", null)
                 .isSuccess();
     }
 
@@ -178,14 +165,14 @@ public class StoreServiceTests {
     public void GivenUnauthorizedPermissionUpdate_WhenChangingStoreManagerPermissions_ThenOperationFails() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
 
-        assert !storeService.updateStoreManagerPermissions(defaultSessionKey, defaultStoreName, "InvalidManager", false)
+        assert !storeService.updateManagerPermissions(defaultSessionKey, defaultStoreName, "InvalidManager", null)
                 .isSuccess();
     }
 
     // 4.9 - Closing a Store
     @Test
     public void GivenValidStoreClosureRequest_WhenClosingStore_ThenStoreClosedSuccessfully() {
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
+        storeService.createStore(defaultSessionKey, defaultStoreName);
         assert storeService.closeStore(defaultSessionKey, defaultStoreName).isSuccess();
     }
 
@@ -199,35 +186,35 @@ public class StoreServiceTests {
     // 4.11(a) - Information on Store Roles
     @Test
     public void GivenStoreOwnerRequest_WhenRetrievingStoreRoles_ThenRolesInformationDisplayed() {
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
-        assert storeService.getStoreRoles(defaultSessionKey, defaultStoreName).isSuccess();
+        storeService.createStore(defaultSessionKey, defaultStoreName);
+        assert storeService.getManagerPermission(defaultSessionKey, defaultStoreName, defaultUserEmail).isSuccess();
     }
 
     @Test
     public void GivenUnauthorizedStoreOwnerRequest_WhenRetrievingStoreRoles_ThenAccessDenied() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
 
-        assert !storeService.getStoreRoles(defaultSessionKey, defaultStoreName).isSuccess();
+        assert !storeService.getManagerPermission(sessionKey, defaultStoreName, "Invalid").isSuccess();
     }
 
     // 4.11(b) - View Purchase History in Store (Manager Permissions)
     @Test
     public void GivenStoreOwnerRequest_WhenViewingManagerPermissions_ThenPermissionsDisplayed() {
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
-        assert storeService.getManagerPermissions(defaultSessionKey, defaultStoreName).isSuccess();
+        storeService.createStore(defaultSessionKey, defaultStoreName);
+        assert storeService.getManagerPermission(defaultSessionKey, defaultStoreName, defaultUserEmail).isSuccess();
     }
 
     @Test
     public void GivenUnauthorizedStoreOwnerRequest_WhenViewingManagerPermissions_ThenAccessDenied() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
 
-        assert !storeService.getManagerPermissions(defaultSessionKey, defaultStoreName).isSuccess();
+        assert !storeService.getManagerPermission(sessionKey, defaultStoreName, "Invalid").isSuccess();
     }
 
     // 4.11(c) - Retrieving Information About a Specific Role Holder
     @Test
     public void GivenValidRoleHolderRequest_WhenRetrievingSpecificRoleHolderInfo_ThenInformationDisplayed() {
-        storeService.createStore(defaultSessionKey, defaultStoreName, defaultUserEmail);
+        storeService.createStore(defaultSessionKey, defaultStoreName);
         assert storeService.getRoleHolderInfo(defaultSessionKey, defaultStoreName, "Manager1").isSuccess();
     }
 

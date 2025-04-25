@@ -2,10 +2,15 @@ package com.SEGroup.acceptance;
 
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.UserService;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import javax.naming.AuthenticationException;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -13,6 +18,7 @@ import static org.mockito.Mockito.when;
 public class UserServiceTests {
     static IAuthenticationService authenticationService;
     static UserService userService;
+    static GuestService guestService;
     String defaultUserName = "default_Email";
     String defaultUserEmail = "default_Email@myEmail.com";
     String defaultUserPassword = "defaultPassword123";
@@ -20,12 +26,11 @@ public class UserServiceTests {
     boolean isRegistered = false;
     boolean isLoggedIn = false;
 
-    @BeforeAll
-
+    @BeforeEach
     static void init() {
         IUserRepository userRepository = mock(IUserRepository.class);
         authenticationService = mock(IAuthenticationService.class);
-        userService = new UserService(userRepository, authenticationService);
+        userService = new UserService(guestService, userRepository, authenticationService);
     }
     //constructor
     private UserServiceTests(UserService service) {
@@ -108,18 +113,15 @@ public class UserServiceTests {
 
     // Negative Test: Logout is handled gracefully if the session is already expired.
     @Test
-    public void GivenExpiredSession_WhenLoggingOut_ThenLogoutHandledGracefully() {
-        //todo: need  to check what is the expiration timeout for the session and expected behavior
-
+    public void GivenExpiredSession_WhenLoggingOut_ThenLogoutHandledGracefully() throws AuthenticationException {
+        String userName = "test4";
+        String userEmail = "test4@muEmail.com";
+        String userPassword = "testPassword123";
+        userService.register(userName, userEmail, userPassword);
+        String session = authenticationService.authenticate(userEmail);
+        authenticationService.invalidateSession(session);
+        assert userService.logout(session).isSuccess();
     }
 
-    // ---------- Personal Purchase History Tests ----------
 
-    // Positive Test: A logged-in user can retrieve their purchase history.
-
-
-    // Negative Test: A guest or unregistered user cannot retrieve purchase history.
-    @Test
-    public void GivenGuestUser_WhenRequestingPurchaseHistory_ThenAccessIsDenied() {
-    }
 }

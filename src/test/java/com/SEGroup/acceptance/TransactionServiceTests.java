@@ -6,11 +6,9 @@ import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.IPaymentGateway;
-import com.SEGroup.Service.Result;
-import com.SEGroup.Service.TransactionService;
-import com.SEGroup.Service.StoreService;
-import com.SEGroup.Service.UserService;
+import com.SEGroup.Service.*;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.config.Task;
 
@@ -18,8 +16,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TransactionServiceTests {
-
-    // 2.5 - Immediate Purchase of Shopping Cart
     static TransactionService transactionService;
     static IAuthenticationService authenticationService;
     static IPaymentGateway paymentGateway;
@@ -28,7 +24,8 @@ public class TransactionServiceTests {
     static IUserRepository userRepository;
     static IProductRepository productRepository;
     static StoreService storeService;
-    static UserService שuserService;
+    static GuestService guestService;
+    static UserService userService;
     static String defaultSellerUserName = "seller";
     static String defaultBuyerUserName = "buyer";
     static String defaultSellerEmail = "seller@gmail.com";
@@ -39,7 +36,7 @@ public class TransactionServiceTests {
     static String buyerSessionKey;
 
 
-    @BeforeAll
+    @BeforeEach
     static void init() {
         authenticationService = mock(IAuthenticationService.class);
         paymentGateway = mock(IPaymentGateway.class);
@@ -47,25 +44,24 @@ public class TransactionServiceTests {
         storeRepository = mock(IStoreRepository.class);
         userRepository = mock(IUserRepository.class);
         productRepository = mock(IProductRepository.class);
-        storeService = new StoreService(storeRepository, productRepository, authenticationService);
-        userService = new UserService(userRepository, authenticationService);
+        storeService = new StoreService(storeRepository, productRepository, authenticationService, userRepository);
+        userService = new UserService(guestService, userRepository, authenticationService);
         userService.register(defaultBuyerUserName, defaultBuyerEmail, buyerPassword);
         userService.register(defaultSellerUserName, defaultSellerEmail, sellerPassword);
         sellerSessionKey = userService.login(defaultSellerEmail, sellerPassword).getData();
         buyerSessionKey = userService.login(defaultBuyerEmail, buyerPassword).getData();
         transactionService = new TransactionService(authenticationService, paymentGateway, transactionRepository, storeService, userService);
-        transactionService.processPayment("testsessionKey", "testuserEmail", 100.0);
     }
 
     @Test
     public void GivenValidPurchaseConditions_WhenImmediatePurchase_ThenOrderPlacedAndPaymentApproved() {
         //lets create a store
-        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
+        storeService.createStore(sellerSessionKey, "testStore");
         //lets add a product to the store
-        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+        storeService.addProductToStore(sellerSessionKey, "testStore", "testProduct",  10.0, 1);
         //add the product to the cart
-        userService.addToCart(buyerSessionKey, 1, 1);
-        assert userService.immediatePurchase("testStore","testProduct",defaultBuyerEmail).isSuccess();
+        userService.addToUserCart(buyerSessionKey, defaultBuyerEmail,"testProduct", "testProduct");
+        assert userService.purchaseShoppingCart(buyerSessionKey, defaultBuyerEmail).isSuccess();
 
     }
 
@@ -84,22 +80,22 @@ public class TransactionServiceTests {
     @Test
     public void GivenValidBidAndOfferConfirmed_WhenSubmittingPurchaseOffer_ThenOfferAcceptedAndPurchaseEnabled() {
         //lets create a store
-        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
+        storeService.createStore(sellerSessionKey, "testStore");
         //lets add a product to the store
-        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+        storeService.addProductToStore(sellerSessionKey, "testStore", "testProduct",  10.0, 1);
         double offered_price = 5;
         assert userService.bidPurchase(offered_price,"testStore","testProduct",defaultBuyerEmail).isSuccess();
     }
     @Test
     public void GivenProductDeletedWhileUserAttemptsPurchase_WhenSubmittingPurchaseOffer_ThenPurchaseFailsWithProductNotAvailable(){
         //lets create a store
-        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
+        storeService.createStore(sellerSessionKey, "testStore");
         //lets add a product to the store
-        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+        storeService.addProductToStore(sellerSessionKey, "testStore", "testProduct",  10.0, 1);
         //add the product to the cart
-        userService.addToCart(buyerSessionKey, 1, 1);
-        storeService.deleteProduct(sellerSessionKey,"testStore","testProduct");
-        userService.immediatePurchase("testStore","testProduct",defaultBuyerEmail);
+        userService.addToUserCart(buyerSessionKey, defaultBuyerEmail,"testProduct", "testProduct");
+        storeService.deleteShoppingProduct(sellerSessionKey,"testStore","testProduct");
+        userService.purchaseShoppingCart(buyerSessionKey,defaultBuyerEmail);
     }
 
     @Test
@@ -117,9 +113,9 @@ public class TransactionServiceTests {
     @Test
     public void GivenHighestBid_WhenBuyingItemInAuction_ThenItemSoldToUser() {
         //lets create a store
-        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
+        storeService.createStore(sellerSessionKey, "testStore");
         //lets add a product to the store
-        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+        storeService.addProductToStore(sellerSessionKey, "testStore", "testProduct",  10.0, 1);
         //add the product to the cart
         double offered_price1 = 12;
         userService.bidPurchase(offered_price1,"testStore","testProduct",defaultBuyerEmail);
@@ -127,16 +123,16 @@ public class TransactionServiceTests {
         String sessionKey2 = userService.login("buyer2@gmail.com","Abc123").getData();
         double offered_price2 = 15;
         userService.bidPurchase(offered_price2,"testStore","testProduct","buyer2@gmail.com");
-        assert userService.addToCart(sessionKey2, 1,1).isSuccess();
+        assert userService.addToUserCart(buyerSessionKey, defaultBuyerEmail,"testProduct", "testProduct").isSuccess();
 
     }
 
     @Test
     public void GivenBidBelowCurrentHighest_WhenBuyingItemInAuction_ThenPurchaseFails() {
         //lets create a store
-        storeService.createStore(sellerSessionKey, "testStore", defaultSellerEmail);
+        storeService.createStore(sellerSessionKey, "testStore");
         //lets add a product to the store
-        storeService.addProduct(sellerSessionKey, "testStore", "testProduct",  10.0);
+        storeService.addProductToStore(sellerSessionKey, "testStore", "testProduct",  10.0, 1);
         //add the product to the cart
         double offered_price1 = 12;
         userService.bidPurchase(offered_price1,"testStore","testProduct",defaultBuyerEmail);
@@ -144,7 +140,7 @@ public class TransactionServiceTests {
         String sessionKey2 = userService.login("buyer2@gmail.com","Abc123").getData();
         double offered_price2 = 11;
         userService.bidPurchase(offered_price2,"testStore","testProduct","buyer2@gmail.com");
-        assert !userService.addToCart(sessionKey2, 1,1).isSuccess();
+        assert !userService.addToUserCart(sessionKey2, "buyer2@gmail.com","testProduct", "testProduct").isSuccess();
     }
 
     // 3.11 - Buying an Item in Lottery
@@ -174,56 +170,66 @@ public class TransactionServiceTests {
         String sessionKey1 = userService.login(email1, password1).getData();
         String sessionKey2 = userService.login(email2, password2).getData();
         //create a store
-        storeService.createStore(sessionKey1, "testStore", email1);
+        storeService.createStore(sessionKey1, "testStore");
         //add a product to the store
-        storeService.addProduct(sessionKey1, "testStore", "testProduct", 10.0);
+        storeService.addProductToStore(sessionKey1, "testStore", "testProduct", 10.0, 1);
+        userService.addToUserCart(sessionKey1, email1,"testProduct", "testProduct");
+        userService.addToUserCart(sessionKey2, email1,"testProduct", "testProduct");
+        userService.purchaseShoppingCart(sessionKey1, email1);
+        assert !userService.purchaseShoppingCart(sessionKey2, email2).isSuccess();
         //add the product to the cart
         //userService.addToCart(sessionKey1, "testProduct", 1);... add 10 unique products to the shop
         //create 2 threads to simulate the purchase
-        Task task1 = new Task(() -> {
-            for (int i = 0; i < 10; i++) {
-                try{
-                    //add item i to cart
-                    //sleep a random ammount of time in range of 0-1000ms
-                    Thread.sleep((long) (Math.random() * 1000));
-                    //userService.purchaseItem(sessionKey1, "testProduct", 1);
-                } catch (InterruptedException e) {}
-            }
-            //todo: add item to cart
-            //userService.purchaseItem(sessionKey1, "testProduct", 1);
-        });
-        //initialize an int array to store the results
-        int[] results = new int[10];
-        Task task2 = new Task(() -> {
-            for (int i = 0; i < 10; i++) {
-                try{
-                    //add item i to cart
-                    //sleep a random ammount of time in range of 0-1000ms
-                    Thread.sleep((long) (Math.random() * 1000));
-                    //userService.purchaseItem(sessionKey2, "testProduct", 1);
-                    //if result is successfull add 1 to the result array in index i
-                } catch (InterruptedException e) {
-                    //log to file the error
-                }
-            }
-            //todo: add item to cart
-            //userService.purchaseItem(sessionKey1, "testProduct", 1);
-            //assert that all the results are exactly 1
-            //assert results[i] == 1;
-            for (int result : results) {
-                assert result == 1 : "Expected exactly one purchase to be successful, but got " + result;
-
-            }
-        });
+//        Task task1 = new Task(() -> {
+//            for (int i = 0; i < 10; i++) {
+//                try{
+//                    //add item i to cart
+//                    //sleep a random ammount of time in range of 0-1000ms
+//                    Thread.sleep((long) (Math.random() * 1000));
+//                    //userService.purchaseItem(sessionKey1, "testProduct", 1);
+//                } catch (InterruptedException e) {}
+//            }
+//            //todo: add item to cart
+//            //userService.purchaseItem(sessionKey1, "testProduct", 1);
+//        });
+//        //initialize an int array to store the results
+//        int[] results = new int[10];
+//        Task task2 = new Task(() -> {
+//            for (int i = 0; i < 10; i++) {
+//                try{
+//                    //add item i to cart
+//                    //sleep a random ammount of time in range of 0-1000ms
+//                    Thread.sleep((long) (Math.random() * 1000));
+//                    //userService.purchaseItem(sessionKey2, "testProduct", 1);
+//                    //if result is successfull add 1 to the result array in index i
+//                } catch (InterruptedException e) {
+//                    //log to file the error
+//                }
+//            }
+//            //todo: add item to cart
+//            //userService.purchaseItem(sessionKey1, "testProduct", 1);
+//            //assert that all the results are exactly 1
+//            //assert results[i] == 1;
+//            for (int result : results) {
+//                assert result == 1 : "Expected exactly one purchase to be successful, but got " + result;
+//
+//            }
+//        });
         //start the threads
-        Thread thread1 = new Thread(task1.getRunnable());
-        Thread thread2 = new Thread(task2.getRunnable());
-        thread1.start();
-        thread2.start();
+//        Thread thread1 = new Thread(task1.getRunnable());
+//        Thread thread2 = new Thread(task2.getRunnable());
+//        thread1.start();
+//        thread2.start();
         //wait for the threads to finish
 
     }
-
+    @Test
+    public void GivenGuestUser_WhenRequestingPurchaseHistory_ThenAccessIsDenied() {
+        String guestID = guestService.createGuestSession().getData();
+        when(authenticationService.authenticate(guestID)).thenReturn("-1");
+        String sessionKey = authenticationService.authenticate(guestID);
+        assert !transactionService.getTransactionHistory(sessionKey,guestID).isSuccess();
+    }
 }
 
 
