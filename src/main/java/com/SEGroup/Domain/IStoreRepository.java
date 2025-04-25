@@ -11,13 +11,11 @@ public interface IStoreRepository {
 
     void createStore(String StoreName, String founderEmail);
 
-    void updateStoreName(String email, String storeName, String newStoreName);
-
     void closeStore(String name, String founderEmail);
 
     void reopenStore(String storeName, String founderEmail);
 
-    void addProductToStore(String email, String storeName, String catalogID, double price, int quantity);
+    void addProductToStore(String email, String storeName,String product_name , String catalogID, double price, int quantity);
 
     void updateShoppingProduct(String email, String storeName, int productID, double price, String description);
 

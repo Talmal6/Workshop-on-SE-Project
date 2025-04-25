@@ -20,7 +20,7 @@ public class StoreRepository implements IStoreRepository {
         }
         return storeDTOs;
     }
-    
+
     public Store findByName(String name) {
         Store find_store = stores.stream()
                 .filter(store -> store.getName().equals(name))
@@ -45,23 +45,37 @@ public class StoreRepository implements IStoreRepository {
         stores.add(new Store(storeName, founderEmail));
     }
 
-
     @Override
-    public void deleteStore(String name, String founderEmail) {
-        Store store = findByName(name);
+    public void closeStore(String storeName, String founderEmail) {
+        Store store = findByName(storeName);
 
         if (!store.getfounderEmail().equals(founderEmail)) {
-            throw new RuntimeException("Only the founder can delete the store");
+            throw new RuntimeException("Only the founder can close the store");
         }
 
-        stores.remove(store);
+        store.close();
     }
 
     @Override
-    public void changeStoreName(String oldName, String newName) {
-        Store store = findByName(oldName);
-        store.setName(newName);
+    public void reopenStore(String storeName, String founderEmail) {
+        Store store = findByName(storeName);
+
+        if (!store.getfounderEmail().equals(founderEmail)) {
+            throw new RuntimeException("Only the founder can reopen the store");
+        }
+
+        store.open();
     }
+
+
+    @Override
+    public void addProductToStore(String email, String storeName, String catalogID, String product_name, double price,
+            int quantity) {
+        Store store = findByName(storeName);
+        store.addProductToStore(catalogID, product_name, price, quantity);
+    }
+
+   }
 
     @Override
     public void appointOwner(String storeName, String appointerEmail, String newOwnerEmail) {
@@ -158,24 +172,6 @@ public class StoreRepository implements IStoreRepository {
     public void updateStoreName(String email, String storeName, String newStoreName) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'updateStoreName'");
-    }
-
-    @Override
-    public void closeStore(String name, String founderEmail) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'closeStore'");
-    }
-
-    @Override
-    public void reopenStore(String storeName, String founderEmail) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'reopenStore'");
-    }
-
-    @Override
-    public void addProductToStore(String email, String storeName, String catalogID, double price, int quantity) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'addProductToStore'");
     }
 
     @Override

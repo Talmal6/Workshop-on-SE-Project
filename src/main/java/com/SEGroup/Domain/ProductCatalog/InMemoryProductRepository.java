@@ -3,8 +3,11 @@ package com.SEGroup.Domain.ProductCatalog;
 import java.util.*;
 
 public class InMemoryProductRepository implements IProductRepository {
-    private final Map<String, List<Product>> storeProducts = new HashMap<>(); // A map to hold store names and their products <storeName, List<Product>>
-
+    private final Map<String, List<Product>> storeProducts = new HashMap<>(); // A map to hold store names and their
+                                                                              // products <storeName, List<Product>>
+    private final Map<String, List<String>> catalogIDToStoreName = new HashMap();
+    private final Map<String, List<String>> categoriesToCatalogID = new HashMap();
+    
     @Override
     public List<Product> getAllProducts() {
         List<Product> allProducts = new ArrayList<>();
@@ -43,7 +46,8 @@ public class InMemoryProductRepository implements IProductRepository {
     @Override
     public void updateProduct(Product updated) {
         List<Product> products = storeProducts.get(updated.getStoreName());
-        if (products == null) return;
+        if (products == null)
+            return;
 
         for (Product p : products) {
             if (p.getName().equals(updated.getName())) {
@@ -77,7 +81,6 @@ public class InMemoryProductRepository implements IProductRepository {
         return result;
     }
 
-
     @Override
     public List<Product> searchInStore(String storeName, String productName) {
         List<Product> result = new ArrayList<>();
@@ -93,13 +96,13 @@ public class InMemoryProductRepository implements IProductRepository {
         return result;
     }
 
-
     @Override
     public void checkIfExist(String productName) {
         if (findById(productName) == null) {
             throw new IllegalArgumentException("Product with name '" + productName + "' does not exist.");
         }
     }
+
     @Override
     public Product getProduct(String productName) {
         return findById(productName);
