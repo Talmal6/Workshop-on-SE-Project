@@ -1,5 +1,6 @@
 package com.SEGroup.Service.Mapper;
 
+//hey
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,29 +13,30 @@ import com.SEGroup.Domain.Store.Store;
 
 public class StoreMapper {
 
-    public StoreDTO toDTO(Store domainInstance){
+    public StoreDTO toDTO(Store domainInstance) {
         List<ShoppingProductDTO> productDTOs = new ArrayList<>();
 
         for (ShoppingProduct product : domainInstance.getAllProducts()) {
             productDTOs.add(new ShoppingProductDTO(
-                product.getProductId(),
-                product.getName(),
-                product.getPrice(),
-                product.getQuantity()
-            ));
+                    product.getProductId(),
+                    product.getName(),
+                    product.getPrice(),
+                    product.getQuantity()));
         }
         return new StoreDTO(domainInstance.getId(),
-            domainInstance.getName(),
-            domainInstance.getOwnerEmail(),
-            domainInstance.isActive(),
-            domainInstance.getBalance(),
-            productDTOs);
+                domainInstance.getName(),
+                domainInstance.getfounderEmail(),
+                domainInstance.isActive(),
+                domainInstance.getBalance(),
+                productDTOs);
     }
 
-    public List<StoreDTO> toDTO(List<Store> domainInstances){
+    public List<StoreDTO> toDTOs(List<Store> domainInstances) {
         List<StoreDTO> storeDTOs = new ArrayList<>();
-        for (Store domainInstance : domainInstances){
-            storeDTOs.add(toDTO(domainInstance));
+        for (Store store : domainInstances) {
+            storeDTOs.add(toDTO(store));
         }
+        return storeDTOs;
     }
+
 }

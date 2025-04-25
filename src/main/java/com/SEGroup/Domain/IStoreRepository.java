@@ -1,34 +1,50 @@
 package com.SEGroup.Domain;
+
 import java.util.List;
 
 import com.SEGroup.DTO.StoreDTO;
 
 public interface IStoreRepository {
     List<StoreDTO> getAllStores();
+
     StoreDTO getStore(String storeName);
 
     void createStore(String StoreName, String founderEmail);
+
     void updateStoreName(String email, String storeName, String newStoreName);
-    void closeStore(String name,String founderEmail);
+
+    void closeStore(String name, String founderEmail);
+
     void reopenStore(String storeName, String founderEmail);
 
     void addProductToStore(String email, String storeName, String catalogID, double price, int quantity);
+
     void updateShoppingProduct(String email, String storeName, int productID, double price, String description);
+
     void deleteShoppingProduct(String email, String storeName, int productID);
 
     void rateProduct(String email, String storeName, int productID, int rating, String review);
+
     void rateStore(String email, String storeName, int rating, String review);
 
     // Ownership and manager operations with operator email authorization
     void appointOwner(String storeName, String operatorEmail, String newOwnerEmail);
+
     void removeOwner(String storeName, String operatorEmail, String ownerToRemove);
+
     void resignOwnership(String storeName, String operatorEmail);
 
     void appointManager(String storeName, String operatorEmail, String managerEmail, List<String> permissions);
-    void updateManagerPermissions(String storeName, String operatorEmail, String managerEmail, List<String> newPermissions);
+
+    void updateManagerPermissions(String storeName, String operatorEmail, String managerEmail,
+            List<String> newPermissions);
 
     String getManagerPermissions(String storeName, String operatorEmail, String managerEmail);
+
     List<String> getAllOwners(String storeName, String operatorEmail);
+
     List<String> getAllManagers(String storeName, String operatorEmail);
+
     void addToBalance(String userBySession, String storeName, double amount);
+
 }

@@ -29,21 +29,17 @@ public class TransactionService {
     /**
      * Processes a payment for the given user and amount.
      */
-    public Result<Void> processPayment(String sessionKey, String userEmail, double amount) {
-        try {
-            // Validate session key and user email
-            authenticationService.checkSessionKey(sessionKey);
-            String paymentDetails = String.format("User: %s, Amount: %.2f", userEmail, amount);
-            paymentGateway.validatePayment(paymentDetails);
-            paymentGateway.processPayment(paymentDetails);
-            Transaction transaction = new Transaction(userEmail, amount);
-            transactionRepository.addTransaction(transaction);
-
-            return Result.success(null);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
+    // public Result<Void> processPayment(String sessionKey, String userEmail, double amount) {
+    //     try {
+    //         // Validate session key and user email
+    //         authenticationService.checkSessionKey(sessionKey);
+    //         paymentGateway.validatePayment(paymentDetails);
+    //         paymentGateway.processPayment(paymentDetails);
+    //         return Result.success(null);
+    //     } catch (Exception e) {
+    //         return Result.failure(e.getMessage());
+    //     }
+    // }
 
     public Result<List<Transaction>> getTransactionHistory(String sessionKey, String userEmail) {
         try {
