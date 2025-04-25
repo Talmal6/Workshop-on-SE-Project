@@ -1,11 +1,28 @@
 package com.SEGroup.Service;
 
+
+import java.util.ArrayList;
+
+import com.SEGroup.DTO.ProductDTO;
+import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.DTO.StoreProductDTO;
 import com.SEGroup.Domain.*;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Infrastructure.IAuthenticationService;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.naming.AuthenticationException;
+
+import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
+
+import com.SEGroup.Domain.Store.ManagerData;
+import com.SEGroup.Domain.Store.ManagerPermission;
+import com.SEGroup.Domain.Store.ShoppingProduct;
+import com.SEGroup.Domain.Store.StoreRepository;
+import com.SEGroup.Infrastructure.LoggerWrapper;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
@@ -13,237 +30,115 @@ import javax.naming.AuthenticationException;
 public class StoreService {
     private final IStoreRepository storeRepository;
     private final IProductRepository productRepository;
+    private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
 
     public StoreService(IStoreRepository storeRepository,
                         IProductRepository productRepository,
-                        IAuthenticationService authenticationService) {
+                        IAuthenticationService authenticationService,
+                        IUserRepository userRepository) {
         this.storeRepository = storeRepository;
         this.productRepository = productRepository;
         this.authenticationService = authenticationService;
+        this.userRepository = userRepository;
     }
 
     // === Guest / Public Viewing ===
-    public Result<List<Store>> viewPublicStores() {
+
+    public Result<StoreDTO> viewStore(String storeName) {
         try {
-            List<Store> allStores = storeRepository.getAllStores();
-            return Result.success(allStores);
+                return Result.success(storeRepository.getStore(storeName));
         } catch (Exception e) {
+                return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<List<StoreDTO>> viewAllStores() {
+        try {
+            LoggerWrapper.info("Fetching all public stores.");
+            return Result.success(storeRepository.getAllStores());
+        } catch (Exception e) {
+            LoggerWrapper.error(e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<List<Product>> viewPublicProductCatalog() {
+    public Result<List<ProductDTO>> viewPublicProductCatalog() {
         try {
-            List<Product> catalog = productRepository.getAllProducts();
-            return Result.success(catalog);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    public Result<List<Product>> viewPublicStoreProducts(String storeName) {
-        try {
-            storeRepository.checkIfExist(storeName);
-            List<Product> products = productRepository.getProductsByStoreName(storeName);
-            return Result.success(products);
+            return Result.success(productRepository.getAllProducts());
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
     // === Authenticated Operations ===
-    private void ensureAuthenticated(String sessionKey)  throws AuthenticationException{
+
+    public Result<Void> createStore(String sessionKey, String storeName) {
+    try {
         authenticationService.checkSessionKey(sessionKey);
+        storeRepository.createStore(storeName, authenticationService.getUserBySession(sessionKey));
+        return Result.success(null);
+    } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
     }
 
-    public Result<Void> addProduct(String sessionKey,
-                                   String storeName,
-                                   String productName,
-                                   double price) {
+    public Result<Void> closeStore(String sessionKey, String storeName) {
         try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            productRepository.addProduct(productName,storeName, price);
+            storeRepository.closeStore(authenticationService.getUserBySession(sessionKey), storeName);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<Void> updateProduct(String sessionKey,
-                                      String storeName,
-                                      String productId,
-                                      String productName,
-                                      double price) {
+    public Result<Void> addProductToStore(String sessionKey, String storeName, String catalogID, double price, int quantity) {
         try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            Product product = productRepository.findById(productId);
-            productRepository.updateProduct(product);
+            authenticationService.checkSessionKey(sessionKey);
+            productRepository.getProduct(catalogID);
+            storeRepository.addProductToStore(authenticationService.getUserBySession(sessionKey), storeName, catalogID, price, quantity);
+            productRepository.addStoreToProduct(catalogID, storeName);
+
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-
-    public Result<Void> deleteProduct(String sessionKey,
-                                      String storeName,
-                                      String productName) {
+    public Result<Void> updateShoppingProduct(String sessionKey, String storeName, int productID, String description, Double price) {
         try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            productRepository.deleteProduct(productName, storeName);
+            authenticationService.checkSessionKey(sessionKey);
+            storeRepository.updateShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName, productID, price, description);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<Void> createStore(String sessionKey,
-                                    String storeName,
-                                    String ownerEmail) {
+    public Result<Void> deleteShoppingProduct(String sessionKey, String storeName, int productID) {
         try {
-            ensureAuthenticated(sessionKey);
-            Store store = new Store(storeName, ownerEmail);
-            storeRepository.addStore(store);
+            authenticationService.checkSessionKey(sessionKey);
+            storeRepository.deleteShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName, productID);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    
+    public Result<Void> rateStore(String sessionKey, String storeName, int rating, String review) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            storeRepository.rateStore(authenticationService.getUserBySession(sessionKey), storeName, rating, review);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<Void> updateStoreName(String sessionKey,
-                                        String storeName,
-                                        String newStoreName) {
+    public Result<Void> rateProduct(String sessionKey, String storeName, int productID, int rating, String review) {
         try {
-            ensureAuthenticated(sessionKey);
-            Store store = storeRepository.findByName(storeName);
-            storeRepository.changeStoreName(storeName,newStoreName);
-            storeRepository.updateStore(store);
-            return Result.success(null);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    public Result<Void> deleteStore(String sessionKey,
-                                    String storeName) {
-        try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            storeRepository.deleteStore(storeName);
-            return Result.success(null);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    public Result<Store> viewStore(String sessionKey,
-                                      String storeName) {
-        try {
-            ensureAuthenticated(sessionKey);
-            Store store = storeRepository.findByName(storeName);
-            return Result.success(store);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    public Result<List<Store>> viewAllStores(String sessionKey) {
-        try {
-            ensureAuthenticated(sessionKey);
-            List<Store> allStores = storeRepository.getAllStores();
-            return Result.success(allStores);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    public Result<List<Product>> viewStoreProducts(String sessionKey,
-                                                       String storeName) {
-        try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            List<Product> products = productRepository.getProductsByStoreName(storeName);
-            return Result.success(products);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    public Result<List<Product>> viewProductCatalog(String sessionKey) {
-        try {
-            ensureAuthenticated(sessionKey);
-            List<Product> catalog = productRepository.getAllProducts();
-            return Result.success(catalog);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    // === Search/Browse ===
-    public Result<List<Product>> searchProducts(String sessionKey, String query) {
-        try {
-            ensureAuthenticated(sessionKey);
-            List<Product> matches = productRepository.searchProducts(query);
-            return Result.success(matches);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    public Result<List<Product>> searchProductsInStore(String sessionKey,
-                                                           String storeName,
-                                                           String query) {
-        try {
-            ensureAuthenticated(sessionKey);
-            List<Product> matches = productRepository.searchInStore(storeName, query);
-            return Result.success(matches);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-
-    public Result<Product> getProduct(String sessionKey, String storeName, String shoppingProductId) {
-        try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            Product product = productRepository.getProduct(shoppingProductId);
-            return Result.success(product);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    //3.4
-    public Result<Void> rateProduct(String sessionKey,
-                                   String storeName,
-                                   String productName,
-                                   int rating,
-                                   String review) {
-        try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            Product product = productRepository.findById(productName);
-            product.addReview(rating, review);
-            productRepository.updateProduct(product);
-            return Result.success(null);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
-    }
-
-    public Result<Void> addToStoreBalance(String sessionKey,
-                                        String storeName,
-                                        double amount ) {
-        try {
-            ensureAuthenticated(sessionKey);
-            Store store = storeRepository.findByName(storeName);
-            store.addToBalance(amount);
-            storeRepository.updateStore(store);
+            authenticationService.checkSessionKey(sessionKey);
+            storeRepository.rateProduct(authenticationService.getUserBySession(sessionKey), storeName, productID, rating, review);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -251,25 +146,36 @@ public class StoreService {
     }
 
 
-    public Result<Void> checkIfStoreExist(String sessionKey, String storeName) {
+    // === Roles-Related Operations ===
+    
+    public Result<Void> appointOwner(String sessionKey, String storeName, String apointeeEmail){
         try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
+            authenticationService.authenticate(sessionKey);
+            storeRepository.appointOwner(storeName, authenticationService.getUserBySession(sessionKey), apointeeEmail);
+            userRepository.appointOwner(storeName, apointeeEmail);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
-    //3.3
-    public Result<Void> rateStore(String sessionKey,
-                                  String storeName,
-                                  int rating,
-                                  String review) {
+
+    public Result<Void> removeOwner(String sessionKey, String storeName, String apointeeEmail){
         try {
-            ensureAuthenticated(sessionKey);
-            Store store = storeRepository.findByName(storeName);
-            store.rateStore(rating, review);
-            storeRepository.updateStore(store);
+            authenticationService.authenticate(sessionKey);
+            storeRepository.removeOwner(storeName, authenticationService.getUserBySession(sessionKey), apointeeEmail);
+            userRepository.removeOwner(storeName, apointeeEmail);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Void> resignOwnership(String sessionKey, String storeName){
+        try {
+            authenticationService.authenticate(sessionKey);
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            storeRepository.resignOwnership(storeName, userEmail);
+            userRepository.removeOwner(storeName, userEmail);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -277,51 +183,135 @@ public class StoreService {
     }
 
 
-    public Result<List<Product>> getStoreProductsWithQuery(String sessionKey, String storeName, String query) {
+    public Result<Void> appointManager(String sessionKey, String storeName, String apointeeEmail, List<String> permissions){
         try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            List<Product> matches = productRepository.searchInStore(storeName, query);
-            return Result.success(matches);
+            authenticationService.authenticate(sessionKey);
+            storeRepository.appointManager(storeName, authenticationService.getUserBySession(sessionKey), apointeeEmail, permissions);
+            userRepository.appointManager(storeName, apointeeEmail);
+            return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    //3.9
-    public Result<Void> submitBidToShoppingItem(String sessionKey,
-                                                String storeName,
-                                                String productId,
-                                                double bidAmount,
-                                                String bidderEmail) {
+    public Result<Void> updateManagerPermissions(String sessionKey, String storeName, String apointeeEmail, List<String> permissions){
         try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            productRepository.checkIfExist(productId);
-            Store store = storeRepository.findByName(storeName);
-            store.submitBidToShoppingItem(productId, bidAmount, bidderEmail);
+            authenticationService.authenticate(sessionKey);
+            storeRepository.updateManagerPermissions(storeName, authenticationService.getUserBySession(sessionKey), apointeeEmail, permissions);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
-    //3.11
-    public Result<Void> sendAuctionOffer(String sessionKey,
-                                                String storeName,
-                                                String productId,
-                                                double bidAmount,
-                                                String bidderEmail) {
+
+    public Result<String> getManagerPermission(String sessionKey, String storeName, String managerEmail){
         try {
-            ensureAuthenticated(sessionKey);
-            storeRepository.checkIfExist(storeName);
-            productRepository.checkIfExist(productId);
-            Store store = storeRepository.findByName(storeName);
-            store.submitAuctionOffer(productId, bidAmount, bidderEmail);
-            return Result.success(null);
+            authenticationService.authenticate(sessionKey);
+            return Result.success(storeRepository.getManagerPermissions(authenticationService.getUserBySession(sessionKey), storeName, managerEmail));
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
+
+    public Result<List<String>> getAllOwners(String sessionKey, String storeName, String operatorEmail){
+        try {
+            authenticationService.authenticate(sessionKey);
+            return Result.success(storeRepository.getAllOwners(storeName, authenticationService.getUserBySession(sessionKey)));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<List<String>> getAllManagers(String sessionKey, String storeName, String operatorEmai){
+        try {
+            authenticationService.authenticate(sessionKey);
+            return Result.success(storeRepository.getAllManagers(storeName, authenticationService.getUserBySession(sessionKey)));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    // public Result<List<StoreProductDTO>> searchProducts(String query, String categories, String sortBy) {
+    //     try {
+    //         List<> productsLikeQuery = productRepository.searchByNameOrDescription(query.toLowerCase());
+    //         List<ShoppingProduct> actualProductsFiltered = 
+    //         return Result.success(matches);
+    //     } catch (Exception e) {
+    //         return Result.failure(e.getMessage());
+    //     }
+    // }
+
+
+    // public Result<Product> getProduct(String sessionKey, String storeName, String shoppingProductId) {
+    //     try {
+    //         authenticationService.checkSessionKey(sessionKey);
+    //         storeRepository.checkIfExist(storeName);
+    //         Product product = productRepository.getProduct(shoppingProductId);
+    //         return Result.success(product);
+    //     } catch (Exception e) {
+    //         return Result.failure(e.getMessage());
+    //     }
+    // }
+
+
+
+    // public Result<Void> addToStoreBalance(String sessionKey,
+    //                                     String storeName,
+    //                                     double amount ) {
+    //     try {
+    //         authenticationService.checkSessionKey(sessionKey);
+    //         storeRepository.addToBalance(authenticationService.getUserBySession(sessionKey), storeName, amount);
+    //         return Result.success(null);
+    //     } catch (Exception e) {
+    //         return Result.failure(e.getMessage());
+    //     }
+    // }
+
+    // public Result<List<Product>> getStoreProductsWithQuery(String storeName, String query, List<String> filters, String sortBy) {
+    //     try {
+    //         authenticationService.checkSessionKey(sessionKey);
+            
+    //         storeRepository.checkIfExist(storeName);
+    //         List<Product> matches = productRepository.searchInStore(storeName, query);
+    //         storeRepostity
+    //         return Result.success(matches);
+    //     } catch (Exception e) {
+    //         return Result.failure(e.getMessage());
+    //     }
+    // }
 }
 
- 
+
+// ProductCatalog{
+//     Map<String, Product> = {
+//         'phones' : ["apple-iphone-13" , "apple-iphone-14", "samsung"]
+//         'shoes' : ['nike-air1', 'nike-air2']
+//         .... 
+//     }
+//     Map<CatalogID, storeNames> : {
+//         "apple-iphone-13": ["ron-store" , "gil-store"]
+//         "apple-iphone-14": ["gil-store" , "amit-store"]
+//     }
+// }
+
+// ShoppingProduct{
+//     CataglogID
+//     InStoreID
+//     name
+//     extraDescription
+//     Policies
+//     quantity
+//     price
+// }
+
+// Product{
+//     String "apple-iphone-13"
+//     Description "iphone"
+// }
+
+// ShoppingProduct
+
+// iphone
+
+
+
+

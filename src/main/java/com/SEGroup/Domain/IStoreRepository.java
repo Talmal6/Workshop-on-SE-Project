@@ -1,23 +1,16 @@
 package com.SEGroup.Domain;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import com.SEGroup.Domain.Store.ManagerData;
-import com.SEGroup.Domain.Store.ManagerPermission;
-import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.DTO.StoreDTO;
 
 public interface IStoreRepository {
-    List<Store> getAllStores();
-    Store findByName(String name);
-    void checkIfExist(String name);
+    List<StoreDTO> getAllStores();
+    StoreDTO getStore(String storeName);
 
     void createStore(String StoreName, String founderEmail);
     void updateStoreName(String email, String storeName, String newStoreName);
-    void deleteStore(String name,String founderEmail);
-
-    List<ShoppingProduct> getStoreProducts(String StoreName);
+    void closeStore(String name,String founderEmail);
+    void reopenStore(String storeName, String founderEmail);
 
     void addProductToStore(String email, String storeName, String catalogID, double price, int quantity);
     void updateShoppingProduct(String email, String storeName, int productID, double price, String description);
@@ -31,11 +24,11 @@ public interface IStoreRepository {
     void removeOwner(String storeName, String operatorEmail, String ownerToRemove);
     void resignOwnership(String storeName, String operatorEmail);
 
-    void appointManager(String storeName, String operatorEmail, String managerEmail, Set<ManagerPermission> permissions);
-    void updateManagerPermissions(String storeName, String operatorEmail, String managerEmail, Set<ManagerPermission> newPermissions);
-    boolean hasManagerPermission(String storeName, String managerEmail, ManagerPermission permission);
+    void appointManager(String storeName, String operatorEmail, String managerEmail, List<String> permissions);
+    void updateManagerPermissions(String storeName, String operatorEmail, String managerEmail, List<String> newPermissions);
 
-    Set<ManagerPermission> getManagerPermissions(String storeName, String operatorEmail, String managerEmail);
-    Set<String> getAllOwners(String storeName, String operatorEmail);
-    Map<String, ManagerData> getAllManagers(String storeName, String operatorEmail);
+    String getManagerPermissions(String storeName, String operatorEmail, String managerEmail);
+    List<String> getAllOwners(String storeName, String operatorEmail);
+    List<String> getAllManagers(String storeName, String operatorEmail);
+    void addToBalance(String userBySession, String storeName, double amount);
 }
