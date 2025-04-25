@@ -8,18 +8,26 @@ import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 
 public class UserService {
+
+
+    private final GuestService guestService;
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
     private PasswordEncoder passwordEncoder;
 
-    public UserService(IUserRepository userRepository,
-            IAuthenticationService authenticationService) {
+    public UserService(GuestService guestService, IUserRepository userRepository,
+                       IAuthenticationService authenticationService) {
+        this.guestService = guestService;
         this.userRepository = userRepository;
         this.authenticationService = authenticationService;
         passwordEncoder = new PasswordEncoder();
 
     }
 
+
+    public Result<String> guestLogin() {
+        return guestService.createGuestSession();
+    }
     public Result<Void> register(String username, String email, String password) {
         try {
             userRepository.addUser(username, email, passwordEncoder.encrypt(password));
@@ -63,12 +71,6 @@ public class UserService {
         }
     }
 
-    // Use Case 1.1 GuestLogin
-    public Result<String> guestLogin() {
-        String guestName = "g_" + UUID.randomUUID().toString();
-        userRepository.addNewGuest(guestName);
-        return Result.success(authenticationService.authenticate(guestName));
-    }
 
     public Result<String> addToUserCart(String sessionKey, String email, String productID,String storeName) {
         try {
@@ -76,6 +78,16 @@ public class UserService {
             User user = userRepository.findUserByEmail(email);
             user.addToCart(storeName,productID);
             return Result.success("Add item to cart succsesfully!");
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<String> addToGuestCart(String guestTok,
+                                         String productId, String store) {
+        try {
+            authenticationService.guestCart(guestTok).add(store, productId, 1);
+            return Result.success("added");
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }

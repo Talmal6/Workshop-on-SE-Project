@@ -1,6 +1,11 @@
 package com.SEGroup.Domain;
 
+import com.SEGroup.Domain.Store.ManagerPermission;
+import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
+
+import java.util.List;
+import java.util.Set;
 
 public interface IUserRepository {
     User findUserByEmail(String email);
@@ -9,9 +14,20 @@ public interface IUserRepository {
 
     void deleteUser(String email);
 
-    void addNewGuest(String tempName);
-
     public void addToCart(User findByUsername, int storeID, int productID);
 
     public void checkIfExist(String email);
+
+    void appointOwner(String storeName, String Email); //put owner to the email
+
+    void removeOwner(String storeName, String Email); //put owner to the email
+
+    void resignOwnership(String storeName, String Email);
+
+    void appointManager(String storeName, String Email);
+
+    void deleteRoles(List<String> Emails,String storeName); //function that delete all emails roles that connected to sepecific store
+
+
+
 }
