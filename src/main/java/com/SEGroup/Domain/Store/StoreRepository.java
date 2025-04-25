@@ -1,4 +1,6 @@
 package com.SEGroup.Domain.Store;
+
+import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IStoreRepository;
 
 import java.util.ArrayList;
@@ -11,53 +13,39 @@ public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
 
     @Override
-    public List<Store> getAllStores() {
-        return new ArrayList<>(stores);
+    public List<StoreDTO> getAllStores() {
+        List<StoreDTO> storeDTOs = new ArrayList<>();
+        for (Store store : stores) {
+            storeDTOs.add(new StoreDTO(store.getId(), store.getName(), store.getFounderEmail(), store.isActive()));
+        }
+        return storeDTOs;
     }
-
-
-    @Override
+    
     public Store findByName(String name) {
         Store find_store = stores.stream()
                 .filter(store -> store.getName().equals(name))
                 .findFirst()
                 .orElse(null);
-        if(find_store == null) {
+        if (find_store == null) {
             throw new RuntimeException("Store does not exist");
         }
         return find_store;
     }
 
-    @Override
     public void checkIfExist(String name) {
         boolean exists = stores.stream().anyMatch(store -> store.getName().equals(name));
         if (!exists) {
             throw new RuntimeException("Store does not exist");
         }
     }
+
     @Override
     public void createStore(String storeName, String founderEmail) {
         checkIfExist(storeName);
         stores.add(new Store(storeName, founderEmail));
     }
 
-    @Override
-    public void addStore(Store store) {
-        checkIfExist(store.getName());
-        stores.add(store);
-    }
 
-    @Override
-    public void updateStore(Store store) {
-        //CHANGE ID TO STRING
-        int id = store.getId();
-        deleteStore(String.valueOf(id));
-        stores.add(store);
-    }
-    @Override
-    public void deleteStore(String storeId) {
-        stores.removeIf(store -> store.getId() == Integer.parseInt(storeId));
-    }
     @Override
     public void deleteStore(String name, String founderEmail) {
         Store store = findByName(name);
@@ -68,11 +56,13 @@ public class StoreRepository implements IStoreRepository {
 
         stores.remove(store);
     }
+
     @Override
-    public void changeStoreName(String oldName, String newName){
+    public void changeStoreName(String oldName, String newName) {
         Store store = findByName(oldName);
         store.setName(newName);
     }
+
     @Override
     public void appointOwner(String storeName, String appointerEmail, String newOwnerEmail) {
         Store store = findByName(storeName);
@@ -92,13 +82,15 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void appointManager(String storeName, String ownerEmail, String managerEmail, Set<ManagerPermission> permissions) {
+    public void appointManager(String storeName, String ownerEmail, String managerEmail,
+            Set<ManagerPermission> permissions) {
         Store store = findByName(storeName);
         store.appointManager(ownerEmail, managerEmail, permissions);
     }
 
     @Override
-    public void updateManagerPermissions(String storeName, String ownerEmail, String managerEmail, Set<ManagerPermission> newPermissions) {
+    public void updateManagerPermissions(String storeName, String ownerEmail, String managerEmail,
+            Set<ManagerPermission> newPermissions) {
         Store store = findByName(storeName);
         store.updateManagerPermissions(ownerEmail, managerEmail, newPermissions);
     }
@@ -113,7 +105,8 @@ public class StoreRepository implements IStoreRepository {
     public Set<ManagerPermission> getManagerPermissions(String storeName, String operatorEmail, String managerEmail) {
         Store store = findByName(storeName);
 
-        if (!store.isOwner(operatorEmail) && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
+        if (!store.isOwner(operatorEmail)
+                && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
             throw new RuntimeException("User is not authorized to view manager permissions");
         }
 
@@ -121,10 +114,11 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public Set<String> getAllOwners(String storeName, String operatorEmail) {
+    public List<String> getAllOwners(String storeName, String operatorEmail) {
         Store store = findByName(storeName);
 
-        if (!store.isOwner(operatorEmail) && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
+        if (!store.isOwner(operatorEmail)
+                && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
             throw new RuntimeException("User is not authorized to view store owners");
         }
 
@@ -135,12 +129,14 @@ public class StoreRepository implements IStoreRepository {
     public Map<String, ManagerData> getAllManagers(String storeName, String operatorEmail) {
         Store store = findByName(storeName);
 
-        if (!store.isOwner(operatorEmail) && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
+        if (!store.isOwner(operatorEmail)
+                && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
             throw new RuntimeException("User is not authorized to view managers");
         }
 
         return store.getAllManagers();
     }
+
     @Override
     public List<ShoppingProduct> viewPublicStoreProducts(String storeName) {
         Store store = findByName(storeName);
@@ -151,5 +147,78 @@ public class StoreRepository implements IStoreRepository {
 
         return new ArrayList<>(store.getAllProducts());
     }
-}
 
+    @Override
+    public StoreDTO getStore(String storeName) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getStore'");
+    }
+
+    @Override
+    public void updateStoreName(String email, String storeName, String newStoreName) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateStoreName'");
+    }
+
+    @Override
+    public void closeStore(String name, String founderEmail) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'closeStore'");
+    }
+
+    @Override
+    public void reopenStore(String storeName, String founderEmail) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'reopenStore'");
+    }
+
+    @Override
+    public void addProductToStore(String email, String storeName, String catalogID, double price, int quantity) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'addProductToStore'");
+    }
+
+    @Override
+    public void updateShoppingProduct(String email, String storeName, int productID, double price, String description) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateShoppingProduct'");
+    }
+
+    @Override
+    public void deleteShoppingProduct(String email, String storeName, int productID) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'deleteShoppingProduct'");
+    }
+
+    @Override
+    public void rateProduct(String email, String storeName, int productID, int rating, String review) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'rateProduct'");
+    }
+
+    @Override
+    public void rateStore(String email, String storeName, int rating, String review) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'rateStore'");
+    }
+
+    @Override
+    public void appointManager(String storeName, String operatorEmail, String managerEmail, List<String> permissions) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'appointManager'");
+    }
+
+    @Override
+    public void updateManagerPermissions(String storeName, String operatorEmail, String managerEmail,
+            List<String> newPermissions) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateManagerPermissions'");
+    }
+
+    @Override
+    public void addToBalance(String userBySession, String storeName, double amount) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'addToBalance'");
+    }
+
+}

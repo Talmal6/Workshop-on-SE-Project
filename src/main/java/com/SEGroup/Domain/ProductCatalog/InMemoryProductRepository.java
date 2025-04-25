@@ -1,8 +1,8 @@
-package com.SEGroup.Domain;
+package com.SEGroup.Domain.ProductCatalog;
 
 import java.util.*;
 
-public class ProductRepository implements IProductRepository {
+public class InMemoryProductRepository implements IProductRepository {
     private final Map<String, List<Product>> storeProducts = new HashMap<>(); // A map to hold store names and their products <storeName, List<Product>>
 
     @Override

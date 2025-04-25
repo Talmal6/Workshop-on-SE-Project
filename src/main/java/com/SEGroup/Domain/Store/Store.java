@@ -193,10 +193,13 @@ public class Store {
         return true;
     }
     //4.11 Part A
-    public Set<String> getAllOwners() {
+    public List<String> getAllOwners() {
         Set<String> owners = new HashSet<>(ownersAppointer.keySet());
         owners.add(founderEmail);
-        return owners;
+        // Convert the set to a list and sort it
+        List<String> ownersList = new ArrayList<>(owners);
+        // Return an unmodifiable list to prevent external modification
+        return ownersList;
     }
     //4.11 Part B
     public Map<String, ManagerData> getAllManagers() {
