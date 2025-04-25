@@ -1,14 +1,19 @@
 package com.SEGroup.Domain;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
+
+
+
 
 public class TransactionRepository implements ITransactionRepository {
-    private final Map<Integer, Transaction> transactions = new HashMap<>(); // <Identifier, Transaction>
-    private int nextId = 1; // Identifier for transactions
+    private final Map<Integer, Transaction> transactions = new ConcurrentHashMap<>(); // <Identifier, Transaction>
+    private final AtomicInteger nextId = new AtomicInteger(1); // Identifier for transactions
 
     @Override
     public void addTransaction(Transaction transaction) {
-        transactions.put(nextId++, transaction);
+        transactions.put(nextId.incrementAndGet(), transaction);
     }
 
     @Override
@@ -40,7 +45,7 @@ public class TransactionRepository implements ITransactionRepository {
     public List<Transaction> getTransactionsByUserEmail(String userEmail) {
         List<Transaction> result = new ArrayList<>();
         for (Transaction t : transactions.values()) {
-            if (t.getUserEmail().equalsIgnoreCase(userEmail)) {
+            if (t.getBuyersEmail().equalsIgnoreCase(userEmail)) {
                 result.add(t);
             }
         }

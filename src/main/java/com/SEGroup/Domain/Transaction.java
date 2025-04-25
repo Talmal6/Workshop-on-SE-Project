@@ -1,29 +1,52 @@
 package com.SEGroup.Domain;
 
+import java.util.List;
+
+
 public class Transaction {
-    private String userEmail;
-    private double amount;
+    private List<String> itemsToTransact;
+    private double cost;
+    private String buyersEmail;
+    private String sellerStore;
 
-    // Constructor to match the usage in PaymentService
-    public Transaction(String userEmail, double amount) {
-        this.userEmail = userEmail;
-        this.amount = amount;
+    // Constructor
+    public Transaction(List<String> shoppingProductIds, double cost, String buyersEmail, String store) {
+        this.itemsToTransact = shoppingProductIds;
+        this.cost = cost;
+        this.buyersEmail = buyersEmail;
+        this.sellerStore = store;
     }
 
-    // Getters and setters (if needed)
-    public String getUserEmail() {
-        return userEmail;
+    // Getters and setters
+    public List<String> getItemsToTransact() {
+        return itemsToTransact;
     }
 
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
+    public void setItemsToTransact(List<String> itemsToTransact) {
+        this.itemsToTransact = itemsToTransact;
     }
 
-    public double getAmount() {
-        return amount;
+    public double getCost() {
+        return cost;
     }
 
-    public void setAmount(double amount) {
-        this.amount = amount;
+    public void setCost(double cost) {
+        this.cost = cost;
+    }
+
+    public String getBuyersEmail() {
+        return buyersEmail;
+    }
+
+    public void setBuyersEmail(String buyersEmail) {
+        this.buyersEmail = buyersEmail;
+    }
+
+    public String getSellerStore() {
+        return sellerStore;
+    }
+
+    public void setSellerStore(String sellerStore) {
+        this.sellerStore = sellerStore;
     }
 }
