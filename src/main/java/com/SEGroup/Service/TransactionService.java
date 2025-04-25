@@ -1,8 +1,13 @@
 package com.SEGroup.Service;
 
-import com.SEGroup.Domain.Transaction;
 import com.SEGroup.Domain.ITransactionRepository;
-import com.SEGroup.Domain.Product;
+import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.IProductRepository;
+import com.SEGroup.Domain.IStoreRepository;
+import com.SEGroup.Domain.Product.Transaction;
+import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.ProductDTO;
+import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.IPaymentGateway;
 import java.util.List;
@@ -11,19 +16,23 @@ public class TransactionService {
     private final IAuthenticationService authenticationService;
     private final IPaymentGateway paymentGateway;
     private final ITransactionRepository transactionRepository;
-    private final StoreService storeService; // Added StoreService
-    private final UserService userService; // Added UserService
+    private final IStoreRepository storeRepository; // Added StoreRepository
+    private final IUserRepository userRepository; // Added UserRepository
+    private final IProductRepository productRepository; // Added ProductRepository
+
 
     public TransactionService(IAuthenticationService authenticationService,
             IPaymentGateway paymentGateway,
             ITransactionRepository transactionRepository,
-            StoreService storeService,
-            UserService userService) {
+            IStoreRepository storeRepository,
+            IUserRepository userRepository,
+            IProductRepository productRepository) {
         this.authenticationService = authenticationService;
         this.paymentGateway = paymentGateway;
         this.transactionRepository = transactionRepository;
-        this.storeService = storeService; // Initialize StoreService
-        this.userService = userService; // Initialize UserService
+        this.storeRepository = storeRepository;
+        this.userRepository = userRepository;
+        this.productRepository = productRepository;
     }
 
     /**
@@ -41,56 +50,70 @@ public class TransactionService {
     //     }
     // }
 
-    public Result<List<Transaction>> getTransactionHistory(String sessionKey, String userEmail) {
+    public Result<List<TransactionDTO>> getTransactionHistory(String sessionKey, String userEmail) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            List<Transaction> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
+            List<TransactionDTO> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
             return Result.success(transactions);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<Void> addToCart(String sessionKey, String userEmail, String storeName, String shoppingProductId) {
+    public Result<Void> purchaseShoppingCart(String sessionKey, String userEmail,String paymentDetiles){
         try {
             authenticationService.checkSessionKey(sessionKey);
-            Result<Product> product  = storeService.getProduct(sessionKey,storeName ,shoppingProductId);
-            userService.addToUserCart(sessionKey,userEmail, shoppingProductId,storeName);
-            return Result.success(null);
+            List<BasketDTO> cart = userRepository.getUserCart(userEmail);
+            storeRepository.removeItemsFromStores(cart);
+            int totalCost = 0;
+            for (BasketDTO basket : cart) {
+                int storeCost = calculateTotalCost(basket);
+                totalCost += storeCost;
+            }
+            try{
+                paymentGateway.processPayment(paymentDetiles, totalCost);
+            }
+            catch (Exception e){
+                storeRepository.rollBackItemsToStores(cart);
+                return Result.failure("Payment failed: " + e.getMessage());
+            }
 
+            // Create a transaction for each basket in the cart
+            for (BasketDTO basket : cart) {
+                int storeCost = calculateTotalCost(basket);
+                transactionRepository.addTransaction(basket.getBasketProducts(), storeCost, userEmail, basket.getStoreName());
+            }
+            // Clear the user's cart after successful purchase
+            userRepository.clearUserCart(userEmail);
+            // Return success result
+            // Notify the user about the successful purchase
+            // notify the stores about the purchase
+            return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
+
         }
     }
 
-    public Result<Boolean> purchaseShoppingItem(String sessionKey, String userEmail, String storeName, String shoppingProductId) {
-        try {
-            authenticationService.checkSessionKey(sessionKey);
-            Result<Product> product = storeService.getProduct(sessionKey, storeName, shoppingProductId);
-            double amount = product.getData().getPrice(); 
-            Result<Void> res = storeService.checkIfStoreExist(sessionKey, storeName);
 
-            if (res.isFailure()){
-                return Result.failure("Store does not exist: " + storeName);
-            }
 
-            processPayment(sessionKey, userEmail, amount);
-            storeService.addToStoreBalance(sessionKey, storeName, amount); 
-            return Result.success(true);
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
+//Will be added To Util file
+    private int calculateTotalCost(BasketDTO basket) {
+        int totalCost = 0;
+        for (String productId : basket.getBasketProducts()) {
+            ProductDTO product = productRepository.getProduct(productId);
+            totalCost += product.getPrice(); // Assuming ProductDTO has a getPrice() method
         }
+        return totalCost;
     }
 
 
-    public Result<Void> viewPurcaseHistory(String sessionKey, String userEmail) {
+
+    public Result<List<TransactionDTO>> viewPurcaseHistory(String sessionKey, String userEmail) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            List<Transaction> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
-            for (Transaction transaction : transactions) {
-                System.out.println(transaction.toString());
-            }
-            return Result.success(null);
+            List<TransactionDTO> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
+            return Result.success(transactions);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }

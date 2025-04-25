@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserRepository implements IUserRepository {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
-
+    
 
     @Override
     public User findUserByEmail(String email) {
@@ -98,6 +98,7 @@ public class UserRepository implements IUserRepository {
                     forEach(role->u.removeRole(storeName,role));
         }
     }
+
 
 
 

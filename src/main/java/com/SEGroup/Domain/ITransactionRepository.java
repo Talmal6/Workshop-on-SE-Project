@@ -1,13 +1,16 @@
 package com.SEGroup.Domain;
 import java.util.List;
+import com.SEGroup.DTO.TransactionDTO;
+import com.SEGroup.Domain.Product.Transaction;
 
 public interface ITransactionRepository {
 
     // Define the methods that will be implemented by the concrete class
-    void addTransaction(Transaction transaction);
-    Transaction getTransactionById(int id);
-    List<Transaction> getAllTransactions();
+    void addTransaction(List<String> shoppingProductIds, double cost, String buyersEmail, String storeName);
+    TransactionDTO getTransactionById(int id);
+    List<TransactionDTO> getAllTransactions();
     void updateTransaction(Transaction transaction);
     void deleteTransaction(int id); 
-    List<Transaction> getTransactionsByUserEmail(String userEmail);
+    
+    List<TransactionDTO> getTransactionsByUserEmail(String userEmail);
 } 
