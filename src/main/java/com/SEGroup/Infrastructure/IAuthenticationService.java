@@ -1,4 +1,6 @@
 package com.SEGroup.Infrastructure;
+import com.SEGroup.Domain.User.ShoppingCart;
+
 import javax.naming.AuthenticationException;
 
 public interface IAuthenticationService {
@@ -13,4 +15,7 @@ public interface IAuthenticationService {
     // 5-adapter add 2 password encryption functions
     String encryptPassword(String password);
     void matchPassword(String encryptedPassword, String userPassword) throws AuthenticationException;
+
+    String createGuestSession(); // create short lived session for guest
+    ShoppingCart guestCart(String guestToken);
 }

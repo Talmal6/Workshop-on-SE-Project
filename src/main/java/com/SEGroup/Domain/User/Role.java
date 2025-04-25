@@ -1,7 +1,6 @@
 package com.SEGroup.Domain.User;
 
 public enum Role {
-
     GUEST ,
     SUBSCRIBER ,
     STORE_MANAGER ,

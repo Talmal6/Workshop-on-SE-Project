@@ -1,19 +1,24 @@
 package com.SEGroup.Domain.User;
 
-import java.util.LinkedList;
-import java.util.List;
+import com.SEGroup.Domain.Store.Store;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class User {
+
     private final String email;
     private       String passwordHash;
-    private final List<Role> roles = new CopyOnWriteArrayList<>();
+    private final ConcurrentMap<String, EnumSet<Role>> storeRoles = new ConcurrentHashMap<>();
+
     private volatile ShoppingCart cart;
     private final List<String> purchaseHistory = new LinkedList<>();
     public User(String email, String passwordHash) {
         this.email        = email;
         this.passwordHash = passwordHash;
-        this.roles.add(Role.SUBSCRIBER);
+
     }
     public boolean matchesPassword(String raw,
                                    java.util.function.BiPredicate<String,String> matcher) {
@@ -24,11 +29,25 @@ public class User {
         this.passwordHash = newHash;
     }
 
-    public void addRole(Role r)    {
-        if (!roles.contains(r)) roles.add(r);
+    public void   addRole(String store, Role r){
+        storeRoles.computeIfAbsent(store, k -> EnumSet.noneOf(Role.class)).add(r);
     }
-    public void removeRole(Role r) {
-        roles.remove(r);
+
+
+    public void   removeRole(String store, Role r){
+        EnumSet<Role> set = storeRoles.get(store);
+        if(set!=null){
+            set.remove(r);
+            if(set.isEmpty()) storeRoles.remove(store);
+        }
+    }
+
+    public boolean hasRole(String store, Role r){
+        return storeRoles.getOrDefault(store, EnumSet.noneOf(Role.class)).contains(r);
+    }
+
+    public Map<String, EnumSet<Role>> snapshotRoles(){
+        return Collections.unmodifiableMap(storeRoles);
     }
 
     public ShoppingCart cart() {
@@ -43,7 +62,6 @@ public class User {
     public void addPurchase(String txId) { purchaseHistory.add(txId); }
     public String getPassword() { return passwordHash; }
     public String          getEmail()     { return email; }
-    public List<Role>      getRoles()     { return List.copyOf(roles); }
     public List<String>    getHistory()   { return List.copyOf(purchaseHistory); }
 
 

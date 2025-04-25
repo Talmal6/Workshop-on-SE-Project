@@ -2,7 +2,14 @@ package com.SEGroup.Infrastructure;
 
 import javax.naming.AuthenticationException;
 
+import com.SEGroup.Domain.User.Guest;
+import com.SEGroup.Domain.User.ShoppingCart;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SecurityAdapter implements IAuthenticationService{
     @Autowired
