@@ -1,24 +1,30 @@
 package com.SEGroup.Domain;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.SEGroup.Domain.Store.ManagerData;
 import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 public interface IStoreRepository {
     List<Store> getAllStores();
     Store findByName(String name);
     void checkIfExist(String name);
+
     void createStore(String StoreName, String founderEmail);
-    void addStore(Store store); //going to be deleted
-    void updateStore(Store store); //going to be deleted
-    void deleteStore(String name); //going to be deleted
+    void updateStoreName(String email, String storeName, String newStoreName);
     void deleteStore(String name,String founderEmail);
-    void changeStoreName(String oldName, String newName);
-    List<ShoppingProduct> viewPublicStoreProducts(String StoreName);
+
+    List<ShoppingProduct> getStoreProducts(String StoreName);
+
+    void addProductToStore(String email, String storeName, String catalogID, double price, int quantity);
+    void updateShoppingProduct(String email, String storeName, int productID, double price, String description);
+    void deleteShoppingProduct(String email, String storeName, int productID);
+
+    void rateProduct(String email, String storeName, int productID, int rating, String review);
+    void rateStore(String email, String storeName, int rating, String review);
 
     // Ownership and manager operations with operator email authorization
     void appointOwner(String storeName, String operatorEmail, String newOwnerEmail);
