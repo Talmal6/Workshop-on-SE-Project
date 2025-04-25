@@ -8,16 +8,24 @@ public class StoreDTO {
     public String founderEmail;
     public boolean isActive;
     public double balance;
+    private final double avgRating;
     public List<ShoppingProductDTO> products;
 
     public StoreDTO(int id, String name, String founderEmail, boolean isActive, double balance,
-            List<ShoppingProductDTO> products) {
+            List<ShoppingProductDTO> products,double avgRating) {
         this.id = id;
         this.name = name;
         this.founderEmail = founderEmail;
         this.isActive = isActive;
         this.balance = balance;
         this.products = products;
+        this.avgRating=avgRating;
+    }
+
+    public double getAvgRating()
+    {
+        return avgRating;
+
     }
 
     public int getId() {

@@ -5,21 +5,30 @@ import java.util.*;
 public class ShoppingProduct {
     private final String productId;
     private String name;
+    private String description;
     private double price;
     private int quantity;
+    private final String storeName;
+    private final String category;
+    private final Map<String, Store.Rating> ratings = new HashMap<>();
 
-    //bids and auction
+    // Bids and auction
     private final List<Bid> bids;
     private Auction auction;
     private BuyingPolicy buyingPolicy;
 
-    public ShoppingProduct(String productId, String name, double price, int quantity) {
+    public ShoppingProduct(String storeName, String category, String productId, String name,
+                           String description, double price, int quantity) {
+        this.storeName = storeName;
+        this.category = category;
         this.productId = productId;
         this.name = name;
+        this.description = description;
         this.price = price;
         this.quantity = quantity;
         this.bids = new ArrayList<>();
         this.buyingPolicy = new BuyingPolicy(1);
+        this.ratings.clear();
     }
 
     // Getters
@@ -70,5 +79,33 @@ public class ShoppingProduct {
 
     public Auction getAuction() {
         return auction;
+    }
+
+    public String getStoreName(){
+        return storeName;
+    }
+
+    public String getCategory(){
+        return category;
+    }
+
+    public String getDescription(){
+        return description;
+    }
+    public void addRating(String raterEmail , int score , String review ) {
+        if (score < 1 || score > 5) {
+            throw new IllegalArgumentException("Rating msut be 1-5 ");
+
+        }
+        ratings.put(raterEmail, new Store.Rating(score, review));
+
+    }
+    //rateStore
+    public double averageRating() {
+        if (ratings.isEmpty()) return 0.0;
+        return ratings.values().stream()
+                .mapToInt(r -> r.score)
+                .average()
+                .orElse(0.0);
     }
 }

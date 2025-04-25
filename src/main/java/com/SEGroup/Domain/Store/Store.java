@@ -13,9 +13,17 @@ public class Store {
 
     //products and reviews
     private final Map<String, ShoppingProduct> products;
-    private final List<Integer> ratings = new ArrayList<>();
     private final List<String> reviews = new ArrayList<>();
 
+    private final Map<String, Rating> ratings = new HashMap<>();
+
+    public static final class Rating{
+
+
+        final int score;
+        final String review ;
+        Rating (int s , String r ){score =s;review =r; }
+    }
     // Disocunt and policy fields
     private PurchasePolicy purchasePolicy;
     private List<Discount> discounts;
@@ -66,9 +74,11 @@ public class Store {
         this.isActive = true;
     }
     // Products (ShoppingProduct) 4.1
-    public void addProductToStore(String product_name, String catalogID, double price, int quantity){
-        ShoppingProduct product = new ShoppingProduct(catalogID, product_name, price, quantity);
-        products.put(catalogID, product);
+    public void addProductToStore(String email, String storeName, String category, String catalogID, String product_name, String description, double price, int quantity){
+        if (isOwnerOrHasManagerPermissions(email)) {
+            ShoppingProduct product = new ShoppingProduct(storeName, category, catalogID, product_name, description, price, quantity);
+            products.put(catalogID, product);
+        }
     }
 
     public ShoppingProduct getProduct(String productId) {
@@ -85,16 +95,7 @@ public class Store {
     public Collection<ShoppingProduct> getAllProducts() {
         return products.values();
     }
-    // Store rating
-    public void rateStore(int rating, String review) {
-        if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Rating must be between 1 and 5");
-        }
-        ratings.add(rating);
-        if (review != null && !review.isBlank()) {
-            reviews.add(review);
-        }
-    }
+
     public void addToBalance(double amount){
         this.balance += amount;
     }
@@ -124,6 +125,12 @@ public class Store {
     }
     public boolean isOwner(String email) {
         return founderEmail.equals(email) || ownersAppointer.containsKey(email);
+    }
+    public boolean isOwnerOrHasManagerPermissions(String email){
+        if (!isOwner(email) && !hasManagerPermission(email, ManagerPermission.MANAGE_PRODUCTS)) {
+            throw new RuntimeException("User is not authorized to update products");
+        }
+        return true;
     }
     //Management 4.3
     public boolean appointOwner(String appointerEmail, String newOwnerEmail) {
@@ -202,8 +209,8 @@ public class Store {
         return ownersList;
     }
     //4.11 Part B
-    public Map<String, ManagerData> getAllManagers() {
-        return Collections.unmodifiableMap(managers);
+    public List<String> getAllManagers() {
+        return Collections.unmodifiableList(new ArrayList<>(managers.keySet()));
     }
     //4.11 Part C
     public boolean hasManagerPermission(String managerEmail, ManagerPermission permission) {
@@ -215,14 +222,38 @@ public class Store {
     }
 
     //4.11 Part D
-    public Set<ManagerPermission> getManagerPermissions(String managerEmail) {
+    public List<String> getManagerPermissions(String managerEmail) {
         ManagerData manager = managers.get(managerEmail);
         if (manager == null) {
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
-        return Collections.unmodifiableSet(manager.getPermissions());
+        List<String> permissionStrings = new ArrayList<>();
+        for (ManagerPermission permission : manager.getPermissions()) {
+            permissionStrings.add(permission.name());
+        }
+        return Collections.unmodifiableList(permissionStrings);
     }
 
+    public void rateStore(String raterEmail , int score , String review ) {
+        if (score < 1 || score > 5) {
+            throw new IllegalArgumentException("Rating msut be 1-5 ");
+
+        }
+        ratings.put(raterEmail, new Rating(score, review));
+
+    }
+    //rateStore
+    public double averageRating() {
+        if (ratings.isEmpty()) return 0.0;
+        return ratings.values().stream()
+                .mapToInt(r -> r.score)
+                .average()
+                .orElse(0.0);
+    }
+
+    public boolean hasRated(String email) {
+        return ratings.containsKey(email);
+    }
 
     @Override
     public String toString() {
