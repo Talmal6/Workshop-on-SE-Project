@@ -30,7 +30,7 @@ public class StoreService {
         this.userRepository = userRepository;
     }
 
-    // === Guest / Public Viewing === 
+
     public Result<String> addProductToCatalog(String catalogID, String name, String brand, String description, List<String> categories){
         try {
             productCatalog.addCatalogProduct(catalogID, name, brand, description, categories);
@@ -47,7 +47,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    // === Guest / Public Viewing === 
     public Result<List<StoreDTO>> viewAllStores() {
         try {
             LoggerWrapper.info("Fetching all public stores.");
@@ -71,6 +71,7 @@ public class StoreService {
     public Result<Void> createStore(String sessionKey, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            LoggerWrapper.info("Creating store: " + storeName);
             storeRepository.createStore(storeName, authenticationService.getUserBySession(sessionKey));
             return Result.success(null);
         } catch (Exception e) {
