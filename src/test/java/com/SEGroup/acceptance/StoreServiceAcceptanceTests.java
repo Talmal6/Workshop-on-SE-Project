@@ -2,6 +2,7 @@ package com.SEGroup.acceptance;
 
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 
@@ -53,7 +54,7 @@ public class StoreServiceAcceptanceTests {
         // Auth stubs: valid vs invalid sessions
         // doNothing().when(authenticationService).checkSessionKey(VALID_SESSION);
         storeRepository = new StoreRepository();
-        productCatalog = mock(ProductCatalog.class);
+        productCatalog = new InMemoryProductCatalog();
         authenticationService = mock(IAuthenticationService.class);
         userRepository = mock(UserRepository.class);
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
@@ -90,15 +91,15 @@ public class StoreServiceAcceptanceTests {
     @Test
     public void addProductToStore_WithValidDetails_ShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
+        Result<String> res = storeService.addProductToCatalog(CATALOG_ID, "iphone13", "apple", "Desc", Collections.singletonList("phones"));
+        
         Result<Void> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
                 9.99, 5);
         assertTrue(result.isSuccess());
-        // Result<ShoppingProductDTO> productResult =
-        // storeService.searchProduct(VALID_SESSION,"ProdName")
-        // assertTrue(productResult.isSuccess());
-        // assertNotNull(productResult.getData());
-        // assertEquals(CATALOG_ID, productResult.getData().getCatalogID());
-
+        Result<List<ShoppingProductDTO>> productResult = storeService.searchProducts("iphone",Collections.emptyList(),null,null);
+        assertTrue(productResult.isSuccess());
+        assertEquals(productResult.getData().get(0).getName(),"ProdName");
+        
     }
 
     @Test

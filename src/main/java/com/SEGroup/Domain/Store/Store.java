@@ -82,12 +82,15 @@ public class Store {
         this.isActive = true;
     }
     // Products (ShoppingProduct) 4.1
-    public void addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity){
+    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity){
         if (isOwnerOrHasManagerPermissions(email)) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
             ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity);
             products.put(productId, product);
+            return productId;
         }
+        //wont get here
+        return null;
     }
 
     public ShoppingProduct getProduct(String productId) {

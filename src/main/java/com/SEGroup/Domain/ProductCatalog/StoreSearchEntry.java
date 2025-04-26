@@ -2,7 +2,7 @@ package com.SEGroup.Domain.ProductCatalog;
 
 import java.util.List;
 
-public class StoreProductEntry {
+public class StoreSearchEntry {
 
     private final String catalogID;
     private final String storeName;
@@ -10,14 +10,16 @@ public class StoreProductEntry {
     private double price;
     private int quantity;
     private double rating;
+    private final String name;
 
-    public StoreProductEntry(String catalogID, String storeName, String productID, double price, int quantity, double rating) {
+    public StoreSearchEntry(String catalogID, String storeName, String productID, double price, int quantity, double rating, String name) {
         this.catalogID = catalogID;
         this.storeName = storeName;
         this.productID = productID;
         this.price = price;
         this.quantity = quantity;
         this.rating = rating;
+        this.name = name;
     }
 
     public String getCatalogID() {
@@ -54,6 +56,10 @@ public class StoreProductEntry {
 
     public void setRating(double rating) {
         this.rating = rating;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public boolean matchesQuery(String query, List<String> searchFilters) {
