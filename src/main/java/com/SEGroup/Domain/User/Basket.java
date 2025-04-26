@@ -10,18 +10,18 @@ public class Basket {
     private final String storeId;
     private final Map<String, Integer> product2qty = new ConcurrentHashMap<>();
 
-    Basket(String storeId) {
+    public Basket(String storeId) {
 
         this.storeId = storeId;
 
     }
 
 
-    void add(String pid, int q) {
+    public void add(String pid, int q) {
         product2qty.merge(pid, q, Integer::sum);  // im adding more to quantitiy of pid
 
     }
-    void change(String pid, int q) {
+    public void change(String pid, int q) {
 
         product2qty.put(pid, q);
 
