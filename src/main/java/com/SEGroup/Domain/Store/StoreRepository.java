@@ -65,8 +65,9 @@ public class StoreRepository implements IStoreRepository {
         if (product == null) {
             throw new RuntimeException("Product not found in store");
         }
+        System.out.println("Updating product: " + product.getName() + " with new price: " + price);
         product.setPrice(price);
-        product.setName(description); // assuming description is name; change if needed
+        product.setDescription(description); // assuming description is name; change if needed
         ShoppingProductDTO productDTO = convertProductToDTO(product);
         return productDTO;          
     }
@@ -189,16 +190,15 @@ public class StoreRepository implements IStoreRepository {
     public ShoppingProductDTO rateProduct(String email, String storeName, String productID, int rating, String review) {
         Store store = findByName(storeName);
         ShoppingProduct product = store.getProduct(productID);
-        ShoppingProductDTO productDTO = convertProductToDTO(product);
+        
         if (product == null) {
             throw new RuntimeException("Product not found in store ");
         }
         if (rating == 1 || rating > 5) {
             throw new IllegalArgumentException(("Rating must be between 1-5"));
-
         }
-
         product.addRating(email, rating, review);
+        ShoppingProductDTO productDTO = convertProductToDTO(product);
         return productDTO;
     }
 

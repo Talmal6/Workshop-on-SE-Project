@@ -1,7 +1,7 @@
 package com.SEGroup.acceptance;
 import com.SEGroup.Domain.IGuestRepository;
 
-import com.SEGroup.Domain.ProductCatalog;
+import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
@@ -51,7 +51,7 @@ public class StoreServiceTests {
         transactionRepository = mock(ITransactionRepository.class);
         storeRepository = mock(IStoreRepository.class);
         userRepository = mock(IUserRepository.class);
-        productCatalog = mock(productCatalog.class);
+        productCatalog = mock(ProductCatalog.class);
         guestService = mock(GuestService.class);
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
         userService = new UserService(guestService ,userRepository, authenticationService);
@@ -193,8 +193,7 @@ public class StoreServiceTests {
     @Test
     public void GivenUnauthorizedStoreOwnerRequest_WhenRetrievingStoreRoles_ThenAccessDenied() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
-
-        assert !storeService.getStoreRoles(sessionKey, defaultStoreName).isSuccess();
+        assertFalse(storeService.getAllOwners(sessionKey, defaultStoreName).isSuccess());
     }
 
     // 4.11(b) - View Purchase History in Store (Manager Permissions)
