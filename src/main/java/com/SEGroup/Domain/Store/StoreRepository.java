@@ -16,7 +16,7 @@ import com.SEGroup.Service.Mapper.StoreMapper;
 //implement iStore
 public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
-    private StoreMapper storeMapper;
+    private StoreMapper storeMapper = new StoreMapper();
 
     @Override
     public List<StoreDTO> getAllStores() {
@@ -32,7 +32,9 @@ public class StoreRepository implements IStoreRepository {
 
     @Override
     public void createStore(String storeName, String founderEmail) {
-        checkIfExist(storeName);
+        if(isStoreExist(storeName)) {
+            throw new RuntimeException("Store already exists");
+        }
         stores.add(new Store(storeName, founderEmail));
     }
 
@@ -65,7 +67,6 @@ public class StoreRepository implements IStoreRepository {
         if (product == null) {
             throw new RuntimeException("Product not found in store");
         }
-        System.out.println("Updating product: " + product.getName() + " with new price: " + price);
         product.setPrice(price);
         product.setDescription(description); // assuming description is name; change if needed
         ShoppingProductDTO productDTO = convertProductToDTO(product);
@@ -96,6 +97,11 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("Store does not exist");
         }
     }
+
+    public boolean isStoreExist(String name) {
+        return stores.stream().anyMatch(store -> store.getName().equals(name));
+    }
+    
 
     @Override
     public void appointOwner(String storeName, String appointerEmail, String newOwnerEmail) {
@@ -146,14 +152,14 @@ public class StoreRepository implements IStoreRepository {
                 && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
             throw new RuntimeException("User is not authorized to view manager permissions");
         }
-
+        
         return store.getManagerPermissions(managerEmail);
     }
 
     @Override
     public List<String> getAllOwners(String storeName, String operatorEmail) {
         Store store = findByName(storeName);
-
+        
         if (!store.isOwner(operatorEmail)
                 && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
             throw new RuntimeException("User is not authorized to view store owners");

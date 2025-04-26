@@ -5,7 +5,6 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.Transaction.Transaction;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.DTO.BasketDTO;
-//import com.SEGroup.DTO.ProductDTO;
 import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.IPaymentGateway;

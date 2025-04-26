@@ -56,7 +56,7 @@ public class ShoppingProductTest {
         shoppingProduct.addBid("user1@test.com", 50.0);
         shoppingProduct.addBid("user2@test.com", 100.0);
         shoppingProduct.addBid("user3@test.com", 75.0);
-
+        
         Optional<Bid> highestBid = shoppingProduct.getHighestBid();
         assertTrue(highestBid.isPresent());
         assertEquals(100.0, highestBid.get().getAmount(), 0.001);
