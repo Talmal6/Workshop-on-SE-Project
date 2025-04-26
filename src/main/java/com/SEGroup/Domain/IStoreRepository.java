@@ -52,7 +52,6 @@ public interface IStoreRepository {
 
     void rollBackItemsToStores(List<BasketDTO> basketDTO);
 
-    
-
+    ShoppingProductDTO getProduct(String storeName, String productID);
 
 }

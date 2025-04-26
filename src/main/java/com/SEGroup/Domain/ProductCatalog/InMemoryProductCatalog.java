@@ -69,20 +69,46 @@ public class InMemoryProductCatalog implements ProductCatalog {
     }
 
     @Override
-    public List<StoreProductEntry> search(String query, List<String> searchFilters) {
-        Set<String> matchingcatalogIDs = products.values().stream()
+    public List<StoreProductEntry> search(String query, List<String> searchFilters, String storeName, List<String> categories) {
+        // Step 1: First pass - Filter CatalogProducts by name, brand, or description matching the query
+        Set<String> firstPass = products.values().stream()
                 .filter(product -> product.getName().toLowerCase().contains(query.toLowerCase()) ||
-                                    product.getBrand().toLowerCase().contains(query.toLowerCase()) ||
-                                    product.getDescription().toLowerCase().contains(query.toLowerCase()))
+                                   product.getBrand().toLowerCase().contains(query.toLowerCase()) ||
+                                   product.getDescription().toLowerCase().contains(query.toLowerCase()))
                 .map(CatalogProduct::getCatalogID)
                 .collect(Collectors.toSet());
-
-        return catalogIdToStoreOffers.entrySet().stream()
-                .filter(entry -> matchingcatalogIDs.contains(entry.getKey()))
+    
+        // Step 2: Second pass - Find StoreProductEntries matching those CatalogProducts and matching search filters
+        List<StoreProductEntry> secondPass = catalogIdToStoreOffers.entrySet().stream()
+                .filter(entry -> firstPass.contains(entry.getKey()))
                 .flatMap(entry -> entry.getValue().stream())
                 .filter(storeProductEntry -> storeProductEntry.matchesQuery(query, searchFilters))
                 .collect(Collectors.toList());
+    
+        // Step 3: Third pass - If storeName is specified, filter entries by store name
+        List<StoreProductEntry> thirdPass = secondPass;
+        if (storeName != null && !storeName.isEmpty()) {
+            thirdPass = thirdPass.stream()
+                    .filter(entry -> entry.getStoreName().equalsIgnoreCase(storeName))
+                    .collect(Collectors.toList());
+        }
+    
+        // Step 4: Fourth pass - If categories are specified, filter entries by categories
+        List<StoreProductEntry> fourthPass = thirdPass;
+        if (categories != null && !categories.isEmpty()) {
+            Set<String> validCatalogIds = categories.stream()
+                    .filter(categoriesToProducts::containsKey)
+                    .flatMap(category -> categoriesToProducts.get(category).stream())
+                    .collect(Collectors.toSet());
+    
+            fourthPass = fourthPass.stream()
+                    .filter(entry -> validCatalogIds.contains(entry.getCatalogID()))
+                    .collect(Collectors.toList());
+        }
+    
+        return fourthPass;
     }
+    
 
     @Override
     public void isProductExist(String catalogID) throws Exception {

@@ -11,7 +11,7 @@ public interface ProductCatalog {
 
     List<CatalogProduct> getAllProducts();
     List<StoreProductEntry> getAllProductsByCategory(String category);
-    List<StoreProductEntry> search(String query, List<String> searchFilters);
+    List<StoreProductEntry> search(String query, List<String> searchFilters, String storeName, List<String> categories);
 
     void isProductExist(String catalogID) throws Exception;
 }

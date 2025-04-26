@@ -312,4 +312,9 @@ public class StoreRepository implements IStoreRepository {
             }
         }
     }
+
+    @Override
+    public ShoppingProductDTO getProduct(String storeName, String productID) {
+        return convertProductToDTO(findByName(storeName).getProduct(productID));
+    }
 }
