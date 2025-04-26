@@ -73,12 +73,16 @@ public class StoreRepository implements IStoreRepository {
         return productDTO;          
     }
     @Override
-    public void addProductToStore(String email, String storeName, String catalogID, String product_name,String description, double price,
+    public String addProductToStore(String email, String storeName, String catalogID, String product_name,String description, double price,
                                   int quantity) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
-            store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity);
+            return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity);
+            
         }
+        return null;
+
+
     }
     public Store findByName(String name) {
         Store find_store = stores.stream()
@@ -315,6 +319,9 @@ public class StoreRepository implements IStoreRepository {
 
     @Override
     public ShoppingProductDTO getProduct(String storeName, String productID) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productID);
+
         return convertProductToDTO(findByName(storeName).getProduct(productID));
     }
 }

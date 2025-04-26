@@ -9,7 +9,7 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
-import com.SEGroup.Domain.ProductCatalog.StoreProductEntry;
+import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.LoggerWrapper;
 
@@ -32,8 +32,8 @@ public class StoreService {
         this.userRepository = userRepository;
     }
 
-
-    public Result<String> addProductToCatalog(String catalogID, String name, String brand, String description, List<String> categories){
+    public Result<String> addProductToCatalog(String catalogID, String name, String brand, String description,
+            List<String> categories) {
         try {
             productCatalog.addCatalogProduct(catalogID, name, brand, description, categories);
             return Result.success(catalogID);
@@ -49,12 +49,13 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-    // === Guest / Public Viewing === 
+
+    // === Guest / Public Viewing ===
     public Result<List<StoreDTO>> viewAllStores() {
         try {
             LoggerWrapper.info("Fetching all public stores.");
             return Result.success(storeRepository.getAllStores());
-        } catch (Exception e){
+        } catch (Exception e) {
             LoggerWrapper.error(e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
@@ -85,43 +86,48 @@ public class StoreService {
         try {
             StoreDTO storeDTO = storeRepository.getStore(storeName);
             storeRepository.closeStore(storeName, authenticationService.getUserBySession(sessionKey));
-            for(ShoppingProductDTO sp : storeDTO.getProducts()){
+            for (ShoppingProductDTO sp : storeDTO.getProducts()) {
                 productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId());
             }
             return Result.success(null);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             return Result.failure(e.getMessage());
         }
     }
+
     public Result<Void> reopenStore(String sessionKey, String storeName) {
         try {
             storeRepository.reopenStore(storeName, authenticationService.getUserBySession(sessionKey));
-            for(ShoppingProductDTO sp : storeRepository.getStore(storeName).getProducts()){
-                productCatalog.addStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId(), sp.getPrice(), sp.getQuantity(), sp.getAvgRating());
+            for (ShoppingProductDTO sp : storeRepository.getStore(storeName).getProducts()) {
+                productCatalog.addStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId(), sp.getPrice(),
+                        sp.getQuantity(), sp.getAvgRating(), sp.getName());
             }
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
-    public Result<Void> addProductToStore(String sessionKey, String storeName, String catalogID, String productName ,String description, double price, int quantity) {
+
+    public Result<Void> addProductToStore(String sessionKey, String storeName, String catalogID, String productName,
+            String description, double price, int quantity) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             productCatalog.isProductExist(catalogID);
-            storeRepository.addProductToStore(authenticationService.getUserBySession(sessionKey), storeName, catalogID, productName ,description, price, quantity);
-            //productRepository.addStoreToProduct(catalogID, storeName);
-
+            String productID = storeRepository.addProductToStore(authenticationService.getUserBySession(sessionKey), storeName, catalogID,
+                    productName, description, price, quantity);
+            productCatalog.addStoreProductEntry(catalogID, storeName, productID, price, quantity, 0, productName);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<Void> updateShoppingProduct(String sessionKey, String storeName, String productID, String description, Double price) {
+    public Result<Void> updateShoppingProduct(String sessionKey, String storeName, String productID, String description,
+            Double price) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            ShoppingProductDTO sp = storeRepository.updateShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName, productID, price, description);
+            ShoppingProductDTO sp = storeRepository.updateShoppingProduct(
+                    authenticationService.getUserBySession(sessionKey), storeName, productID, price, description);
             productCatalog.updateStoreProductEntry(sp.getCatalogID(), storeName, productID, price, null, null);
             return Result.success(null);
         } catch (Exception e) {
@@ -132,7 +138,8 @@ public class StoreService {
     public Result<Void> deleteShoppingProduct(String sessionKey, String storeName, String productID) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            ShoppingProductDTO sp = storeRepository.deleteShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName, productID);
+            ShoppingProductDTO sp = storeRepository
+                    .deleteShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName, productID);
             productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, productID);
             return Result.success(null);
         } catch (Exception e) {
@@ -153,11 +160,13 @@ public class StoreService {
     public Result<Void> rateProduct(String sessionKey, String storeName, String productID, int rating, String review) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            ShoppingProductDTO sp = storeRepository.rateProduct(authenticationService.getUserBySession(sessionKey), storeName, productID, rating, review);
-            productCatalog.updateStoreProductEntry(sp.getCatalogID(), storeName, productID, null, null, sp.getAvgRating());
+            ShoppingProductDTO sp = storeRepository.rateProduct(authenticationService.getUserBySession(sessionKey),
+                    storeName, productID, rating, review);
+            productCatalog.updateStoreProductEntry(sp.getCatalogID(), storeName, productID, null, null,
+                    sp.getAvgRating());
             return Result.success(null);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+
             return Result.failure(e.getMessage());
         }
     }
@@ -255,31 +264,37 @@ public class StoreService {
 
     // === Search Operations ===
 
-    public Result<List<ShoppingProductDTO>> searchProducts(String query, List<String> searchFilters, String storeName, List<String> categories){
+    public Result<List<ShoppingProductDTO>> searchProducts(String query, List<String> searchFilters, String storeName,
+            List<String> categories) {
         try {
-            List<ShoppingProductDTO> searchResults = new ArrayList<>(); 
-            for(StoreProductEntry spe : productCatalog.search(query, searchFilters, storeName, categories)){
+            List<ShoppingProductDTO> searchResults = new ArrayList<>();
+            for (StoreSearchEntry spe : productCatalog.search(query, searchFilters, storeName, categories)) {
                 searchResults.add(storeRepository.getProduct(spe.getStoreName(), spe.getProductID()));
             }
             return Result.success(searchResults);
         } catch (Exception e) {
+
             return Result.failure(e.getMessage());
         }
     }
-    
-    // public Result<List<ShoppingProductDTO>> searchProductsByCategory(String category){
-    //     try {
-    //         List<ShoppingProductDTO> searchResults = new ArrayList<>(); 
-    //         for(StoreProductEntry spe : productCatalog.getAllProductsByCategory(category)){
-    //             searchResults.add(storeRepository.getProduct(spe.getStoreName(), spe.getProductID()));
-    //         }
-    //         return Result.success(searchResults);
-    //     } catch (Exception e) {
-    //         return Result.failure(e.getMessage());
-    //     }
+
+    // public Result<List<ShoppingProductDTO>> searchProductsByCategory(String
+    // category){
+    // try {
+    // List<ShoppingProductDTO> searchResults = new ArrayList<>();
+    // for(StoreProductEntry spe :
+    // productCatalog.getAllProductsByCategory(category)){
+    // searchResults.add(storeRepository.getProduct(spe.getStoreName(),
+    // spe.getProductID()));
+    // }
+    // return Result.success(searchResults);
+    // } catch (Exception e) {
+    // return Result.failure(e.getMessage());
+    // }
     // }
 
-    // public Result<List<ShoppingProductDTO>> searchProductProductsInStore(String storeName, String query, List<String> searchFilters){
+    // public Result<List<ShoppingProductDTO>> searchProductProductsInStore(String
+    // storeName, String query, List<String> searchFilters){
 
     // }
 

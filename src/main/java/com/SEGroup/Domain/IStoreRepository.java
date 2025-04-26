@@ -18,7 +18,7 @@ public interface IStoreRepository {
 
     void reopenStore(String storeName, String founderEmail);
 // omri funcitions
-    void addProductToStore(String email, String storeName, String catalogID, String product_name,String description, double price, int quantity);
+    String addProductToStore(String email, String storeName, String catalogID, String product_name,String description, double price, int quantity);
 
     ShoppingProductDTO updateShoppingProduct(String email, String storeName, String catalogID, double price, String description);
 
