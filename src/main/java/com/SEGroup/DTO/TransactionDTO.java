@@ -5,10 +5,10 @@ import java.util.List;
 
 
 public class TransactionDTO {
-    private List<String> itemsToTransact;
-    private double cost;
-    private String buyersEmail;
-    private String sellerStore;
+    public List<String> itemsToTransact;
+    public double cost;
+    public String buyersEmail;
+    public String sellerStore;
 
     // Default constructor
     public TransactionDTO() {

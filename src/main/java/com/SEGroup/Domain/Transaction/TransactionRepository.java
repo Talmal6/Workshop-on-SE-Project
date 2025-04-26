@@ -16,7 +16,10 @@ import com.SEGroup.Service.Mapper.TransactionMapper;
 public class TransactionRepository implements ITransactionRepository {
     private final Map<Integer, Transaction> transactions = new ConcurrentHashMap<>(); // <Identifier, Transaction>
     private final AtomicInteger nextId = new AtomicInteger(1); // Identifier for transactions
-
+    public TransactionRepository() {
+        // Constructor can be used for initialization if needed
+    }
+    
     @Override
     public void addTransaction(List<String> shoppingProductIds, double cost, String buyersEmail, String storeName) {
         Transaction transaction = new Transaction(shoppingProductIds, cost, buyersEmail, storeName);
