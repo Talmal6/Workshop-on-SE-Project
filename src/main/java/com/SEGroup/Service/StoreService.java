@@ -1,5 +1,6 @@
 package com.SEGroup.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
@@ -8,6 +9,7 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
+import com.SEGroup.Domain.ProductCatalog.StoreProductEntry;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.LoggerWrapper;
 
@@ -250,6 +252,37 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+    // === Search Operations ===
+
+    public Result<List<ShoppingProductDTO>> searchProducts(String query, List<String> searchFilters, String storeName, List<String> categories){
+        try {
+            List<ShoppingProductDTO> searchResults = new ArrayList<>(); 
+            for(StoreProductEntry spe : productCatalog.search(query, searchFilters, storeName, categories)){
+                searchResults.add(storeRepository.getProduct(spe.getStoreName(), spe.getProductID()));
+            }
+            return Result.success(searchResults);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    
+    // public Result<List<ShoppingProductDTO>> searchProductsByCategory(String category){
+    //     try {
+    //         List<ShoppingProductDTO> searchResults = new ArrayList<>(); 
+    //         for(StoreProductEntry spe : productCatalog.getAllProductsByCategory(category)){
+    //             searchResults.add(storeRepository.getProduct(spe.getStoreName(), spe.getProductID()));
+    //         }
+    //         return Result.success(searchResults);
+    //     } catch (Exception e) {
+    //         return Result.failure(e.getMessage());
+    //     }
+    // }
+
+    // public Result<List<ShoppingProductDTO>> searchProductProductsInStore(String storeName, String query, List<String> searchFilters){
+
+    // }
+
     // public Result<List<StoreProductDTO>> searchProducts(String query, String
     // categories, String sortBy) {
     // try {
