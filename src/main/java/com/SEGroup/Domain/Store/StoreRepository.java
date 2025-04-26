@@ -241,11 +241,14 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void removeItemsFromStores(List<BasketDTO> basketDTOList) {
+    public Map<BasketDTO, Double> removeItemsFromStores(List<BasketDTO> basketDTOList) {
+        Map<BasketDTO, Double> basketToTotalPrice = new HashMap<>();
         List<BasketDTO> succeededRemovals = new ArrayList<>();
+
         try {
             for (BasketDTO basketDTO : basketDTOList) {
                 Store store = findByName(basketDTO.storeId());
+                double storeTotal = 0;
 
                 for (Map.Entry<String, Integer> entry : basketDTO.prod2qty().entrySet()) {
                     String productId = entry.getKey();
@@ -261,15 +264,18 @@ public class StoreRepository implements IStoreRepository {
                     }
 
                     product.setQuantity(product.getQuantity() - quantityToRemove);
+                    storeTotal += product.getPrice() * quantityToRemove;
                 }
 
                 succeededRemovals.add(basketDTO);
+                basketToTotalPrice.put(basketDTO, storeTotal);
             }
         } catch (Exception e) {
-            // Rollback all previously succeeded removals
             rollBackItemsToStores(succeededRemovals);
             throw new RuntimeException("Failed to remove items from stores: " + e.getMessage());
         }
+
+        return basketToTotalPrice;
     }
     @Override
     public void rollBackItemsToStores(List<BasketDTO> basketDTOList) {

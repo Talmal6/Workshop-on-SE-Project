@@ -47,8 +47,8 @@ public interface IStoreRepository {
     List<String> getAllManagers(String storeName, String operatorEmail);
 
     void addToBalance(String userBySession, String storeName, double amount);
-
-    void removeItemsFromStores(List<BasketDTO> basketDTO);
+    //return basket_store_id,price
+    Map<BasketDTO, Double> removeItemsFromStores(List<BasketDTO> basketDTOList);
 
     void rollBackItemsToStores(List<BasketDTO> basketDTO);
 
