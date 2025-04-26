@@ -1,8 +1,8 @@
 package com.SEGroup;
 
 import com.SEGroup.Domain.*;
-import com.SEGroup.Domain.Product.Transaction;
-import com.SEGroup.Domain.Product.TransactionRepository;
+import com.SEGroup.Domain.Transaction.Transaction;
+import com.SEGroup.Domain.Transaction.TransactionRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

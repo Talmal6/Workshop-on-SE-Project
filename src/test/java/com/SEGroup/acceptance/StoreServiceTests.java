@@ -79,14 +79,13 @@ public class StoreServiceTests {
     @Test
     public void GivenValidProductDetails_WhenManagingStoreInventory_ThenInventoryUpdated() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
-        storeService.createStore(sessionKey, defaultStoreName);
-        assert storeService.addProductToStore(sessionKey, "Drinks", defaultStoreName, "Milk", "Milk Vanilla","The milk is made out of vanilla and milk", 7.18, 3).isSuccess();
+        assert storeService.addProductToStore(sessionKey, "Drinks", defaultStoreName, "Milk Vanilla","The milk is made out of vanilla and milk", 7.18, 3).isSuccess();
     }
 
     @Test
     public void GivenInvalidProductDetailsOrUnauthorizedUser_WhenManagingStoreInventory_ThenOperationFails() {
         String sessionKey = authenticationService.authenticate(defaultUserEmail);
-        assert storeService.addProductToStore(sessionKey, "Drinks", defaultStoreName, "Milk", "Milk Vanilla","The milk is made out of vanilla and milk", 7.18, -10).isSuccess();
+        assert storeService.addProductToStore(sessionKey, defaultStoreName, "Drinks", "Milk Vanilla","The milk is made out of vanilla and milk", 7.18, -10).isSuccess();
     }
 
     // 4.2 - Change Store Purchase and Discount Policies

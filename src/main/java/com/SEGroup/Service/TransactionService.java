@@ -2,9 +2,8 @@ package com.SEGroup.Service;
 
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.IProductRepository;
+import com.SEGroup.Domain.Transaction.Transaction;
 import com.SEGroup.Domain.IStoreRepository;
-import com.SEGroup.Domain.Product.Transaction;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ProductDTO;
 import com.SEGroup.DTO.TransactionDTO;
@@ -19,21 +18,18 @@ public class TransactionService {
     private final ITransactionRepository transactionRepository;
     private final IStoreRepository storeRepository; // Added StoreRepository
     private final IUserRepository userRepository; // Added UserRepository
-    private final IProductRepository productRepository; // Added ProductRepository
 
 
     public TransactionService(IAuthenticationService authenticationService,
             IPaymentGateway paymentGateway,
             ITransactionRepository transactionRepository,
             IStoreRepository storeRepository,
-            IUserRepository userRepository,
-            IProductRepository productRepository) {
+            IUserRepository userRepository) {
         this.authenticationService = authenticationService;
         this.paymentGateway = paymentGateway;
         this.transactionRepository = transactionRepository;
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;
-        this.productRepository = productRepository;
     }
 
     /**

@@ -28,7 +28,7 @@ public class TransactionServiceTests {
     static IUserRepository userRepository;
     static IProductRepository productRepository;
     static StoreService storeService;
-    static UserService שuserService;
+    static UserService userService;
     static String defaultSellerUserName = "seller";
     static String defaultBuyerUserName = "buyer";
     static String defaultSellerEmail = "seller@gmail.com";
@@ -55,6 +55,10 @@ public class TransactionServiceTests {
         buyerSessionKey = userService.login(defaultBuyerEmail, buyerPassword).getData();
         transactionService = new TransactionService(authenticationService, paymentGateway, transactionRepository, storeService, userService);
         transactionService.processPayment("testsessionKey", "testuserEmail", 100.0);
+    }
+
+    @Test
+    public void GivenGuestUser_WhenRequestingPurchaseHistory_ThenAccessIsDenied() {
     }
 
     @Test

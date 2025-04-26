@@ -1,29 +1,14 @@
 package com.SEGroup.Service;
 
-import java.util.ArrayList;
+import java.util.List;
 
-import com.SEGroup.DTO.ProductDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
-import com.SEGroup.DTO.StoreDTO;
-import com.SEGroup.Domain.*;
-import com.SEGroup.Domain.Store.Store;
-import com.SEGroup.Infrastructure.IAuthenticationService;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.naming.AuthenticationException;
-
-import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
-
+import com.SEGroup.Domain.IStoreRepository;
+import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
-import com.SEGroup.Domain.Store.ManagerData;
-import com.SEGroup.Domain.Store.ManagerPermission;
-import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Domain.Store.StoreRepository;
+import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.LoggerWrapper;
 
 /**
@@ -31,18 +16,15 @@ import com.SEGroup.Infrastructure.LoggerWrapper;
  */
 public class StoreService {
     private final IStoreRepository storeRepository;
-    private final IProductRepository productRepository;
     private final ProductCatalog productCatalog;
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
 
     public StoreService(IStoreRepository storeRepository,
-            IProductRepository productRepository,
             ProductCatalog productCatalog,
             IAuthenticationService authenticationService,
             IUserRepository userRepository) {
         this.storeRepository = storeRepository;
-        this.productRepository = productRepository;
         this.productCatalog = productCatalog;
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
@@ -70,15 +52,15 @@ public class StoreService {
         try {
             LoggerWrapper.info("Fetching all public stores.");
             return Result.success(storeRepository.getAllStores());
-        } catch (Exception e) {
+        } catch (Exception e){
             LoggerWrapper.error(e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
     }
 
-    public Result<List<ProductDTO>> viewPublicProductCatalog() {
+    public Result<List<CatalogProduct>> viewPublicProductCatalog() {
         try {
-            return Result.success(productRepository.getAllProducts());
+            return Result.success(productCatalog.getAllProducts());
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }

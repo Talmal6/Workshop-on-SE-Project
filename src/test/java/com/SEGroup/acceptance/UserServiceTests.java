@@ -1,5 +1,7 @@
 package com.SEGroup.acceptance;
 
+import javax.naming.AuthenticationException;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
@@ -28,7 +30,7 @@ public class UserServiceTests {
         IUserRepository userRepository = mock(IUserRepository.class);
         IGuestRepository guestRepository = mock(IGuestRepository.class);
         authenticationService = mock(IAuthenticationService.class);
-        userService = new UserService(guestService,userRepository, authenticationService);
+        userService = new UserService(guestService, userRepository, authenticationService);
     }
     //constructor
     private UserServiceTests(UserService service) {
@@ -111,18 +113,14 @@ public class UserServiceTests {
 
     // Negative Test: Logout is handled gracefully if the session is already expired.
     @Test
-    public void GivenExpiredSession_WhenLoggingOut_ThenLogoutHandledGracefully() {
-        //todo: need  to check what is the expiration timeout for the session and expected behavior
-
+    public void GivenExpiredSession_WhenLoggingOut_ThenLogoutHandledGracefully() throws AuthenticationException{
+        String userName = "test4";
+        String userEmail = "test4@muEmail.com";
+        String userPassword = "testPassword123";
+        userService.register(userName, userEmail, userPassword);
+        String session = authenticationService.authenticate(userEmail);
+        authenticationService.invalidateSession(session);
+        assert userService.logout(session).isSuccess();
     }
 
-    // ---------- Personal Purchase History Tests ----------
-
-    // Positive Test: A logged-in user can retrieve their purchase history.
-
-
-    // Negative Test: A guest or unregistered user cannot retrieve purchase history.
-    @Test
-    public void GivenGuestUser_WhenRequestingPurchaseHistory_ThenAccessIsDenied() {
-    }
 }

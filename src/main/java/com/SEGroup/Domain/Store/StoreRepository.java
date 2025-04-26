@@ -186,9 +186,10 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void rateProduct(String email, String storeName, int productID, int rating, String review) {
+    public ShoppingProductDTO rateProduct(String email, String storeName, String productID, int rating, String review) {
         Store store = findByName(storeName);
-        ShoppingProduct product = store.getProduct(Integer.toString(productID));
+        ShoppingProduct product = store.getProduct(productID);
+        ShoppingProductDTO productDTO = convertProductToDTO(product);
         if (product == null) {
             throw new RuntimeException("Product not found in store ");
         }
@@ -198,8 +199,7 @@ public class StoreRepository implements IStoreRepository {
         }
 
         product.addRating(email, rating, review);
-
-
+        return productDTO;
     }
 
     @Override

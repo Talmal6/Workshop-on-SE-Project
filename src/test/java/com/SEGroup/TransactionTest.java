@@ -2,7 +2,7 @@ package com.SEGroup;
 
 import org.junit.jupiter.api.Test;
 
-import com.SEGroup.Domain.Product.Transaction;
+import com.SEGroup.Domain.Transaction.Transaction;
 
 import static org.junit.jupiter.api.Assertions.*;
 
