@@ -1,7 +1,7 @@
 package com.SEGroup.Infrastructure;
 
 public class IPaymentGateway {
-    public void processPayment(String paymentDetails , int amount) {
+    public void processPayment(String paymentDetails , double amount) {
         // Process payment implementation
     }
 
