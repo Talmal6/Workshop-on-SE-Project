@@ -75,6 +75,10 @@ public class ShoppingProduct {
         this.quantity = quantity;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     // Bidding logic
     public void addBid(String bidderEmail, double amount) {
         bids.add(new Bid(bidderEmail, amount));
@@ -105,8 +109,8 @@ public class ShoppingProduct {
 
         }
         ratings.put(raterEmail, new Store.Rating(score, review));
-
     }
+    
     //rateStore
     public double averageRating() {
         if (ratings.isEmpty()) return 0.0;
