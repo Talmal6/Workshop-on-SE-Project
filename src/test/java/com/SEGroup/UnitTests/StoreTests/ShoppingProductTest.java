@@ -1,4 +1,4 @@
-package com.SEGroup;
+package com.SEGroup.UnitTests.StoreTests;
 import com.SEGroup.Domain.Store.Bid;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import static org.junit.Assert.*;
@@ -42,7 +42,9 @@ public class ShoppingProductTest {
     }
     @Test
     void GivenInvalidBidAmount_WhenAddBid_ThenFailsToAdd() {
-        shoppingProduct.addBid("user@gmail.com", -1);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
+                shoppingProduct.addBid("user@gmail.com", -1));
+        assertEquals("Bid amount must be positive", exception.getMessage());
     }
     @Test
     void GivenNoBids_WhenGetHighestBid_ThenReturnEmptyOptional() {
@@ -57,7 +59,7 @@ public class ShoppingProductTest {
 
         Optional<Bid> highestBid = shoppingProduct.getHighestBid();
         assertTrue(highestBid.isPresent());
-        assertEquals(100.0, highestBid.get().getAmount());
+        assertEquals(100.0, highestBid.get().getAmount(), 0.001);
     }
 
     @Test
@@ -66,7 +68,7 @@ public class ShoppingProductTest {
         shoppingProduct.startAuction(100.0, endTime);
 
         assertNotNull(shoppingProduct.getAuction());
-        assertEquals(100.0, shoppingProduct.getAuction().getStartingPrice());
+        assertEquals(100.0, shoppingProduct.getAuction().getStartingPrice(), 0.001);
         assertEquals(endTime, shoppingProduct.getAuction().getEndTime());
     }
 
@@ -89,7 +91,7 @@ public class ShoppingProductTest {
     @Test
     void GivenValidRating_WhenAddRating_ThenRatingIsAdded() {
         shoppingProduct.addRating("rater@test.com", 5, "Great!");
-        assertEquals(5.0, shoppingProduct.averageRating());
+        assertEquals(5.0, shoppingProduct.averageRating(), 0.001);
     }
 
     @Test
@@ -101,7 +103,7 @@ public class ShoppingProductTest {
 
     @Test
     void GivenNoRatings_WhenAverageRating_ThenReturnZero() {
-        assertEquals(0.0, shoppingProduct.averageRating());
+        assertEquals(0.0, shoppingProduct.averageRating(), 0.001);
     }
 
     @Test
@@ -111,7 +113,7 @@ public class ShoppingProductTest {
         shoppingProduct.addRating("rater3@test.com", 5, "Excellent");
 
         double avg = shoppingProduct.averageRating();
-        assertEquals(3.6666666666666665, avg);
+        assertEquals(3.6666666666666665, avg, 0.0001);
     }
 
 
