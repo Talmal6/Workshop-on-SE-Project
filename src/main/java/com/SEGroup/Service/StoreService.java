@@ -81,18 +81,20 @@ public class StoreService {
 
     public Result<Void> closeStore(String sessionKey, String storeName) {
         try {
-            storeRepository.closeStore(authenticationService.getUserBySession(sessionKey), storeName);
-            for(ShoppingProductDTO sp : storeRepository.getStore(storeName).getProducts()){
+            StoreDTO storeDTO = storeRepository.getStore(storeName);
+            storeRepository.closeStore(storeName, authenticationService.getUserBySession(sessionKey));
+            for(ShoppingProductDTO sp : storeDTO.getProducts()){
                 productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId());
             }
             return Result.success(null);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return Result.failure(e.getMessage());
         }
     }
     public Result<Void> reopenStore(String sessionKey, String storeName) {
         try {
-            storeRepository.reopenStore(authenticationService.getUserBySession(sessionKey), storeName);
+            storeRepository.reopenStore(storeName, authenticationService.getUserBySession(sessionKey));
             for(ShoppingProductDTO sp : storeRepository.getStore(storeName).getProducts()){
                 productCatalog.addStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId(), sp.getPrice(), sp.getQuantity(), sp.getAvgRating());
             }
@@ -153,6 +155,7 @@ public class StoreService {
             productCatalog.updateStoreProductEntry(sp.getCatalogID(), storeName, productID, null, null, sp.getAvgRating());
             return Result.success(null);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return Result.failure(e.getMessage());
         }
     }
@@ -221,8 +224,8 @@ public class StoreService {
     public Result<List<String>> getManagerPermission(String sessionKey, String storeName, String managerEmail) {
         try {
             authenticationService.authenticate(sessionKey);
-            return Result.success(storeRepository.getManagerPermissions(
-                    authenticationService.getUserBySession(sessionKey), storeName, managerEmail));
+            return Result.success(storeRepository.getManagerPermissions(storeName,
+                    authenticationService.getUserBySession(sessionKey), managerEmail));
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }

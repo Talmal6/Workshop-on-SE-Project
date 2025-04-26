@@ -181,7 +181,6 @@ public class StoreServiceAcceptanceTests {
         assertTrue(result.isSuccess());
 
         Result<List<String>> permsRes = storeService.getManagerPermission(VALID_SESSION, STORE_NAME, manager);
-        System.out.println(permsRes.getData());
         assertTrue(permsRes.isSuccess());
         assertEquals(2, permsRes.getData().size());
         assertTrue(permsRes.getData().contains("MANAGE_ROLES"));
@@ -239,7 +238,6 @@ public class StoreServiceAcceptanceTests {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         Result<Void> result = storeService.rateStore(VALID_SESSION, STORE_NAME, 5, "Great");
         assertTrue(result.isSuccess());
-
         StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
         assertEquals(5.0, dto.getAvgRating());
     }
@@ -247,9 +245,11 @@ public class StoreServiceAcceptanceTests {
     @Test
     public void rateProduct_WithValidData_ShouldSucceed() {
         storeService.createStore(VALID_SESSION, STORE_NAME);
-        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 5.0, 3);
 
-        Result<Void> result = storeService.rateProduct(VALID_SESSION, STORE_NAME, "1", 4, "Good");
+        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 5.0, 3);
+        Result<Void> result = storeService.rateProduct(VALID_SESSION, STORE_NAME,
+                storeService.viewStore(STORE_NAME).getData().getProducts().get(0).getProductId()
+                , 4, "Good");
         assertTrue(result.isSuccess());
 
         StoreDTO dto = storeService.viewStore(STORE_NAME).getData();

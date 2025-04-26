@@ -17,7 +17,7 @@ public class Store {
     private boolean isActive;
     private double balance;
     private int numOfitems;
-    private final AtomicInteger inStoreProductId = new AtomicInteger(0);
+    private final AtomicInteger inStoreProductId = new AtomicInteger(-1);
 
     //products and reviews
     private Map<String, ShoppingProduct> products = new java.util.concurrent.ConcurrentHashMap<>();
@@ -86,7 +86,7 @@ public class Store {
         if (isOwnerOrHasManagerPermissions(email)) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
             ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity);
-            products.put(catalogID, product);
+            products.put(productId, product);
         }
     }
 

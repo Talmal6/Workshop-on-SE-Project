@@ -26,13 +26,14 @@ public class StoreMapper {
                     product.averageRating()
             ));
         }
-        return new StoreDTO(domainInstance.getId(),
+        StoreDTO storeDTO =  new StoreDTO(domainInstance.getId(),
                 domainInstance.getName(),
                 domainInstance.getfounderEmail(),
                 domainInstance.isActive(),
                 domainInstance.getBalance(),
                 productDTOs
                         ,domainInstance.averageRating());
+        return storeDTO;
     }
 
     public List<StoreDTO> toDTOs(List<Store> domainInstances) {

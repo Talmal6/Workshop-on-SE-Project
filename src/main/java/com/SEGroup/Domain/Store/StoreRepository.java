@@ -16,7 +16,7 @@ import com.SEGroup.Service.Mapper.StoreMapper;
 //implement iStore
 public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
-    private StoreMapper storeMapper;
+    private StoreMapper storeMapper = new StoreMapper();
 
     @Override
     public List<StoreDTO> getAllStores() {
