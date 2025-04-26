@@ -57,8 +57,8 @@ public class User {
         return cart;
     }
 
-    public void addToCart(String storeId,String productId){ cart.add(storeId,productId,1); }
-    public void removeFromCart(String storeId,String productId){ cart.changeQty(storeId,productId,0); }
+    public void addToCart(String storeId,String productId){   cart().add(storeId, productId, 1); }
+    public void removeFromCart(String storeId,String productId){  cart().changeQty(storeId, productId, 0); }
     public void addPurchase(String txId) { purchaseHistory.add(txId); }
     public String getPassword() { return passwordHash; }
     public String          getEmail()     { return email; }
