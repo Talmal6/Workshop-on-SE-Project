@@ -1,6 +1,12 @@
 package com.SEGroup.Domain.Store;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Store {
     //fields
@@ -10,12 +16,14 @@ public class Store {
     private String founderEmail;
     private boolean isActive;
     private double balance;
+    private int numOfitems;
+    private final AtomicInteger inStoreProductId = new AtomicInteger(0);
 
     //products and reviews
-    private final Map<String, ShoppingProduct> products;
-    private final List<String> reviews = new ArrayList<>();
+    private Map<String, ShoppingProduct> products = new java.util.concurrent.ConcurrentHashMap<>();
+    private final List<String> reviews = Collections.synchronizedList(new ArrayList<>());
+    private final Map<String, Rating> ratings = new java.util.concurrent.ConcurrentHashMap<>();
 
-    private final Map<String, Rating> ratings = new HashMap<>();
 
     public static final class Rating{
 
@@ -29,8 +37,8 @@ public class Store {
     private List<Discount> discounts;
 
     //Owners and managers
-    private final Map<String, String> ownersAppointer = new HashMap<>(); // email → appointedBy
-    private final Map<String, ManagerData> managers = new HashMap<>(); // email → metadata
+    private final Map<String, String> ownersAppointer = new java.util.concurrent.ConcurrentHashMap<>(); // email → appointedBy
+    private final Map<String, ManagerData> managers = new java.util.concurrent.ConcurrentHashMap<>(); // email → metadata
 
     public Store(String name, String founderEmail) {
         //field
@@ -41,7 +49,7 @@ public class Store {
         this.balance = 0.0;
 
         //product and reviews
-        this.products = new HashMap<>();
+        this.products = new java.util.concurrent.ConcurrentHashMap<>();
         this.ratings.clear();
         this.reviews.clear();
 
@@ -74,9 +82,10 @@ public class Store {
         this.isActive = true;
     }
     // Products (ShoppingProduct) 4.1
-    public void addProductToStore(String email, String storeName, String category, String catalogID, String product_name, String description, double price, int quantity){
+    public void addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity){
         if (isOwnerOrHasManagerPermissions(email)) {
-            ShoppingProduct product = new ShoppingProduct(storeName, category, catalogID, product_name, description, price, quantity);
+            String productId = String.valueOf(inStoreProductId.incrementAndGet());
+            ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity);
             products.put(catalogID, product);
         }
     }

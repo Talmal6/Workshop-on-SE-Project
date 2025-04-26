@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
-import com.SEGroup.Domain.Store.ManagerData;
 
 public interface IStoreRepository {
     List<StoreDTO> getAllStores();
@@ -18,13 +18,13 @@ public interface IStoreRepository {
 
     void reopenStore(String storeName, String founderEmail);
 // omri funcitions
-    void addProductToStore(String email, String storeName, String category, String catalogID, String product_name,String description, double price, int quantity);
+    void addProductToStore(String email, String storeName, String catalogID, String product_name,String description, double price, int quantity);
 
-    void updateShoppingProduct(String email, String storeName, String catalogID, double price, String description);
+    ShoppingProductDTO updateShoppingProduct(String email, String storeName, String catalogID, double price, String description);
 
-    void deleteShoppingProduct(String email, String storeName, String productID);
+    ShoppingProductDTO deleteShoppingProduct(String email, String storeName, String productID);
 
-    void rateProduct(String email, String storeName, int productID, int rating, String review);
+    ShoppingProductDTO rateProduct(String email, String storeName, String productID, int rating, String review);
 
     void rateStore(String email, String storeName, int rating, String review);
 
