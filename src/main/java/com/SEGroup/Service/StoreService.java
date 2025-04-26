@@ -13,11 +13,13 @@ import com.SEGroup.Infrastructure.IAuthenticationService;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.naming.AuthenticationException;
 
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 
+import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
 import com.SEGroup.Domain.Store.ManagerData;
 import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
@@ -30,20 +32,31 @@ import com.SEGroup.Infrastructure.LoggerWrapper;
 public class StoreService {
     private final IStoreRepository storeRepository;
     private final IProductRepository productRepository;
+    private final ProductCatalog productCatalog;
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
 
     public StoreService(IStoreRepository storeRepository,
             IProductRepository productRepository,
+            ProductCatalog productCatalog,
             IAuthenticationService authenticationService,
             IUserRepository userRepository) {
         this.storeRepository = storeRepository;
         this.productRepository = productRepository;
+        this.productCatalog = productCatalog;
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
     }
 
-    // === Guest / Public Viewing ===
+    // === Guest / Public Viewing === 
+    public Result<String> addProductToCatalog(String catalogID, String name, String brand, String description, List<String> categories){
+        try {
+            productCatalog.addCatalogProduct(catalogID, name, brand, description, categories);
+            return Result.success(catalogID);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 
     public Result<StoreDTO> viewStore(String storeName) {
         try {
@@ -86,6 +99,9 @@ public class StoreService {
     public Result<Void> closeStore(String sessionKey, String storeName) {
         try {
             storeRepository.closeStore(authenticationService.getUserBySession(sessionKey), storeName);
+            for(ShoppingProductDTO sp : storeRepository.getStore(storeName).getProducts()){
+                productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId());
+            }
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -94,17 +110,19 @@ public class StoreService {
     public Result<Void> reopenStore(String sessionKey, String storeName) {
         try {
             storeRepository.reopenStore(authenticationService.getUserBySession(sessionKey), storeName);
+            for(ShoppingProductDTO sp : storeRepository.getStore(storeName).getProducts()){
+                productCatalog.addStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId(), sp.getPrice(), sp.getQuantity(), sp.getAvgRating());
+            }
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
-    public Result<Void> addProductToStore(String sessionKey, String category, String storeName, String catalogID, String product_name,String description, double price,
-                                          int quantity) {
+    public Result<Void> addProductToStore(String sessionKey, String storeName, String catalogID, String productName ,String description, double price, int quantity) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            storeRepository.addProductToStore(authenticationService.getUserBySession(sessionKey), storeName, catalogID,
-                   category, product_name ,description, price, quantity);
+            productCatalog.isProductExist(catalogID);
+            storeRepository.addProductToStore(authenticationService.getUserBySession(sessionKey), storeName, catalogID, productName ,description, price, quantity);
             //productRepository.addStoreToProduct(catalogID, storeName);
 
             return Result.success(null);
@@ -113,12 +131,11 @@ public class StoreService {
         }
     }
 
-    public Result<Void> updateShoppingProduct(String sessionKey, String storeName, String productID, String description,
-            Double price) {
+    public Result<Void> updateShoppingProduct(String sessionKey, String storeName, String productID, String description, Double price) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            storeRepository.updateShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName,
-                    productID, price, description);
+            ShoppingProductDTO sp = storeRepository.updateShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName, productID, price, description);
+            productCatalog.updateStoreProductEntry(sp.getCatalogID(), storeName, productID, price, null, null);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -128,8 +145,8 @@ public class StoreService {
     public Result<Void> deleteShoppingProduct(String sessionKey, String storeName, String productID) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            storeRepository.deleteShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName,
-                    productID);
+            ShoppingProductDTO sp = storeRepository.deleteShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName, productID);
+            productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, productID);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -146,11 +163,11 @@ public class StoreService {
         }
     }
 
-    public Result<Void> rateProduct(String sessionKey, String storeName, int productID, int rating, String review) {
+    public Result<Void> rateProduct(String sessionKey, String storeName, String productID, int rating, String review) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            storeRepository.rateProduct(authenticationService.getUserBySession(sessionKey), storeName, productID,
-                    rating, review);
+            ShoppingProductDTO sp = storeRepository.rateProduct(authenticationService.getUserBySession(sessionKey), storeName, productID, rating, review);
+            productCatalog.updateStoreProductEntry(sp.getCatalogID(), storeName, productID, null, null, sp.getAvgRating());
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());

@@ -1,7 +1,5 @@
 package com.SEGroup.Service;
 
-import java.util.UUID;
-
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;

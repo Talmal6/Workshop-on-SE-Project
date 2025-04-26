@@ -1,7 +1,8 @@
 package com.SEGroup.Domain;
 import java.util.List;
+
 import com.SEGroup.DTO.TransactionDTO;
-import com.SEGroup.Domain.Product.Transaction;
+import com.SEGroup.Domain.Transaction.Transaction;
 
 public interface ITransactionRepository {
 

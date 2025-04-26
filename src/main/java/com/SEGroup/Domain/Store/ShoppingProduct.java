@@ -1,15 +1,22 @@
 package com.SEGroup.Domain.Store;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class ShoppingProduct {
     private final String productId;
+    private String catalogID;
     private String name;
     private String description;
     private double price;
     private int quantity;
     private final String storeName;
-    private final String category;
     private final Map<String, Store.Rating> ratings = new HashMap<>();
 
     // Bids and auction
@@ -17,10 +24,10 @@ public class ShoppingProduct {
     private Auction auction;
     private BuyingPolicy buyingPolicy;
 
-    public ShoppingProduct(String storeName, String category, String productId, String name,
+    public ShoppingProduct(String storeName, String catalogID, String productId, String name,
                            String description, double price, int quantity) {
         this.storeName = storeName;
-        this.category = category;
+        this.catalogID = catalogID;
         this.productId = productId;
         this.name = name;
         this.description = description;
@@ -36,6 +43,9 @@ public class ShoppingProduct {
         return productId;
     }
 
+    public String getCatalogID() {
+        return catalogID;
+    }
     public String getName() {
         return name;
     }
@@ -85,9 +95,6 @@ public class ShoppingProduct {
         return storeName;
     }
 
-    public String getCategory(){
-        return category;
-    }
 
     public String getDescription(){
         return description;

@@ -1,18 +1,21 @@
 package com.SEGroup.acceptance;
 
-import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Infrastructure.IAuthenticationService;
-import com.SEGroup.Service.Result;
-import com.SEGroup.Service.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+
+import com.SEGroup.Domain.IGuestRepository;
+import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Service.GuestService;
+import com.SEGroup.Service.Result;
+import com.SEGroup.Service.UserService;
 
 
 public class UserServiceTests {
     static IAuthenticationService authenticationService;
     static UserService userService;
+    static GuestService guestService; 
     String defaultUserName = "default_Email";
     String defaultUserEmail = "default_Email@myEmail.com";
     String defaultUserPassword = "defaultPassword123";
@@ -21,11 +24,11 @@ public class UserServiceTests {
     boolean isLoggedIn = false;
 
     @BeforeAll
-
     static void init() {
         IUserRepository userRepository = mock(IUserRepository.class);
+        IGuestRepository guestRepository = mock(IGuestRepository.class);
         authenticationService = mock(IAuthenticationService.class);
-        userService = new UserService(userRepository, authenticationService);
+        userService = new UserService(guestService,userRepository, authenticationService);
     }
     //constructor
     private UserServiceTests(UserService service) {

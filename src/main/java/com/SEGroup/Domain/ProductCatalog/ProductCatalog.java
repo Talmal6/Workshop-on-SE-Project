@@ -1,16 +1,15 @@
 package com.SEGroup.Domain.ProductCatalog;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface ProductCatalog {
-    void addCatalogProduct(UUID productId, String name, String brand, String description, List<String> categories);
+    void addCatalogProduct(String catalogID, String name, String brand, String description, List<String> categories);
 
-    void addStoreProductEntry(UUID productId, String storeName, UUID inStoreId, double price, int quantity, double rating);
-    void deleteStoreProductEntry(UUID productId, String storeName, UUID inStoreId);
-    void updateStoreProductEntry(UUID productId, String storeName, UUID inStoreId, Double price, Integer quantity, Double rating);
+    void addStoreProductEntry(String catalogID, String storeName, String productID, double price, int quantity, double rating);
+    void deleteStoreProductEntry(String catalogID, String storeName, String productID);
+    void updateStoreProductEntry(String catalogID, String storeName, String productID, Double price, Integer quantity, Double rating);
 
-    List<Product> getAllProducts();
+    List<CatalogProduct> getAllProducts();
     List<StoreProductEntry> getAllProductsByCategory(String category);
     List<StoreProductEntry> search(String query, List<String> searchFilters);
 }

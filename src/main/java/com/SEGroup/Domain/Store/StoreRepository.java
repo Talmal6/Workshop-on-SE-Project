@@ -1,12 +1,17 @@
 package com.SEGroup.Domain.Store;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Service.Mapper.StoreMapper;
-
-import java.util.*;
 
 //implement iStore
 public class StoreRepository implements IStoreRepository {
@@ -51,23 +56,26 @@ public class StoreRepository implements IStoreRepository {
         store.open();
     }
     @Override
-    public void updateShoppingProduct(String email, String storeName, String catalogID, double price, String description) {
+    public ShoppingProductDTO updateShoppingProduct(String email, String storeName, String catalogID, double price, String description) {
         Store store = findByName(storeName);
-        if(store.isOwnerOrHasManagerPermissions(email)) {
-            ShoppingProduct product = store.getProduct(catalogID);
-            if (product == null) {
-                throw new RuntimeException("Product not found in store");
-            }
-            product.setPrice(price);
-            product.setName(description); // assuming description is name; change if needed
+        if(!store.isOwnerOrHasManagerPermissions(email)) {
+            throw new RuntimeException("User is not authorized to update product");
         }
+        ShoppingProduct product = store.getProduct(catalogID);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store");
+        }
+        product.setPrice(price);
+        product.setName(description); // assuming description is name; change if needed
+        ShoppingProductDTO productDTO = convertProductToDTO(product);
+        return productDTO;          
     }
     @Override
-    public void addProductToStore(String email, String storeName, String category, String catalogID, String product_name,String description, double price,
+    public void addProductToStore(String email, String storeName, String catalogID, String product_name,String description, double price,
                                   int quantity) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
-            store.addProductToStore(email, storeName, category, catalogID, product_name, description, price, quantity);
+            store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity);
         }
     }
     public Store findByName(String name) {
@@ -168,11 +176,13 @@ public class StoreRepository implements IStoreRepository {
 
 
     @Override
-    public void deleteShoppingProduct(String email, String storeName, String productID) {
+    public ShoppingProductDTO deleteShoppingProduct(String email, String storeName, String productID) {
         Store store = findByName(storeName);
+        ShoppingProductDTO product = convertProductToDTO(store.getProduct(productID));
         if(store.isOwnerOrHasManagerPermissions(email)){
             store.removeProduct(productID);
         }
+        return product;
     }
 
     @Override
@@ -221,21 +231,24 @@ public class StoreRepository implements IStoreRepository {
         store.addToBalance(amount);
     }
 
+    private ShoppingProductDTO convertProductToDTO(ShoppingProduct product) {
+        return new ShoppingProductDTO(
+                product.getStoreName(),
+                product.getCatalogID(),
+                product.getProductId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getQuantity(),
+                product.averageRating()
+        );
+    }
 
 
     private List<ShoppingProductDTO> convertProductsToDTO(List<ShoppingProduct> products) {
         List<ShoppingProductDTO> dtos = new ArrayList<>();
         for (ShoppingProduct product : products) {
-            dtos.add(new ShoppingProductDTO(
-                    product.getStoreName(),
-                    product.getCategory(),
-                    product.getProductId(),
-                    product.getName(),
-                    product.getDescription(),
-                    product.getPrice(),
-                    product.getQuantity(),
-                    product.averageRating()
-            ));
+            dtos.add(convertProductToDTO(product));
         }
         return dtos;
     }

@@ -2,6 +2,7 @@ package com.SEGroup.DTO;
 
 public class ShoppingProductDTO {
     private String productId;
+    private String catalogID;
     private String name;
     private String description;
     private double price;
@@ -10,15 +11,18 @@ public class ShoppingProductDTO {
     private String storeName;
     private double avgRating;
 
-    public ShoppingProductDTO(String storeName, String category,String productId, String name,String description, double price, int quantity,double avgRating) {
+    public ShoppingProductDTO(String storeName, String catalogID,String productId, String name,String description, double price, int quantity,double avgRating) {
         this.productId = productId;
+        this.catalogID = catalogID;
         this.name = name;
         this.description= description;
         this.price = price;
         this.quantity = quantity;
-        this.category = category;
         this.storeName = storeName;
         this.avgRating = avgRating;
+    }
+    public String getCatalogID() {
+        return catalogID;
     }
 
     public String getProductId() {
@@ -76,4 +80,8 @@ public class ShoppingProductDTO {
     public void setStoreName(String storeName) {
         this.storeName = storeName;
     }
+    public double getAvgRating() {
+        return avgRating;
+    }
+
 }

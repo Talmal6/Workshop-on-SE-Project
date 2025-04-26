@@ -2,9 +2,7 @@ package com.SEGroup.Service.Mapper;
 
 //hey
 import java.util.ArrayList;
-
 import java.util.List;
-
 
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
@@ -19,7 +17,7 @@ public class StoreMapper {
         for (ShoppingProduct product : domainInstance.getAllProducts()) {
             productDTOs.add(new ShoppingProductDTO(
                     product.getStoreName(),
-                    product.getCategory(),
+                    product.getCatalogID(),
                     product.getProductId(),
                     product.getName(),
                     product.getDescription(),

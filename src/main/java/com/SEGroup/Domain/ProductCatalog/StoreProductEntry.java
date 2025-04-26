@@ -1,36 +1,35 @@
 package com.SEGroup.Domain.ProductCatalog;
 
 import java.util.List;
-import java.util.UUID;
 
 public class StoreProductEntry {
 
-    private final UUID productId;
+    private final String catalogID;
     private final String storeName;
-    private final UUID inStoreId;
+    private final String productID;
     private double price;
     private int quantity;
     private double rating;
 
-    public StoreProductEntry(UUID productId, String storeName, UUID inStoreId, double price, int quantity, double rating) {
-        this.productId = productId;
+    public StoreProductEntry(String catalogID, String storeName, String productID, double price, int quantity, double rating) {
+        this.catalogID = catalogID;
         this.storeName = storeName;
-        this.inStoreId = inStoreId;
+        this.productID = productID;
         this.price = price;
         this.quantity = quantity;
         this.rating = rating;
     }
 
-    public UUID getProductId() {
-        return productId;
+    public String getCatalogID() {
+        return catalogID;
     }
 
     public String getStoreName() {
         return storeName;
     }
 
-    public UUID getInStoreId() {
-        return inStoreId;
+    public String getProductID() {
+        return productID;
     }
 
     public double getPrice() {

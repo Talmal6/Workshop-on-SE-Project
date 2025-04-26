@@ -1,22 +1,21 @@
 package com.SEGroup.Domain.ProductCatalog;
 
-import java.util.UUID;
-
-public class Product {
-    private final UUID productId;
+public class CatalogProduct {
+    private final String catalogID; 
     private final String name; // Example: Iphone 13
     private final String brand; // Example: Apple
-    private final String description;
+    private final String description; // IOS PHONE 
 
-    public Product(UUID productId, String name, String brand, String description) {
-        this.productId = productId;
+    public CatalogProduct(String catalogID, String name, String brand, String description) {
+        this.catalogID = catalogID;
         this.name = name;
         this.brand = brand;
         this.description = description;
     }
 
-    public UUID getProductId() { return productId; }
+    public String getCatalogID() { return catalogID; }
     public String getName() { return name; }
     public String getBrand() { return brand; }
     public String getDescription() { return description; }
+    
 }

@@ -1,4 +1,4 @@
-package com.SEGroup.Domain.Product;
+package com.SEGroup.Domain.Transaction;
 
 import java.util.List;
 
