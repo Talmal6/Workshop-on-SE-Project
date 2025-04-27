@@ -8,6 +8,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * An in-memory implementation of the ProductCatalog interface.
+ * This class manages catalog products, store product entries, and their relationships.
+ */
+
 public class InMemoryProductCatalog implements ProductCatalog {
 
     private final Map<String, CatalogProduct> catalogIDtoCatalogProduct = new HashMap<>();
@@ -15,6 +20,16 @@ public class InMemoryProductCatalog implements ProductCatalog {
     private final Map<String, List<String>> categoriesToProducts = new HashMap<>();
     private final Map<String, List<StoreSearchEntry>> storeNameToStoreOffers = new HashMap<>();
 
+
+    /**
+     * Adds a new catalog product to the catalog.
+     *
+     * @param catalogID   The unique identifier for the catalog product.
+     * @param name        The name of the product.
+     * @param brand       The brand of the product.
+     * @param description A brief description of the product.
+     * @param categories  A list of categories associated with the product.
+     */
     @Override
     public void addCatalogProduct(String catalogID, String name, String brand, String description,
             List<String> categories) {
@@ -25,6 +40,18 @@ public class InMemoryProductCatalog implements ProductCatalog {
             categoriesToProducts.computeIfAbsent(category.toLowerCase(), k -> new ArrayList<>()).add(catalogID);
         }
     }
+
+    /**
+     * Adds a store product entry to the catalog.
+     *
+     * @param catalogID  The catalog ID of the product.
+     * @param storeName  The name of the store offering the product.
+     * @param productID  The unique identifier for the product in the store.
+     * @param price      The price of the product.
+     * @param quantity   The quantity of the product available.
+     * @param rating     The rating of the product.
+     * @param name       The name of the product.
+     */
 
     @Override
     public void addStoreProductEntry(String catalogID, String storeName, String productID, double price, int quantity,
@@ -38,6 +65,14 @@ public class InMemoryProductCatalog implements ProductCatalog {
 
     }
 
+    /**
+     * Deletes a store product entry from the catalog.
+     *
+     * @param catalogID  The catalog ID of the product.
+     * @param storeName  The name of the store offering the product.
+     * @param productID  The unique identifier for the product in the store.
+     */
+
     @Override
     public void deleteStoreProductEntry(String catalogID, String storeName, String productID) {
         List<StoreSearchEntry> catalogEntries = catalogIdToStoreOffers.getOrDefault(catalogID, new ArrayList<>());
@@ -48,6 +83,16 @@ public class InMemoryProductCatalog implements ProductCatalog {
         storeEntries
                 .removeIf(entry -> entry.getCatalogID().equals(catalogID) && entry.getProductID().equals(productID));
     }
+    /**
+     * Updates a store product entry in the catalog.
+     *
+     * @param catalogID  The catalog ID of the product.
+     * @param storeName  The name of the store offering the product.
+     * @param productID  The unique identifier for the product in the store.
+     * @param price      The new price of the product (nullable).
+     * @param quantity   The new quantity of the product (nullable).
+     * @param rating     The new rating of the product (nullable).
+     */
 
     @Override
     public void updateStoreProductEntry(String catalogID, String storeName, String productID, Double price,
@@ -67,11 +112,23 @@ public class InMemoryProductCatalog implements ProductCatalog {
         }
     }
 
+
+    /**
+     * Retrieves all catalog products.
+     *
+     * @return A list of all catalog products.
+     */
     @Override
     public List<CatalogProduct> getAllProducts() {
         return new ArrayList<>(catalogIDtoCatalogProduct.values());
     }
 
+    /**
+     * Retrieves all store product entries by category.
+     *
+     * @param category The category to filter products by.
+     * @return A list of store product entries in the specified category.
+     */
     @Override
     public List<StoreSearchEntry> getAllProductsByCategory(String category) {
         List<String> catalogIDs = categoriesToProducts.getOrDefault(category.toLowerCase(), Collections.emptyList());
@@ -80,6 +137,12 @@ public class InMemoryProductCatalog implements ProductCatalog {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves all store product entries by store name.
+     *
+     * @param storeName The name of the store to filter products by.
+     * @return A list of store product entries in the specified store.
+     */
     @Override
     public List<StoreSearchEntry> search(String query, List<String> searchFilters, String storeName,
             List<String> categories) {
@@ -125,6 +188,12 @@ public class InMemoryProductCatalog implements ProductCatalog {
         return fourthPass;
     }
 
+    /**
+     * Checks if a product exists in the catalog.
+     *
+     * @param catalogID The catalog ID of the product.
+     * @throws Exception If the product does not exist.
+     */
     @Override
     public void isProductExist(String catalogID) throws Exception {
         if (!catalogIDtoCatalogProduct.containsKey(catalogID)) {

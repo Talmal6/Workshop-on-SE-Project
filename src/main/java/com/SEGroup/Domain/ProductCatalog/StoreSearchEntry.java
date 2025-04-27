@@ -62,6 +62,13 @@ public class StoreSearchEntry {
         return name;
     }
 
+    /**
+     * Checks if the product matches the given search query and filters.
+     *
+     * @param query         The search query.
+     * @param searchFilters  The list of search filters.
+     * @return true if the product matches the query and filters, false otherwise.
+     */
     public boolean matchesQuery(String query, List<String> searchFilters) {
         for (String filter : searchFilters) {
             if (filter.startsWith("price<")) {

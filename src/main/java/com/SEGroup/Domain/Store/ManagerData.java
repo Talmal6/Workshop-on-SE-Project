@@ -3,6 +3,9 @@ package com.SEGroup.Domain.Store;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Represents the data of a store manager, including their permissions and who appointed them.
+ */
 public class ManagerData {
     private final String appointedBy;
     private Set<ManagerPermission> permissions;

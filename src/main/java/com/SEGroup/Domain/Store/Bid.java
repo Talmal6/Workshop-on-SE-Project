@@ -1,5 +1,8 @@
 package com.SEGroup.Domain.Store;
 
+/**
+ * Represents a bid made by a user in an auction.
+ */
 public class Bid {
     private final String bidderEmail;
     private final double amount;

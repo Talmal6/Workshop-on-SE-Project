@@ -2,7 +2,10 @@ package com.SEGroup.Domain.Transaction;
 
 import java.util.List;
 
-
+/*
+ * Represents a transaction in the system, including the items being purchased,
+ * the total cost, the buyer's email, and the store name.
+ */
 public class Transaction {
     private List<String> itemsToTransact;
     private double cost;
