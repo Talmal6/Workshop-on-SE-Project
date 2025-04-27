@@ -472,4 +472,15 @@ public class StoreRepository implements IStoreRepository {
 
         return convertProductToDTO(findByName(storeName).getProduct(productID));
     }
+    @Override
+    public void submitBidToShoppingItem(String Email,String storeName,String productId,double bidAmount){
+        Store store = findByName(storeName);
+        store.submitBidToShoppingItem(productId,bidAmount,Email);
+    }
+    @Override
+    public void sendAuctionOffer(String Email,String storeName,String productId,double bidAmount){
+        Store store = findByName(storeName);
+        store.submitAuctionOffer(productId,bidAmount,Email);
+    }
+
 }

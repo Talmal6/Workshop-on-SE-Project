@@ -219,4 +219,6 @@ public interface IStoreRepository {
      * @return The product details.
      */
     ShoppingProductDTO getProduct(String storeName, String productID);
+    void submitBidToShoppingItem(String Email,String storeName,String productId,double bidAmount);
+    void sendAuctionOffer(String Email,String storeName,String productId,double bidAmount);
 }
