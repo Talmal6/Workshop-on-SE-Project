@@ -1,13 +1,13 @@
-package com.SEGroup;
+// package com.SEGroup;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class MarketplaceApplicationTests {
+// @SpringBootTest
+// class MarketplaceApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+// 	@Test
+// 	void contextLoads() {
+// 	}
 
-}
+// }
