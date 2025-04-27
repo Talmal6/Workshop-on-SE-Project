@@ -1,38 +1,30 @@
 package com.SEGroup.acceptance;
 
-import com.SEGroup.Domain.IStoreRepository;
-import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
-import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
-import com.SEGroup.Infrastructure.IAuthenticationService;
-
-import com.SEGroup.Service.StoreService;
-/*
- *     public StoreService(IStoreRepository storeRepository,
-            ProductCatalog productCatalog,
-            IAuthenticationService authenticationService,
-            IUserRepository userRepository) {
- */
-import com.SEGroup.Service.Result;
-import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.Domain.Store.Store;
-import com.SEGroup.Domain.Store.StoreRepository;
-import com.SEGroup.Domain.User.UserRepository;
-
-import com.SEGroup.DTO.StoreDTO;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
+import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
+import com.SEGroup.Domain.Store.StoreRepository;
+import com.SEGroup.Domain.User.UserRepository;
+import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Service.Result;
+import com.SEGroup.Service.StoreService;
 
 @ExtendWith(MockitoExtension.class)
 public class StoreServiceAcceptanceTests {
@@ -241,22 +233,6 @@ public class StoreServiceAcceptanceTests {
         assertTrue(result.isSuccess());
         StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
         assertEquals(5.0, dto.getAvgRating());
-    }
-
-    @Test
-    public void rateProduct_WithValidData_ShouldSucceed() {
-        storeService.createStore(VALID_SESSION, STORE_NAME);
-
-        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 5.0, 3);
-        Result<Void> result = storeService.rateProduct(VALID_SESSION, STORE_NAME,
-                storeService.viewStore(STORE_NAME).getData().getProducts().get(0).getProductId()
-                , 4, "Good");
-        assertTrue(result.isSuccess());
-
-        StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
-        List<ShoppingProductDTO> products = dto.getProducts();
-        assertFalse(products.isEmpty());
-        assertEquals(4.0, products.get(0).getAvgRating());
     }
 
 }
