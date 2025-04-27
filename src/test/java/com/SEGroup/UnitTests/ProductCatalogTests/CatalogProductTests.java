@@ -13,7 +13,7 @@ public class CatalogProductTests {
     static CatalogProduct catalogProduct2;
     
     @BeforeAll
-    void init(){
+    static void init(){
         catalogProduct1 = new CatalogProduct("catalog123", "Nike Air Force", "Nike", "Comfortable shoes");
         catalogProduct2 = new CatalogProduct(null, null, null, null);
     }
