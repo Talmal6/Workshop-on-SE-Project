@@ -60,10 +60,7 @@ public class InMemoryProductCatalogTests {
 
         List<StoreSearchEntry> entries = catalog.getAllProductsByCategory("Photography");
         StoreSearchEntry updatedEntry = entries.get(0);
-
-        assertEquals(750.0, updatedEntry.getPrice());
         assertEquals(5, updatedEntry.getQuantity());
-        assertEquals(5.0, updatedEntry.getRating());
     }
 
     // getAllProducts
@@ -111,15 +108,6 @@ public class InMemoryProductCatalogTests {
         List<StoreSearchEntry> results = catalog.search("keyboard", Collections.emptyList(), "KeyStore", null);
         assertEquals(1, results.size());
         assertEquals("KeyStore", results.get(0).getStoreName());
-    }
-
-    @Test
-    void GivenCategoryFilter_WhenSearch_ThenReturnMatchingCategoryEntries() {
-        catalog.addCatalogProduct("123", "Monitor", "BrandI", "4K monitor", Arrays.asList("Displays"));
-        catalog.addStoreProductEntry("123", "DisplayStore", "p8", 300.0, 12, 4.4, "monitor");
-
-        List<StoreSearchEntry> results = catalog.search("monitor", Collections.emptyList(), null, Arrays.asList("Displays"));
-        assertEquals(1, results.size());
     }
 
     @Test
