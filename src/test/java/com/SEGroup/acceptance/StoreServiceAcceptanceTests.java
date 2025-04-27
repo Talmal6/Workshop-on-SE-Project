@@ -258,5 +258,31 @@ public class StoreServiceAcceptanceTests {
         assertFalse(products.isEmpty());
         assertEquals(4.0, products.get(0).getAvgRating());
     }
+    @Test
+    public void appointManager_WithTwoManagersOnlyOneShouldSucceed() {
+        // Given: Two managers trying to appoint permissions for a third manager
+        String managerEmail = "manager3@example.com";
+        List<String> permissions = List.of("READ", "WRITE");
+
+        // First manager attempts to set permissions (should succeed)
+        doNothing().when(storeRepository).appointManager(STORE_NAME, "manager1@example.com", managerEmail, permissions);
+
+        // Second manager attempts to set permissions (should fail)
+        doThrow(new RuntimeException("Permission conflict")).when(storeRepository)
+                .appointManager(STORE_NAME, "manager2@example.com", managerEmail, permissions);
+
+        // First manager appointment (should succeed)
+        Result<Void> result1 = storeService.appointManager(VALID_SESSION, STORE_NAME, managerEmail, permissions);
+        assertTrue(result1.isSuccess(), "Expected first manager to succeed in setting permissions");
+
+        // Second manager appointment (should fail)
+        Result<Void> result2 = storeService.appointManager(VALID_SESSION, STORE_NAME, managerEmail, permissions);
+        assertFalse(result2.isSuccess(), "Expected second manager to fail due to conflict");
+
+        // Verify that only the first manager's request succeeded
+        verify(storeRepository).appointManager(STORE_NAME, "manager1@example.com", managerEmail, permissions);
+        verify(storeRepository, times(0)).appointManager(STORE_NAME, "manager2@example.com", managerEmail, permissions);
+    }
+
 
 }

@@ -244,4 +244,5 @@ class UserServiceTests {
             verify(users, never()).deleteUser(email);
         }
     }
+
 }
