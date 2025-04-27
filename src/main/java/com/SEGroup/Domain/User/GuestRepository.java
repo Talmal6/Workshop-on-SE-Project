@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Represents a repository for managing guest users.
+ * It allows creating new guests and retrieving their shopping carts.
+ */
 public class GuestRepository implements IGuestRepository {
 
     private final Map<String, Guest> guests = new ConcurrentHashMap<>();

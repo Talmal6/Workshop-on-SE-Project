@@ -1,5 +1,8 @@
 package com.SEGroup.Domain.Store;
 
+/**
+ * Represents a purchase policy for a store, including discount percentage and duration.
+ */
 public class PurchasePolicy {
     private double discountPercentage;
     private int durationInDays;

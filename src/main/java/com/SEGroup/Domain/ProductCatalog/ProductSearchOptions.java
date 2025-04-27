@@ -1,5 +1,9 @@
 package com.SEGroup.Domain.ProductCatalog;
 
+/**
+ * Represents the options for searching products in the catalog.
+ * This class contains various filters that can be applied to a product search.
+ */
 public class ProductSearchOptions {
     private String text;
     private String category;
@@ -9,6 +13,9 @@ public class ProductSearchOptions {
 
     // Getters and setters
 
+    /**
+     * Constructs a new ProductSearchOptions instance with default values.
+     */
     public String getText() { return text; }
     public void setText(String text) { this.text = text; }
 

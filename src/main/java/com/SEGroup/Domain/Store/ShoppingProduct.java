@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/*
+ * Represents a product in a store, including its details, bidding information, and ratings.
+ */
 public class ShoppingProduct {
     private final String productId;
     private String catalogID;
@@ -87,6 +90,12 @@ public class ShoppingProduct {
     public Optional<Bid> getHighestBid() {
         return bids.stream().max(Comparator.comparingDouble(Bid::getAmount));
     }
+    /*
+        * Starts an auction for the product with a given starting price and end time.
+        *
+        * @param startingPrice The starting price of the auction.
+        * @param endTime     The end time of the auction.
+     */
     public void startAuction(double startingPrice, Date endTime) {
         this.auction = new Auction(startingPrice, endTime);
     }
@@ -103,6 +112,13 @@ public class ShoppingProduct {
     public String getDescription(){
         return description;
     }
+    /*
+        * Adds a rating for the product from a user.
+        * @param raterEmail The email of the user giving the rating.
+        * @param score      The rating score (1-5).
+        * @param review     The review text.
+        * @throws IllegalArgumentException if the score is not between 1 and 5.
+     */
     public void addRating(String raterEmail , int score , String review ) {
         if (score < 1 || score > 5) {
             throw new IllegalArgumentException("Rating msut be 1-5 ");
@@ -112,6 +128,11 @@ public class ShoppingProduct {
     }
     
     //rateStore
+    /*
+        * Retrieves the rating of the store.
+        * @return The rating of the store by averaging all ratings.
+
+     */
     public double averageRating() {
         if (ratings.isEmpty()) return 0.0;
         return ratings.values().stream()
