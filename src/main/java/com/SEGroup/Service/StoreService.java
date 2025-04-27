@@ -506,6 +506,32 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    //3.9
+    public Result<Void> submitBidToShoppingItem(String sessionKey,
+                                                String storeName,
+                                                String productId,
+                                                double bidAmount) {
+        try {
+            authenticationService.authenticate(sessionKey);
+            storeRepository.submitBidToShoppingItem(authenticationService.getUserBySession(sessionKey),storeName,productId,bidAmount);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    //3.11
+    public Result<Void> sendAuctionOffer(String sessionKey,
+                                         String storeName,
+                                         String productId,
+                                         double bidAmount) {
+        try {
+            authenticationService.authenticate(sessionKey);
+            storeRepository.sendAuctionOffer(authenticationService.getUserBySession(sessionKey),storeName,productId,bidAmount);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 
 
 
