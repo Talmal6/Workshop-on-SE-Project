@@ -251,32 +251,6 @@ public class TransactionServiceAcceptanceTests {
         verify(storeRepository, times(0)).removeItemsFromStores(anyList()); // Ensure rollback happened
     }
 
-    @Test
-    public void purchaseShoppingCart_WithAuctionBid_ShouldSucceed() {
-        // Given: Customer bidding and winning an auction
-        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
-        String auctionBidAmount = "100.0"; // Bid amount
-
-        when(userRepository.getUserCart(USER_EMAIL))
-                .thenReturn(List.of(basket));
-        when(storeRepository.removeItemsFromStores(List.of(basket)))
-                .thenReturn(Map.of(basket, 100.0));
-
-        // Simulating auction win
-        when(paymentGateway.processPayment(anyString(), eq(100.0)))
-                .thenReturn(true);
-
-        // Perform purchase (should succeed)
-        Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
-        assertTrue(result.isSuccess(), "Expected purchase to succeed with auction bid");
-
-
-        // Verify that product was removed and payment was processed
-        verify(storeRepository).removeItemsFromStores(anyList());
-        verify(paymentGateway).processPayment(PAYMENT_TOKEN, 100.0);
-        verify(transactionRepository).addTransaction(basket.getBasketProducts(), 100.0, USER_EMAIL, STORE_ID);
-    }
-
 
 
 

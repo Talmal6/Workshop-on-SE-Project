@@ -3,16 +3,18 @@ package com.SEGroup.acceptance;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+
+import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.Service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
@@ -22,14 +24,12 @@ import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 
-import com.SEGroup.Service.StoreService;
 /*
  *     public StoreService(IStoreRepository storeRepository,
             ProductCatalog productCatalog,
             IAuthenticationService authenticationService,
             IUserRepository userRepository) {
  */
-import com.SEGroup.Service.Result;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Domain.Store.StoreRepository;
@@ -287,6 +287,14 @@ public class StoreServiceAcceptanceTests {
         verify(storeRepository).appointManager(STORE_NAME, "manager1@example.com", managerEmail, permissions);
         verify(storeRepository, times(0)).appointManager(STORE_NAME, "manager2@example.com", managerEmail, permissions);
     }
+
+    @Test
+    public void purchaseShoppingCart_WithAuctionBid_ShouldSucceed() {
+        // Given: Customer bidding and winning an auction
+        //assert not implemented yet error:
+        assertTrue(false, "Test not implemented yet");
+    }
+
 
 
 }
