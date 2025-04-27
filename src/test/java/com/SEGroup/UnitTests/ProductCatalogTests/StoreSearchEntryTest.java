@@ -11,18 +11,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.SEGroup.Domain.ProductCatalog.StoreProductEntry;
+import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 
-public class StoreProductEntryTest {
-    private StoreProductEntry entry;
+public class StoreSearchEntryTest {
+    private StoreSearchEntry entry;
 
     @BeforeEach
     public void init() {
-        entry = new StoreProductEntry("catalogID", "storeName", "productID", 100.0, 10, 4.5);
+        entry = new StoreSearchEntry("catalogID", "storeName", "productID", 100.0, 10, 4.5, "name");
     }
 
     @Test
-    @DisplayName("Given valid StoreProductEntry, when getters are called, then correct values are returned")
+    @DisplayName("Given valid StoreSearchEntry, when getters are called, then correct values are returned")
     void GivenValidEntry_WhenGettersCalled_ThenCorrectValuesReturned() {
         assertEquals("catalogID", entry.getCatalogID());
         assertEquals("storeName", entry.getStoreName());

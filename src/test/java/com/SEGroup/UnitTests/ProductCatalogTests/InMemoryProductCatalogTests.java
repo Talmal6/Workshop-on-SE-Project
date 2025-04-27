@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
-import com.SEGroup.Domain.ProductCatalog.StoreProductEntry;
+import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 public class InMemoryProductCatalogTests {
     private InMemoryProductCatalog catalog;
 
@@ -30,36 +30,36 @@ public class InMemoryProductCatalogTests {
     }
 
     @Test
-    void GivenValidStoreEntry_WhenAddStoreProductEntry_ThenEntryIsAdded() {
+    void GivenValidStoreEntry_WhenaddStoreProductEntry_ThenEntryIsAdded() {
         catalog.addCatalogProduct("123", "Phone", "BrandB", "Smartphone", Arrays.asList("Electronics"));
-        catalog.addStoreProductEntry("123", "BestStore", "p1", 500.0, 10, 4.5);
+        catalog.addStoreProductEntry("123", "BestStore", "p1", 500.0, 10, 4.5, "name");
 
-        List<StoreProductEntry> entries = catalog.getAllProductsByCategory("Electronics");
+        List<StoreSearchEntry> entries = catalog.getAllProductsByCategory("Electronics");
         assertEquals(1, entries.size());
         assertEquals("BestStore", entries.get(0).getStoreName());
     }
 
     // deleteStoreProductEntry
     @Test
-    void GivenExistingEntry_WhenDeleteStoreProductEntry_ThenEntryIsRemoved() {
+    void GivenExistingEntry_WhendeleteStoreProductEntry_ThenEntryIsRemoved() {
         catalog.addCatalogProduct("123", "Tablet", "BrandC", "Big screen", Arrays.asList("Gadgets"));
-        catalog.addStoreProductEntry("123", "GadgetStore", "p2", 300.0, 5, 4.0);
+        catalog.addStoreProductEntry("123", "GadgetStore", "p2", 300.0, 5, 4.0, "name");
 
         catalog.deleteStoreProductEntry("123", "GadgetStore", "p2");
-        List<StoreProductEntry> entries = catalog.getAllProductsByCategory("Gadgets");
+        List<StoreSearchEntry> entries = catalog.getAllProductsByCategory("Gadgets");
         assertEquals(0, entries.size());
     }
 
     // updateStoreProductEntry
     @Test
-    void GivenExistingEntry_WhenUpdateStoreProductEntry_ThenEntryIsUpdated() {
+    void GivenExistingEntry_WhenupdateStoreProductEntry_ThenEntryIsUpdated() {
         catalog.addCatalogProduct("123", "Camera", "BrandD", "Professional camera", Arrays.asList("Photography"));
-        catalog.addStoreProductEntry("123", "PhotoStore", "p3", 800.0, 3, 4.8);
+        catalog.addStoreProductEntry("123", "PhotoStore", "p3", 800.0, 3, 4.8, "name");
 
         catalog.updateStoreProductEntry("123", "PhotoStore", "p3", 750.0, 5, 5.0);
 
-        List<StoreProductEntry> entries = catalog.getAllProductsByCategory("Photography");
-        StoreProductEntry updatedEntry = entries.get(0);
+        List<StoreSearchEntry> entries = catalog.getAllProductsByCategory("Photography");
+        StoreSearchEntry updatedEntry = entries.get(0);
 
         assertEquals(750.0, updatedEntry.getPrice());
         assertEquals(5, updatedEntry.getQuantity());
@@ -80,15 +80,15 @@ public class InMemoryProductCatalogTests {
     @Test
     void GivenCategoryWithEntries_WhenGetAllProductsByCategory_ThenReturnEntries() {
         catalog.addCatalogProduct("123", "Headphones", "BrandE", "Noise cancelling", Arrays.asList("Audio"));
-        catalog.addStoreProductEntry("123", "AudioStore", "p4", 150.0, 20, 4.2);
+        catalog.addStoreProductEntry("123", "AudioStore", "p4", 150.0, 20, 4.2, "name");
 
-        List<StoreProductEntry> entries = catalog.getAllProductsByCategory("Audio");
+        List<StoreSearchEntry> entries = catalog.getAllProductsByCategory("Audio");
         assertEquals(1, entries.size());
     }
 
     @Test
     void GivenNonExistingCategory_WhenGetAllProductsByCategory_ThenReturnEmptyList() {
-        List<StoreProductEntry> entries = catalog.getAllProductsByCategory("NonExistingCategory");
+        List<StoreSearchEntry> entries = catalog.getAllProductsByCategory("NonExistingCategory");
         assertTrue(entries.isEmpty());
     }
 
@@ -96,19 +96,19 @@ public class InMemoryProductCatalogTests {
     @Test
     void GivenMatchingQuery_WhenSearch_ThenReturnMatchingEntries() {
         catalog.addCatalogProduct("123", "Gaming Mouse", "BrandG", "Fast response mouse", Arrays.asList("Gaming"));
-        catalog.addStoreProductEntry("123", "GameStore", "p5", 70.0, 15, 4.7);
+        catalog.addStoreProductEntry("123", "GameStore", "p5", 70.0, 15, 4.7, "name");
 
-        List<StoreProductEntry> results = catalog.search("mouse", Collections.emptyList(), null, null);
+        List<StoreSearchEntry> results = catalog.search("mouse", Collections.emptyList(), null, null);
         assertEquals(1, results.size());
     }
 
     @Test
     void GivenStoreNameFilter_WhenSearch_ThenReturnMatchingStoreEntries() {
         catalog.addCatalogProduct("123", "Keyboard", "BrandH", "Mechanical keyboard", Arrays.asList("Gaming"));
-        catalog.addStoreProductEntry("123", "KeyStore", "p6", 120.0, 8, 4.9);
-        catalog.addStoreProductEntry("123", "AnotherStore", "p7", 110.0, 5, 4.6);
+        catalog.addStoreProductEntry("123", "KeyStore", "p6", 120.0, 8, 4.9, "something");
+        catalog.addStoreProductEntry("123", "AnotherStore", "p7", 110.0, 5, 4.6, "somhethingese");
 
-        List<StoreProductEntry> results = catalog.search("keyboard", Collections.emptyList(), "KeyStore", null);
+        List<StoreSearchEntry> results = catalog.search("keyboard", Collections.emptyList(), "KeyStore", null);
         assertEquals(1, results.size());
         assertEquals("KeyStore", results.get(0).getStoreName());
     }
@@ -116,18 +116,18 @@ public class InMemoryProductCatalogTests {
     @Test
     void GivenCategoryFilter_WhenSearch_ThenReturnMatchingCategoryEntries() {
         catalog.addCatalogProduct("123", "Monitor", "BrandI", "4K monitor", Arrays.asList("Displays"));
-        catalog.addStoreProductEntry("123", "DisplayStore", "p8", 300.0, 12, 4.4);
+        catalog.addStoreProductEntry("123", "DisplayStore", "p8", 300.0, 12, 4.4, "monitor");
 
-        List<StoreProductEntry> results = catalog.search("monitor", Collections.emptyList(), null, Arrays.asList("Displays"));
+        List<StoreSearchEntry> results = catalog.search("monitor", Collections.emptyList(), null, Arrays.asList("Displays"));
         assertEquals(1, results.size());
     }
 
     @Test
     void GivenNoMatchingQuery_WhenSearch_ThenReturnEmptyList() {
         catalog.addCatalogProduct("123", "Webcam", "BrandJ", "HD webcam", Arrays.asList("Accessories"));
-        catalog.addStoreProductEntry("123", "AccessoryStore", "p9", 60.0, 30, 4.1);
+        catalog.addStoreProductEntry("123", "AccessoryStore", "p9", 60.0, 30, 4.1, "Nm");
 
-        List<StoreProductEntry> results = catalog.search("printer", Collections.emptyList(), null, null);
+        List<StoreSearchEntry> results = catalog.search("printer", Collections.emptyList(), null, null);
         assertTrue(results.isEmpty());
     }
 
