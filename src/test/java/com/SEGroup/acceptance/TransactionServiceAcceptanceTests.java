@@ -270,6 +270,7 @@ public class TransactionServiceAcceptanceTests {
         Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
         assertTrue(result.isSuccess(), "Expected purchase to succeed with auction bid");
 
+
         // Verify that product was removed and payment was processed
         verify(storeRepository).removeItemsFromStores(anyList());
         verify(paymentGateway).processPayment(PAYMENT_TOKEN, 100.0);
