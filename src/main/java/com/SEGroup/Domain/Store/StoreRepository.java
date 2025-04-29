@@ -126,7 +126,6 @@ public class StoreRepository implements IStoreRepository {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
             return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity);
-            
         }
         return null;
 

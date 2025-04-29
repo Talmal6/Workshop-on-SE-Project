@@ -87,6 +87,7 @@ public class TransactionService {
 
             try {
                 paymentGateway.processPayment(paymentDetails, totalCost);
+                System.out.println("all good");
                 LoggerWrapper.info("Payment processed for user: " + userEmail + ", Amount: " + totalCost);  // Log successful payment processing
             } catch (Exception e) {
                 storeRepository.rollBackItemsToStores(cart);

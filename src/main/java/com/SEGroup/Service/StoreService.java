@@ -207,6 +207,7 @@ public class StoreService {
             LoggerWrapper.info("Added product to store: " + storeName + ", Product ID: " + productID);  // Log the product addition
             return Result.success(null);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             LoggerWrapper.error("Error adding product to store: " + e.getMessage(), e);  // Log error on failure
             return Result.failure(e.getMessage());
         }
