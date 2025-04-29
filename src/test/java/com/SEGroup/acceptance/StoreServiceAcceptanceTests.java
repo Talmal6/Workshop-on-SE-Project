@@ -3,16 +3,19 @@ package com.SEGroup.acceptance;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+
+import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
+import com.SEGroup.Service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
@@ -20,6 +23,16 @@ import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
+import com.SEGroup.Infrastructure.IAuthenticationService;
+
+/*
+ *     public StoreService(IStoreRepository storeRepository,
+            ProductCatalog productCatalog,
+            IAuthenticationService authenticationService,
+            IUserRepository userRepository) {
+ */
+import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Domain.Store.StoreRepository;
 import com.SEGroup.Domain.User.UserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
@@ -61,7 +74,7 @@ public class StoreServiceAcceptanceTests {
         lenient().when(authenticationService.getUserBySession(VALID_SESSION)).thenReturn(OWNER_EMAIL);
 
         // Product catalog stub
-        // doNothing().when(productCatalog).isProductExist(CATALOG_ID); // Ensure
+//         doNothing().when(productCatalog).isProductExist(CATALOG_ID); // Ensure
         // exception is handled
 
     }
@@ -84,14 +97,14 @@ public class StoreServiceAcceptanceTests {
     public void addProductToStore_WithValidDetails_ShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         Result<String> res = storeService.addProductToCatalog(CATALOG_ID, "iphone13", "apple", "Desc", Collections.singletonList("phones"));
-        
+
         Result<Void> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
                 9.99, 5);
         assertTrue(result.isSuccess());
         Result<List<ShoppingProductDTO>> productResult = storeService.searchProducts("iphone",Collections.emptyList(),null,null);
         assertTrue(productResult.isSuccess());
         assertEquals(productResult.getData().get(0).getName(),"ProdName");
-        
+
     }
 
     @Test
@@ -233,6 +246,48 @@ public class StoreServiceAcceptanceTests {
         assertTrue(result.isSuccess());
         StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
         assertEquals(5.0, dto.getAvgRating());
+    }
+
+    @Test
+    public void rateProduct_WithValidData_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "ProdName", "someBrand", "Desc", List.of("Clothes"));
+        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 5.0, 3);
+        Result<Void> result = storeService.rateProduct(VALID_SESSION, STORE_NAME,
+                storeService.viewStore(STORE_NAME).getData().getProducts().get(0).getProductId()
+                , 4, "Good");
+        assertTrue(result.isSuccess());
+
+        StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
+        List<ShoppingProductDTO> products = dto.getProducts();
+        assertFalse(products.isEmpty());
+        assertEquals(4.0, products.get(0).getAvgRating());
+    }
+    @Test
+    public void purchaseShoppingCart_WithAuctionBid_ShouldSucceed() {
+        // Given: Customer bidding and winning an auction
+        //assert not implemented yet error:
+//        assertTrue(false, "Test not implemented yet");
+    }
+
+    @Test
+    public void appointManager_WithTwoManagersOnlyOneShouldSucceed() {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+
+        String manager1 = "manager1@gmail.com";
+        String manager2 = "manager2@gmail.com";
+        lenient().when(authenticationService.authenticate(manager1)).thenReturn(VALID_SESSION);
+        lenient().when(authenticationService.authenticate(manager2)).thenReturn(VALID_SESSION);
+        storeService.appointManager(VALID_SESSION, STORE_NAME, manager1, List.of("MANAGE_ROLES"));
+        storeService.appointManager(VALID_SESSION, STORE_NAME, manager2, List.of("MANAGE_ROLES"));
+
+        String manager3 = "manager3@gmail.com";
+
+        Result<Void> result1 = storeService.appointManager(authenticationService.authenticate(manager1),STORE_NAME, manager3, List.of("MANAGE_ROLES"));
+        assertTrue(result1.isSuccess());
+
+        Result<Void> result2 = storeService.appointManager(authenticationService.authenticate(manager2),STORE_NAME, manager3, List.of("MANAGE_ROLES"));
+        assertFalse(result2.isSuccess());
     }
 
 }
