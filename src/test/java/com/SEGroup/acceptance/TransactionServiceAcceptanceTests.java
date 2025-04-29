@@ -136,6 +136,7 @@ public class TransactionServiceAcceptanceTests {
     @Test
     public void purchaseShoppingCart_WithTwoCustomersAndLastProduct_SecondCustomerShouldBeRejected() {
         // Given: Two customers trying to purchase the last product
+        assertTrue((true));
         BasketDTO basket1 = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1)); // Customer 1
         BasketDTO basket2 = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1)); // Customer 2
 
@@ -145,14 +146,16 @@ public class TransactionServiceAcceptanceTests {
                 .thenReturn(Map.of(basket1, 50.0)); // First customer purchase succeeds
 
         // Second customer tries to purchase (should fail due to out of stock)
-        when(storeRepository.removeItemsFromStores(List.of(basket2)))
-                .thenReturn(Map.of(basket2, 0.0)); // No stock for second customer
 
         // First customer purchase (should succeed)
         Result<Void> result1 = transactionService.purchaseShoppingCart(
                 SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN
         );
+
         assertTrue(result1.isSuccess(), "Expected first customer purchase to succeed");
+
+        when(storeRepository.removeItemsFromStores(List.of(basket2)))
+                .thenThrow(new RuntimeException("Not enough quantity for product: " + PRODUCT_ID));
 
         // Second customer purchase (should fail)
         Result<Void> result2 = transactionService.purchaseShoppingCart(
@@ -175,8 +178,9 @@ public class TransactionServiceAcceptanceTests {
         when(userRepository.getUserCart(USER_EMAIL))
                 .thenReturn(List.of(basket));
         when(storeRepository.removeItemsFromStores(List.of(basket)))
-                .thenReturn(Map.of(basket, 0.0)); // Out of stock
+                //it should return                         throw new RuntimeException("Not enough quantity for product: " + productId);
 
+                .thenThrow(new RuntimeException("Not enough quantity for product: " + PRODUCT_ID) );// Simulating out of stock
         // Try to purchase (should fail)
         Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
         assertFalse(result.isSuccess(), "Expected purchase to fail due to out of stock product");
@@ -196,6 +200,8 @@ public class TransactionServiceAcceptanceTests {
                 .thenReturn(Map.of(basket, 100.0));
 
         // Simulating payment failure
+        when(paymentGateway.processPayment(PAYMENT_TOKEN, 100.0))
+                .thenThrow(new RuntimeException("Payment declined"));
         doThrow(new RuntimeException("Payment declined")).when(paymentGateway)
                 .processPayment(anyString(), anyDouble());
 
