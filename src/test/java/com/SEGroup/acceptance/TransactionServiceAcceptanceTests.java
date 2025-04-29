@@ -236,26 +236,26 @@ public class TransactionServiceAcceptanceTests {
         verify(paymentGateway, times(0)).processPayment(anyString(), anyDouble());
     }
 
-//    @Test
-//    public void purchaseShoppingCart_WithPaymentFailure_ShouldRollbackProductRemoval() {
-//        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
-//
-//        when(userRepository.getUserCart(USER_EMAIL))
-//                .thenReturn(List.of(basket));
-//        when(storeRepository.removeItemsFromStores(List.of(basket)))
-//                .thenReturn(Map.of(basket, 100.0));
-//
-//        // Simulating payment failure
-//        doThrow(new RuntimeException("Payment failed")).when(paymentGateway)
-//                .processPayment(anyString(), anyDouble());
-//
-//        // Try purchasing (should fail and trigger rollback)
-//        Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
-//        assertFalse(result.isSuccess());
-//
-//        // Verify that rollback occurred and no items were removed from the store
-////        verify(storeRepository, times(0)).removeItemsFromStores(anyList()); // Ensure rollback happened
-//
-//    }
+    @Test
+    public void purchaseShoppingCart_WithPaymentFailure_ShouldRollbackProductRemoval() {
+        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
+
+        when(userRepository.getUserCart(USER_EMAIL))
+                .thenReturn(List.of(basket));
+        when(storeRepository.removeItemsFromStores(List.of(basket)))
+                .thenReturn(Map.of(basket, 100.0));
+
+        // Simulating payment failure
+        doThrow(new RuntimeException("Payment failed")).when(paymentGateway)
+                .processPayment(anyString(), anyDouble());
+
+        // Try purchasing (should fail and trigger rollback)
+        Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
+        assertFalse(result.isSuccess());
+
+         //Verify that rollback occurred and no items were removed from the store
+        verify(storeRepository, times(1)).rollBackItemsToStores(List.of(basket)); // Ensure rollback happened
+
+    }
 
 }
