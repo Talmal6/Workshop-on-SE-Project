@@ -27,7 +27,7 @@ public class UserService {
         this.guestService = guestService;
         this.userRepository = userRepository;
         this.authenticationService = authenticationService;
-        System.out.println("encryptPassword: " + authenticationService.encryptPassword("kkakakakaka"));  // Debugging line to check password encryption
+       
     }
 
     /**

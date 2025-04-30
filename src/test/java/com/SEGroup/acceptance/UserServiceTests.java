@@ -59,8 +59,7 @@ class UserServiceTests {
         doNothing().when(auth).invalidateSession(anyString());
         doNothing().when(auth).matchPassword(anyString(), anyString());
         
-        when(auth.authenticate(anyString())).thenReturn(jwt);
-        System.out.println("encrypted password: " + auth.authenticate(pw));
+        when(auth.encryptPassword(anyString())).thenReturn(hashPw);
         doReturn("guest:g-xyz").when(auth).getUserBySession(anyString());
 
         
