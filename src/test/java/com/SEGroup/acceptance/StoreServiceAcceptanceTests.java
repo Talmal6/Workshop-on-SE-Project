@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import com.SEGroup.DTO.BasketDTO;
-import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
+import com.SEGroup.Domain.IProductCatalog.CatalogProduct;
 import com.SEGroup.Service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,10 +21,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
-import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
-import com.SEGroup.Infrastructure.IAuthenticationService;
-
+import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.IProductCatalog;
+import com.SEGroup.Domain.IProductCatalog.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.UserRepository;
 /*
  *     public StoreService(IStoreRepository storeRepository,
             ProductCatalog productCatalog,
@@ -33,9 +34,6 @@ import com.SEGroup.Infrastructure.IAuthenticationService;
  */
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Domain.Store.Store;
-import com.SEGroup.Domain.Store.StoreRepository;
-import com.SEGroup.Domain.User.UserRepository;
-import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 
@@ -51,7 +49,7 @@ public class StoreServiceAcceptanceTests {
     StoreService storeService;
     StoreRepository storeRepository;
     IAuthenticationService authenticationService;
-    ProductCatalog productCatalog;
+    IProductCatalog productCatalog;
     IUserRepository userRepository;
 
     @BeforeEach

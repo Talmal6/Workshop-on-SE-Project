@@ -1,4 +1,4 @@
-package com.SEGroup.Domain.ProductCatalog;
+package com.SEGroup.Infrastructure.Repositories;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,12 +8,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.SEGroup.Domain.IProductCatalog;
+import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
+import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+
 /**
  * An in-memory implementation of the ProductCatalog interface.
  * This class manages catalog products, store product entries, and their relationships.
  */
 
-public class InMemoryProductCatalog implements ProductCatalog {
+public class InMemoryProductCatalog implements IProductCatalog {
 
     private final Map<String, CatalogProduct> catalogIDtoCatalogProduct = new HashMap<>();
     private final Map<String, List<StoreSearchEntry>> catalogIdToStoreOffers = new HashMap<>();

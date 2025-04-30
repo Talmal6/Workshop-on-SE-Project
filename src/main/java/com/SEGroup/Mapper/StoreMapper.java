@@ -1,4 +1,4 @@
-package com.SEGroup.Service.Mapper;
+package com.SEGroup.Mapper;
 
 import java.util.ArrayList;
 import java.util.List;

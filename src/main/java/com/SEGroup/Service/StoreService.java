@@ -5,13 +5,12 @@ import java.util.List;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
-import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Infrastructure.IAuthenticationService;
-import com.SEGroup.Infrastructure.LoggerWrapper;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
@@ -20,7 +19,7 @@ import com.SEGroup.Infrastructure.LoggerWrapper;
 public class StoreService {
 
     private final IStoreRepository storeRepository;
-    private final ProductCatalog productCatalog;
+    private final IProductCatalog productCatalog;
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
 
@@ -33,7 +32,7 @@ public class StoreService {
      * @param userRepository The user repository for managing user data.
      */
     public StoreService(IStoreRepository storeRepository,
-                        ProductCatalog productCatalog,
+                        IProductCatalog productCatalog,
                         IAuthenticationService authenticationService,
                         IUserRepository userRepository) {
         this.storeRepository = storeRepository;
@@ -533,108 +532,5 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
-
-
-    // public Result<List<ShoppingProductDTO>> searchProductsByCategory(String
-    // category){
-    // try {
-    // List<ShoppingProductDTO> searchResults = new ArrayList<>();
-    // for(StoreProductEntry spe :
-    // productCatalog.getAllProductsByCategory(category)){
-    // searchResults.add(storeRepository.getProduct(spe.getStoreName(),
-    // spe.getProductID()));
-    // }
-    // return Result.success(searchResults);
-    // } catch (Exception e) {
-    // return Result.failure(e.getMessage());
-    // }
-    // }
-
-    // public Result<List<ShoppingProductDTO>> searchProductProductsInStore(String
-    // storeName, String query, List<String> searchFilters){
-
-    // }
-
-    // public Result<List<StoreProductDTO>> searchProducts(String query, String
-    // categories, String sortBy) {
-    // try {
-    // List<> productsLikeQuery =
-    // productRepository.searchByNameOrDescription(query.toLowerCase());
-    // List<ShoppingProduct> actualProductsFiltered =
-    // return Result.success(matches);
-    // } catch (Exception e) {
-    // return Result.failure(e.getMessage());
-    // }
-    // }
-
-    // public Result<Product> getProduct(String sessionKey, String storeName, String
-    // shoppingProductId) {
-    // try {
-    // authenticationService.checkSessionKey(sessionKey);
-    // storeRepository.checkIfExist(storeName);
-    // Product product = productRepository.getProduct(shoppingProductId);
-    // return Result.success(product);
-    // } catch (Exception e) {
-    // return Result.failure(e.getMessage());
-    // }
-    // }
-
-    // public Result<Void> addToStoreBalance(String sessionKey,
-    // String storeName,
-    // double amount ) {
-    // try {
-    // authenticationService.checkSessionKey(sessionKey);
-    // storeRepository.addToBalance(authenticationService.getUserBySession(sessionKey),
-    // storeName, amount);
-    // return Result.success(null);
-    // } catch (Exception e) {
-    // return Result.failure(e.getMessage());
-    // }
-    // }
-
-    // public Result<List<Product>> getStoreProductsWithQuery(String storeName,
-    // String query, List<String> filters, String sortBy) {
-    // try {
-    // authenticationService.checkSessionKey(sessionKey);
-
-    // storeRepository.checkIfExist(storeName);
-    // List<Product> matches = productRepository.searchInStore(storeName, query);
-    // storeRepostity
-    // return Result.success(matches);
-    // } catch (Exception e) {
-    // return Result.failure(e.getMessage());
-    // }
-    // }
 }
 
-// ProductCatalog{
-// Map<String, Product> = {
-// 'phones' : ["apple-iphone-13" , "apple-iphone-14", "samsung"]
-// 'shoes' : ['nike-air1', 'nike-air2']
-// ....
-// }
-// Map<CatalogID, storeNames> : {
-// "apple-iphone-13": ["ron-store" , "gil-store"]
-// "apple-iphone-14": ["gil-store" , "amit-store"]
-// }
-// }
-
-// ShoppingProduct{
-// CataglogID
-// InStoreID
-// name
-// extraDescription
-// Policies
-// quantity
-// price
-// }
-
-// Product{
-// String "apple-iphone-13"
-// Description "iphone"
-// }
-
-// ShoppingProduct
-
-// iphone

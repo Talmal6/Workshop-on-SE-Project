@@ -1,10 +1,10 @@
 package com.SEGroup.acceptance;
 
+import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
-import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.UserService;

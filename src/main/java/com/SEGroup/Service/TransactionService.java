@@ -1,16 +1,15 @@
 package com.SEGroup.Service;
 
-import com.SEGroup.Domain.ITransactionRepository;
-import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.Transaction.Transaction;
-import com.SEGroup.Domain.IStoreRepository;
-import com.SEGroup.DTO.BasketDTO;
-import com.SEGroup.DTO.TransactionDTO;
-import com.SEGroup.Infrastructure.IAuthenticationService;
-import com.SEGroup.Infrastructure.IPaymentGateway;
 import java.util.List;
 import java.util.Map;
-import com.SEGroup.Infrastructure.LoggerWrapper;
+
+import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.TransactionDTO;
+import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.IPaymentGateway;
+import com.SEGroup.Domain.IStoreRepository;
+import com.SEGroup.Domain.ITransactionRepository;
+import com.SEGroup.Domain.IUserRepository;
 
 /**
  * TransactionService handles the operations related to transactions, including processing payments, viewing transaction history, and purchasing shopping carts.

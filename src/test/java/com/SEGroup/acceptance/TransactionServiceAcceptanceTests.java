@@ -1,14 +1,14 @@
 package com.SEGroup.acceptance;
 
+import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
+import com.SEGroup.Domain.IPaymentGateway;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.TransactionDTO;
-import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
-import com.SEGroup.Infrastructure.IAuthenticationService;
-import com.SEGroup.Infrastructure.IPaymentGateway;
 import com.SEGroup.Service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ public class TransactionServiceAcceptanceTests {
     private IStoreRepository       storeRepository;
     private IUserRepository        userRepository;
     private StoreService            storeService;
-    private ProductCatalog          productCatalog;
+    private IProductCatalog          productCatalog;
     private TransactionService transactionService;
     private UserService userService;
 
@@ -49,7 +49,7 @@ public class TransactionServiceAcceptanceTests {
         transactionRepository = mock(ITransactionRepository.class);
         storeRepository       = mock(IStoreRepository.class);
         userRepository        = mock(IUserRepository.class);
-        productCatalog        = mock(ProductCatalog.class);
+        productCatalog        = mock(IProductCatalog.class);
         userService = new UserService(new GuestService(mock(IGuestRepository.class),authenticationService), userRepository, authenticationService);
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
         transactionService = new TransactionService(

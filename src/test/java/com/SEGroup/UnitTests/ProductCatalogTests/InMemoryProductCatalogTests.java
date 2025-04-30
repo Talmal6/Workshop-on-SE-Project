@@ -10,9 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
-import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
-import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Domain.IProductCatalog.CatalogProduct;
+import com.SEGroup.Domain.IProductCatalog.InMemoryProductCatalog;
+import com.SEGroup.Domain.IProductCatalog.StoreSearchEntry;
 public class InMemoryProductCatalogTests {
     private InMemoryProductCatalog catalog;
 

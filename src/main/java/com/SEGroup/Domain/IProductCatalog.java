@@ -1,11 +1,14 @@
-package com.SEGroup.Domain.ProductCatalog;
+package com.SEGroup.Domain;
 
 import java.util.List;
+
+import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
+import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 /**
  * Interface for managing a product catalog, including adding products, store entries,
  * and searching for products.
  */
-public interface ProductCatalog {
+public interface IProductCatalog {
     /**
      * Adds a new catalog product to the catalog.
      *

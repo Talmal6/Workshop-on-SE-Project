@@ -1,6 +1,8 @@
 package com.SEGroup.UnitTests.UserTests;
 
 import com.SEGroup.Domain.User.*;
+import com.SEGroup.Infrastructure.Repositories.UserRepository;
+
 import org.junit.jupiter.api.*;
 
 import java.time.Instant;

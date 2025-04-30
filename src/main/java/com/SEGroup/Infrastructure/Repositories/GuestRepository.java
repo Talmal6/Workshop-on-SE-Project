@@ -1,11 +1,13 @@
-package com.SEGroup.Domain.User;
-
-import com.SEGroup.Domain.IGuestRepository;
+package com.SEGroup.Infrastructure.Repositories;
 
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.SEGroup.Domain.IGuestRepository;
+import com.SEGroup.Domain.User.Guest;
+import com.SEGroup.Domain.User.ShoppingCart;
 
 /**
  * Represents a repository for managing guest users.

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.SEGroup.Domain.ProductCatalog.ProductSearchOptions;
+import com.SEGroup.Domain.IProductCatalog.ProductSearchOptions;
 
 public class ProductSearchOptionsTest {
     private ProductSearchOptions options;

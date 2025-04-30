@@ -1,7 +1,7 @@
-package com.SEGroup.Service.Mapper;
+package com.SEGroup.Mapper;
 
-import com.SEGroup.Domain.User.Basket;
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.Domain.User.Basket;
 
 /**
  * Utility class for mapping a Basket object to a BasketDTO.
