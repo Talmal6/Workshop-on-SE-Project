@@ -25,7 +25,6 @@ import com.SEGroup.Service.StoreService;
 
 public class ProductSearchAndUpdatingAcceptanceTests {
 
-
     private static final String VALID_SESSION = "valid-session";
     private static final String OWNER_EMAIL = "owner@example.com";
     
