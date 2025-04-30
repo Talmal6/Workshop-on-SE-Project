@@ -23,6 +23,7 @@ import com.SEGroup.Infrastructure.Repositories.UserRepository;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 
+
 public class ProductSearchAndUpdatingAcceptanceTests {
 
     private static final String VALID_SESSION = "valid-session";

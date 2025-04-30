@@ -5,7 +5,8 @@ import static org.junit.Assert.assertNotEquals;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.SEGroup.Domain.IProductCatalog.CatalogProduct;
+import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
+
 
 public class CatalogProductTests {
 

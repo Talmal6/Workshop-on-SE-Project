@@ -11,7 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.SEGroup.Domain.IProductCatalog.StoreSearchEntry;
+import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+
 
 public class StoreSearchEntryTest {
     private StoreSearchEntry entry;
