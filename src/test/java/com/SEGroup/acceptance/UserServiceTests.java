@@ -7,6 +7,7 @@ import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.Result;
+import com.SEGroup.Service.SecurityAdapter;
 import com.SEGroup.Service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,19 +51,25 @@ class UserServiceTests {
     /* ───────── generic stubbing ───────── */
     @BeforeEach
     void setUp() throws Exception {
-        auth   = mock(IAuthenticationService.class);
+        auth = mock(IAuthenticationService.class);
         users  = mock(IUserRepository.class);
         guests = mock(IGuestRepository.class);
+        
+        doNothing().when(auth).checkSessionKey(anyString());
+        doNothing().when(auth).invalidateSession(anyString());
+        doNothing().when(auth).matchPassword(anyString(), anyString());
+        
+        when(auth.authenticate(anyString())).thenReturn(jwt);
+        System.out.println("encrypted password: " + auth.authenticate(pw));
+        doReturn("guest:g-xyz").when(auth).getUserBySession(anyString());
 
+        
         guestSvc = new GuestService(guests, auth);
         sut      = new UserService(guestSvc, users, auth);
 
         // blanket auth behaviour for every test
-        doNothing().when(auth).checkSessionKey(anyString());
-        doNothing().when(auth).invalidateSession(anyString());
-        doNothing().when(auth).matchPassword(anyString(), anyString());
-        when(auth.authenticate(anyString())).thenReturn(jwt);
-        doReturn("guest:g-xyz").when(auth).getUserBySession(anyString());
+
+        
     }
 
     /* ───────── Registration & Login ───────── */
@@ -72,6 +79,7 @@ class UserServiceTests {
         @Test @DisplayName("Fresh e‑mail → register succeeds")
         void registerSuccess() {
             Result<Void> r = sut.register("owner", email, pw);
+            
             assertTrue(r.isSuccess());
             verify(users).addUser(eq("owner"), eq(email), anyString());
         }

@@ -27,6 +27,7 @@ public class UserService {
         this.guestService = guestService;
         this.userRepository = userRepository;
         this.authenticationService = authenticationService;
+        System.out.println("encryptPassword: " + authenticationService.encryptPassword("kkakakakaka"));  // Debugging line to check password encryption
     }
 
     /**
@@ -51,6 +52,7 @@ public class UserService {
      */
     public Result<Void> register(String username, String email, String password) {
         try {
+            
             userRepository.addUser(username, email, authenticationService.encryptPassword(password));
             LoggerWrapper.info("User registered successfully: " + username + ", Email: " + email);  // Log successful registration
             return Result.success(null);
