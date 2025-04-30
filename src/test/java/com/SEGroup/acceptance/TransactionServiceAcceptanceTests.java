@@ -221,8 +221,6 @@ public class TransactionServiceAcceptanceTests {
 
         when(userRepository.getUserCart(USER_EMAIL))
                 .thenReturn(List.of(basket));
-        when(storeRepository.removeItemsFromStores(List.of(basket)))
-                .thenReturn(Map.of(basket, 100.0));
 
         // Simulating shipping error
         doThrow(new RuntimeException("Shipping error")).when(storeRepository)
