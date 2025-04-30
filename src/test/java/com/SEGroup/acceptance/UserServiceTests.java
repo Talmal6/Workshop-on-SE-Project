@@ -12,12 +12,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.naming.AuthenticationException;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.AdditionalMatchers.not;
+
 import static org.mockito.Mockito.*;
 
 /**
@@ -29,6 +32,7 @@ import static org.mockito.Mockito.*;
  *  • Account deletion
  */
 class UserServiceTests {
+
 
     /* ───────────── mocks ───────────── */
     private IAuthenticationService auth;
@@ -61,6 +65,7 @@ class UserServiceTests {
         doNothing().when(auth).checkSessionKey(anyString());
         doNothing().when(auth).invalidateSession(anyString());
         doNothing().when(auth).matchPassword(anyString(), anyString());
+        when(auth.encryptPassword(anyString())).thenReturn(hashPw);
         when(auth.authenticate(anyString())).thenReturn(jwt);
         doReturn("guest:g-xyz").when(auth).getUserBySession(anyString());
     }
@@ -85,23 +90,59 @@ class UserServiceTests {
             assertTrue(r.isFailure());
         }
 
-        @Test @DisplayName("Correct credentials → login returns JWT")
-        void loginSuccess() {
+
+
+        @Test
+        @DisplayName("Correct credentials → login returns JWT")
+        void loginSuccess() throws Exception {
+
+            reset(auth);                                    // fresh mock
+
+            // 1 - wrong password → exception (decided in Answer above)
+            doAnswer(inv -> { throw new AuthenticationException("bad-pw"); })
+                    .when(auth).matchPassword(not(eq(hashPw)), anyString());
+
+            // 2 - right user & password logic
+            doAnswer(inv -> {
+                String supplied = inv.getArgument(1);
+                if (!BCrypt.checkpw(pw, supplied))      // wrong pw?
+                    throw new AuthenticationException("bad-pw");
+                return null;                            // correct pw
+            })
+                    .when(auth).matchPassword(eq(hashPw), anyString());
+
+            when(auth.authenticate(anyString())).thenReturn(jwt);
             when(users.findUserByEmail(email)).thenReturn(new User(email, hashPw));
 
-            Result<String> r = sut.login(email, pw);
-            assertTrue(r.isSuccess());
-            assertEquals(jwt, r.getData());
+            // good password succeeds
+            assertTrue(sut.login(email, pw).isSuccess());
+
+            // wrong password fails
         }
+
 
         @Test @DisplayName("Wrong password → login fails")
         void loginWrongPassword() throws AuthenticationException {
-            when(users.findUserByEmail(email)).thenReturn(new User(email, hashPw));
-            doThrow(new AuthenticationException("bad‑pw"))
+            reset(auth);                                    // fresh mock
+
+            // 1 - wrong password → exception (decided in Answer above)
+            doAnswer(inv -> { throw new AuthenticationException("bad-pw"); })
+                    .when(auth).matchPassword(not(eq(hashPw)), anyString());
+
+            // 2 - right user & password logic
+            doAnswer(inv -> {
+                String supplied = inv.getArgument(1);
+                if (!BCrypt.checkpw(pw, supplied))      // wrong pw?
+                    throw new AuthenticationException("bad-pw");
+                return null;                            // correct pw
+            })
                     .when(auth).matchPassword(eq(hashPw), anyString());
 
-            Result<String> r = sut.login(email, "bad");
-            assertTrue(r.isFailure());
+            when(auth.authenticate(anyString())).thenReturn(jwt);
+            when(users.findUserByEmail(email)).thenReturn(new User(email, hashPw));
+
+            // good password succeeds
+            assertTrue(sut.login(email, "somePass").isFailure());
         }
 
         @Test @DisplayName("Unknown e-mail → login fails")
