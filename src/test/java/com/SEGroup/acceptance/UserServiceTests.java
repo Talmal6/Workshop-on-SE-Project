@@ -57,6 +57,7 @@ class UserServiceTests {
         
         doNothing().when(auth).checkSessionKey(anyString());
         doNothing().when(auth).invalidateSession(anyString());
+        // why?
         doNothing().when(auth).matchPassword(anyString(), anyString());
         
         when(auth.encryptPassword(anyString())).thenReturn(hashPw);
