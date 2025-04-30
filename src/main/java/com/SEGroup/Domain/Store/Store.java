@@ -113,7 +113,7 @@ public class Store {
      */
     public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity){
         if(quantity == 0)
-            throw new IllegalArgumentException("quantity cannot be 0");
+            throw new IllegalArgumentException("quantity cannot be 0 ");
         if (isOwnerOrHasManagerPermissions(email)) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
             ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity);
