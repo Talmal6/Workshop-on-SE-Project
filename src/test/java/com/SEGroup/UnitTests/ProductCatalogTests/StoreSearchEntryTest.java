@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 
+
 public class StoreSearchEntryTest {
     private StoreSearchEntry entry;
 

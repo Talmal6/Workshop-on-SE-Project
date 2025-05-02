@@ -1,4 +1,4 @@
-package com.SEGroup.Domain.Store;
+package com.SEGroup.Infrastructure.Repositories;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +11,10 @@ import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IStoreRepository;
-import com.SEGroup.Service.Mapper.StoreMapper;
+import com.SEGroup.Domain.Store.ManagerPermission;
+import com.SEGroup.Domain.Store.ShoppingProduct;
+import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Mapper.StoreMapper;
 
 //implement iStore
 /**

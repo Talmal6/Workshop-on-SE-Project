@@ -1,12 +1,13 @@
 package com.SEGroup.acceptance;
 
+import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
-import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.Result;
+import com.SEGroup.Service.SecurityAdapter;
 import com.SEGroup.Service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -77,6 +78,7 @@ class UserServiceTests {
         @Test @DisplayName("Fresh e‑mail → register succeeds")
         void registerSuccess() {
             Result<Void> r = sut.register("owner", email, pw);
+            
             assertTrue(r.isSuccess());
             verify(users).addUser(eq("owner"), eq(email), anyString());
         }

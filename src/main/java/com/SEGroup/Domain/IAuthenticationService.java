@@ -1,4 +1,4 @@
-package com.SEGroup.Infrastructure;
+package com.SEGroup.Domain;
 
 import com.SEGroup.Domain.User.ShoppingCart;
 

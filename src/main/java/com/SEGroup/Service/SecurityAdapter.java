@@ -1,15 +1,12 @@
-package com.SEGroup.Infrastructure;
+package com.SEGroup.Service;
 
 import javax.naming.AuthenticationException;
 
-import com.SEGroup.Domain.User.Guest;
-import com.SEGroup.Domain.User.ShoppingCart;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Instant;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Infrastructure.PasswordEncoder;
+import com.SEGroup.Infrastructure.Security;
 
 /**
  * SecurityAdapter class implements the IAuthenticationService interface.
@@ -23,7 +20,9 @@ public class SecurityAdapter implements IAuthenticationService {
 
     @Autowired
     PasswordEncoder passwordEncoder;  // Instance of PasswordEncoder for password encryption and verification
-
+    SecurityAdapter(){
+        passwordEncoder = new PasswordEncoder();    
+    }
     /**
      * Checks if the provided session key (JWT token) is valid.
      * Throws an AuthenticationException if the token is invalid.

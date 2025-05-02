@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 
+
 public class CatalogProductTests {
 
     static CatalogProduct catalogProduct1;

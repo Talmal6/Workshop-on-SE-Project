@@ -3,12 +3,14 @@ package com.SEGroup.UnitTests.StoreTests;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
-import com.SEGroup.Service.Mapper.StoreMapper;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.SEGroup.Domain.Store.StoreRepository;
+
 import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
+import com.SEGroup.Mapper.StoreMapper;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;

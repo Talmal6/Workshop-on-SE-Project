@@ -1,7 +1,10 @@
-package com.SEGroup.Domain.User;
+package com.SEGroup.Infrastructure.Repositories;
 
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Service.Mapper.BasketMapper;
+import com.SEGroup.Domain.User.Role;
+import com.SEGroup.Domain.User.ShoppingCart;
+import com.SEGroup.Domain.User.User;
+import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
 
 

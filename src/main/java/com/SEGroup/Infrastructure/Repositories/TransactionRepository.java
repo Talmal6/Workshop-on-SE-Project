@@ -1,4 +1,4 @@
-package com.SEGroup.Domain.Transaction;
+package com.SEGroup.Infrastructure.Repositories;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Domain.ITransactionRepository;
-import com.SEGroup.Service.Mapper.TransactionMapper;
+import com.SEGroup.Domain.Transaction.Transaction;
+import com.SEGroup.Mapper.TransactionMapper;
 
 
 

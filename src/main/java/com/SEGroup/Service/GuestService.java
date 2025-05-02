@@ -1,9 +1,8 @@
 package com.SEGroup.Service;
 
+import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
-import com.SEGroup.Infrastructure.IAuthenticationService;
-import com.SEGroup.Infrastructure.LoggerWrapper;
 
 /**
  * Service class for managing guest sessions and shopping carts.

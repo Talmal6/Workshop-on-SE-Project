@@ -14,14 +14,15 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
-import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
-import com.SEGroup.Domain.Store.StoreRepository;
-import com.SEGroup.Domain.User.UserRepository;
-import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.UserRepository;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
+
 
 public class ProductSearchAndUpdatingAcceptanceTests {
 
@@ -30,7 +31,7 @@ public class ProductSearchAndUpdatingAcceptanceTests {
     
     StoreService storeService;
     StoreRepository storeRepository;
-    ProductCatalog productCatalog;
+    IProductCatalog productCatalog;
     IAuthenticationService authenticationService;
     IUserRepository userRepository;
 
