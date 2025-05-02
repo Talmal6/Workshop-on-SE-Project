@@ -69,6 +69,7 @@ class UserServiceTests {
         when(auth.encryptPassword(anyString())).thenReturn(hashPw);
         when(auth.authenticate(anyString())).thenReturn(jwt);
         doReturn("guest:g-xyz").when(auth).getUserBySession(anyString());
+        //change
     }
 
     /* ───────── Registration & Login ───────── */
