@@ -160,7 +160,6 @@ class UserServiceTests {
         void logoutHappyPath() throws Exception{
             regLoginAndGetSession("owner", email, pw); // register & login to get a session key
             Result<Void> r = sut.logout(jwt);
-            System.out.println(r.getErrorMessage());
             assertTrue(r.isSuccess());
 
         }
@@ -204,7 +203,6 @@ class UserServiceTests {
             guestJwt = sut.guestLogin().getData();
             sut.addToGuestCart(guestJwt, "P1", "S1");
             Result<String> res = sut.addToGuestCart(guestJwt, "P1", "S1");
-            System.out.println(res.getErrorMessage());
             assertTrue(res.isSuccess());
         }
     }

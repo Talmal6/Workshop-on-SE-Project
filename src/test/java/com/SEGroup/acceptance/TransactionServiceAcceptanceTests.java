@@ -118,10 +118,8 @@ public class TransactionServiceAcceptanceTests {
         // Register a new user
         Result<Void> regResult = userService.register(userName, email, password);
         // Authenticate the user and get a session key
-        System.out.println("Registered user: " + email);
         String sessionKey = authenticationService.authenticate(email);
         if (userService.login(email, password).isSuccess()) {
-            System.out.println("Logged in user: " + email);
             return sessionKey;
         } else {
             throw new Exception("Login failed for user: " + email);
