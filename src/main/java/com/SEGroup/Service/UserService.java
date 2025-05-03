@@ -75,7 +75,7 @@ public class UserService {
     public Result<String> login(String email, String password) {
         try {
             User user = userRepository.findUserByEmail(email);
-            authenticationService.matchPassword(user.getPassword(), passwordEncoder.encrypt(password));
+            authenticationService.matchPassword(user.getPassword(), password);
             String sessionKey = authenticationService.authenticate(email);
             LoggerWrapper.info("User logged in successfully: " + email);  // Log successful login
             return Result.success(sessionKey);
