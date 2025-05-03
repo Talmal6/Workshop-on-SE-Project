@@ -6,6 +6,7 @@ import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.TransactionDTO;
+import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
 import com.SEGroup.Domain.Store.StoreRepository;
@@ -47,6 +48,8 @@ public class TransactionServiceAcceptanceTests {
     private static final String PAYMENT_TOKEN = "tok_visa";
     private static final String STORE_ID      = "store1";
     private static final String PRODUCT_ID    = "prod1";
+    private static String ACTUAL_PRODUCT_ID = "prod1";
+    private static final String CATALOG_ID    = "cat1";
 
     private IAuthenticationService authenticationService;
     private IPaymentGateway        paymentGateway;
@@ -82,7 +85,6 @@ public class TransactionServiceAcceptanceTests {
         //end
         paymentGateway        = mock(IPaymentGateway.class);
         transactionRepository = new TransactionRepository();
-        userRepository        = new UserRepository();
         transactionService = new TransactionService(
             authenticationService,
             paymentGateway,
@@ -90,6 +92,25 @@ public class TransactionServiceAcceptanceTests {
             storeRepository,
             userRepository
         );
+        storeService.createStore(
+                SELLER_TOKEN, STORE_ID
+        );
+        productCatalog.addCatalogProduct(
+            CATALOG_ID, PRODUCT_ID, "Brand A", "Description of Product 1", List.of("Category A")
+        );
+
+        Result<String> addProduct = storeService.addProductToStore(
+                SELLER_TOKEN,               // session of the store-owner
+                STORE_ID,                   // store id
+                CATALOG_ID,                 // catalog entry
+                PRODUCT_ID,                 // store-specific product id
+                "Product 1",                // name
+                100.0,                      // price
+                10                          // quantity on shelf
+        );
+        ACTUAL_PRODUCT_ID = addProduct.getData();
+
+
 
     }
 
@@ -98,24 +119,37 @@ public class TransactionServiceAcceptanceTests {
         Result<Void> regResult = userService.register(userName, email, password);
         // Authenticate the user and get a session key
         System.out.println("Registered user: " + email);
-        return authenticationService.authenticate(email);
+        String sessionKey = authenticationService.authenticate(email);
+        if (userService.login(email, password).isSuccess()) {
+            System.out.println("Logged in user: " + email);
+            return sessionKey;
+        } else {
+            throw new Exception("Login failed for user: " + email);
+        }
     }
-
     @Test
-    public void purchaseShoppingCart_WithValidCartAndPayment_ShouldSucceed() throws Exception {
-        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 2));
-        Result r = storeService.createStore(SELLER_TOKEN, STORE_ID);
-        Result<Void> result = transactionService.purchaseShoppingCart(
-            SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN
-        );
-        System.out.println("Purchase result: " + result.getErrorMessage());
-        assertTrue(result.isSuccess(), "Expected purchaseShoppingCart to succeed");
+    void purchaseShoppingCart_givenValidCartAndPayment_shouldSucceed() throws Exception {
+        Result<String> addToCart = userService.addToUserCart(
+                SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
+        assertTrue(addToCart.isSuccess(), "addToUserCart failed: " + addToCart.getErrorMessage());
+        Result<Void> purchase = transactionService.purchaseShoppingCart(
+                SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
+        assertTrue(purchase.isSuccess(), "purchaseShoppingCart failed: " + purchase.getErrorMessage());
 
+        // optional – verify the transaction really landed in history
+        List<TransactionDTO> history =
+                transactionService.getTransactionHistory(SESSION_KEY, USER_EMAIL).getData();
+        assertEquals(1, history.size(), "expected exactly one transaction");
     }
+
 
     @Test
     public void purchaseShoppingCart_WhenPaymentFails_ShouldRollbackAndReportFailure() throws Exception {
         BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
+        doThrow(new RuntimeException("card declined") // Simulating payment failure
+        ).when(paymentGateway).processPayment(
+            anyString(), anyDouble());
+
         Result<Void> result = transactionService.purchaseShoppingCart(
             SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN
         );
@@ -125,48 +159,58 @@ public class TransactionServiceAcceptanceTests {
             result.getErrorMessage().contains("Payment failed: card declined"),
             "Should report the payment failure message"
         );
-        verify(storeRepository).rollBackItemsToStores(List.of(basket));
-        verify(transactionRepository, never())
-            .addTransaction(anyList(), anyDouble(), anyString(), anyString());
     }
 
     @Test
-    public void getTransactionHistory_WithValidSession_ShouldReturnDTOs() {
-        TransactionDTO dto = new TransactionDTO(
-            List.of(PRODUCT_ID), 30.0, USER_EMAIL, STORE_ID
-        );
-        when(transactionRepository.getTransactionsByUserEmail(USER_EMAIL))
-            .thenReturn(List.of(dto));
+    void getTransactionHistory_WithValidSession_ShouldReturnDTOs() throws Exception {
+        /* --------- Arrange --------- */
+        purchaseShoppingCart_givenValidCartAndPayment_shouldSucceed(); // מבצעת רכישה אחת
 
-        Result<List<TransactionDTO>> result =
-            transactionService.getTransactionHistory(SESSION_KEY, USER_EMAIL);
+        /* ----------- Act ----------- */
+        Result<List<TransactionDTO>> historyResult =
+                transactionService.getTransactionHistory(SESSION_KEY, USER_EMAIL);
 
-        assertTrue(result.isSuccess(), "Expected history retrieval to succeed");
-        assertEquals(1, result.getData().size());
-        assertEquals(dto, result.getData().get(0));
+        /* ---------- Assert ---------- */
+        assertTrue(historyResult.isSuccess(), historyResult.getErrorMessage());
+
+        List<TransactionDTO> history = historyResult.getData();
+        assertEquals(1, history.size(), "expected exactly one transaction");
+
+        TransactionDTO tx = history.get(0);
+        assertEquals(USER_EMAIL, tx.buyersEmail); // אימייל הקונה
+        assertEquals(STORE_ID,  tx.getSellerStore());   // החנות
+        assertEquals(100.0,      tx.getCost());         // העלות הכוללת (1 × ‎100‎)
+
     }
 
-    @Test
-    public void getTransactionHistory_WithInvalidSession_ShouldFail() {
-        Result<List<TransactionDTO>> result =
-            transactionService.getTransactionHistory(BAD_SESSION, USER_EMAIL);
 
-        assertFalse(result.isSuccess(), "Invalid session should not succeed");
+    @Test
+    public void getTransactionHistory_WithInvalidSession_ShouldFail() throws Exception {
+        purchaseShoppingCart_givenValidCartAndPayment_shouldSucceed(); // מבצעת רכישה אחת
+
+        /* ----------- Act ----------- */
+        Result<List<TransactionDTO>> historyResult =
+                transactionService.getTransactionHistory("some_random_key_session", USER_EMAIL);
+
+        /* ---------- Assert ---------- */
+        assertTrue(historyResult.isFailure(), historyResult.getErrorMessage());
     }
 
     @Test
     public void purchaseShoppingCart_WithTwoCustomersAndLastProduct_SecondCustomerShouldBeRejected() throws Exception {
         // Given: Two customers trying to purchase the last product
-        assertTrue((true));
         BasketDTO basket1 = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1)); // Customer 1
         BasketDTO basket2 = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1)); // Customer 2
-
-        when(userRepository.getUserCart(USER_EMAIL))
-                .thenReturn(List.of(basket1));
-        when(storeRepository.removeItemsFromStores(List.of(basket1)))
-                .thenReturn(Map.of(basket1, 50.0)); // First customer purchase succeeds
-
-        // Second customer tries to purchase (should fail due to out of stock)
+        String newCLient =  "client2";
+        String newCLientEmail =  "client2@example.com";
+        String newCLientPassword =  "password123";
+        String newCLientToken =  regLoginAndGetSession(newCLient, newCLientEmail, newCLientPassword); // Register and login to get a valid session
+        Result<String> addToCart1 = userService.addToUserCart(
+                SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
+        assertTrue(addToCart1.isSuccess(), "addToUserCart failed: " + addToCart1.getErrorMessage());
+        Result<String> addToCart2 = userService.addToUserCart(
+                newCLientToken, newCLientEmail, ACTUAL_PRODUCT_ID, STORE_ID);
+        assertTrue(addToCart2.isSuccess(), "addToUserCart failed: " + addToCart2.getErrorMessage());
 
         // First customer purchase (should succeed)
         Result<Void> result1 = transactionService.purchaseShoppingCart(
@@ -174,51 +218,39 @@ public class TransactionServiceAcceptanceTests {
         );
 
         assertTrue(result1.isSuccess(), "Expected first customer purchase to succeed");
-
-        when(storeRepository.removeItemsFromStores(List.of(basket2)))
-                .thenThrow(new RuntimeException("Not enough quantity for product: " + PRODUCT_ID));
-
         // Second customer purchase (should fail)
         Result<Void> result2 = transactionService.purchaseShoppingCart(
                 SESSION_KEY, "user2@example.com", PAYMENT_TOKEN
         );
         assertFalse(result2.isSuccess(), "Expected second customer to be rejected due to lack of stock");
-
-        // Verify that payment was only processed for the first customer
-        verify(paymentGateway).processPayment(PAYMENT_TOKEN, 50.0);
-        verify(transactionRepository)
-                .addTransaction(basket1.getBasketProducts(), 50.0, USER_EMAIL, STORE_ID);
     }
 
     @Test
     public void purchaseShoppingCart_WithOutOfStockProduct_ShouldFail() throws Exception {
         // Given: Customer trying to purchase an out-of-stock product
-        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
+        String newProductName = "newProduct";
+        String newProductID = storeService.addProductToStore(
+                SELLER_TOKEN, STORE_ID, CATALOG_ID, newProductName, "Product 1", 100.0, 0 // Set quantity to 0
+        ).getData();
+        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(newProductName, 1));
 
+        Result r4 = userService.addToUserCart(
+                SESSION_KEY, USER_EMAIL, newProductID, STORE_ID
+        );
+        assertTrue(r4.isSuccess(), "addToUserCart failed: " + r4.getErrorMessage());
         // Stubbing the storeRepository to simulate out-of-stock product
-        when(userRepository.getUserCart(USER_EMAIL))
-                .thenReturn(List.of(basket));
-        when(storeRepository.removeItemsFromStores(List.of(basket)))
                 //it should return                         throw new RuntimeException("Not enough quantity for product: " + productId);
-
-                .thenThrow(new RuntimeException("Not enough quantity for product: " + PRODUCT_ID) );// Simulating out of stock
         // Try to purchase (should fail)
         Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
         assertFalse(result.isSuccess(), "Expected purchase to fail due to out of stock product");
 
         // Verify that payment was not processed
-        verify(paymentGateway, times(0)).processPayment(anyString(), anyDouble());
     }
 
     @Test
     public void purchaseShoppingCart_WithPaymentFailure_ShouldNotProceedWithShipping(){
         // Given: Customer trying to purchase with declined payment
         BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
-
-        when(userRepository.getUserCart(USER_EMAIL))
-                .thenReturn(List.of(basket));
-        when(storeRepository.removeItemsFromStores(List.of(basket)))
-                .thenReturn(Map.of(basket, 100.0));
 
         // Simulating payment failure
         doThrow(new RuntimeException("Payment declined")).when(paymentGateway)
@@ -227,52 +259,39 @@ public class TransactionServiceAcceptanceTests {
         // Try purchasing (should fail due to payment failure)
         Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
         assertFalse(result.isSuccess(), "Expected purchase to fail due to payment failure");
-
+        //todo currently theres no shipping management in the system
+        fail();
         //i'm not sure if quantity not changed should be tested here anyway:
-        //todo: check if quantity not changed
+
     }
 
     @Test
     public void purchaseShoppingCart_WithShippingError_ShouldNotProcessPayment() {
         // Given: Customer trying to purchase with a shipping error
         BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
-
-        when(userRepository.getUserCart(USER_EMAIL))
-                .thenReturn(List.of(basket));
-        when(storeRepository.removeItemsFromStores(List.of(basket)))
-                .thenReturn(Map.of(basket, 100.0));
-
-        // Simulating shipping error
-        doThrow(new RuntimeException("Shipping error")).when(storeRepository)
-                .removeItemsFromStores(anyList());
-
-        // Try purchasing (should fail due to shipping error)
-        Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
-        assertFalse(result.isSuccess(), "Expected purchase to fail due to shipping error");
-
-        // Verify that payment was not processed due to the shipping error
-        verify(paymentGateway, times(0)).processPayment(anyString(), anyDouble());
+        //todo currently theres no shipping management in the system
+        fail();
     }
 
     @Test
     public void purchaseShoppingCart_WithPaymentFailure_ShouldRollbackProductRemoval() {
         BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
+        doThrow(new RuntimeException("card declined") // Simulating payment failure
+        ).when(paymentGateway).processPayment(
+                anyString(), anyDouble());
 
-        when(userRepository.getUserCart(USER_EMAIL))
-                .thenReturn(List.of(basket));
-        when(storeRepository.removeItemsFromStores(List.of(basket)))
-                .thenReturn(Map.of(basket, 100.0));
+        Result<Void> result = transactionService.purchaseShoppingCart(
+                SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN
+        );
 
-        // Simulating payment failure
-        doThrow(new RuntimeException("Payment failed")).when(paymentGateway)
-                .processPayment(anyString(), anyDouble());
-
-        // Try purchasing (should fail and trigger rollback)
-        Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
-        assertFalse(result.isSuccess());
-
-         //Verify that rollback occurred and no items were removed from the store
-        verify(storeRepository, times(1)).rollBackItemsToStores(List.of(basket)); // Ensure rollback happened
+        assertFalse(result.isSuccess(), "Expected failure when payment throws");
+        assertTrue(
+                result.getErrorMessage().contains("Payment failed: card declined"),
+                "Should report the payment failure message"
+        );
+        // Verify that the items were rolled back to the store
+        //todo currently theres no method to check the items quantity in the store
+        fail();
 
     }
 

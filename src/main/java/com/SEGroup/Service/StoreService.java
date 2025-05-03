@@ -187,17 +187,17 @@ public class StoreService {
      * Adds a product to a store.
      * Logs the addition of the product.
      *
-     * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the product will be added.
-     * @param catalogID The catalog ID of the product.
+     * @param sessionKey  The session key of the user performing the action.
+     * @param storeName   The name of the store where the product will be added.
+     * @param catalogID   The catalog ID of the product.
      * @param productName The name of the product.
      * @param description A description of the product.
-     * @param price The price of the product.
-     * @param quantity The quantity of the product.
+     * @param price       The price of the product.
+     * @param quantity    The quantity of the product.
      * @return A Result object indicating the success or failure of the operation.
      */
-    public Result<Void> addProductToStore(String sessionKey, String storeName, String catalogID, String productName,
-                                          String description, double price, int quantity) {
+    public Result<String> addProductToStore(String sessionKey, String storeName, String catalogID, String productName,
+                                            String description, double price, int quantity) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             productCatalog.isProductExist(catalogID);
@@ -205,7 +205,7 @@ public class StoreService {
                     productName, description, price, quantity);
             productCatalog.addStoreProductEntry(catalogID, storeName, productID, price, quantity, 0, productName);
             LoggerWrapper.info("Added product to store: " + storeName + ", Product ID: " + productID);  // Log the product addition
-            return Result.success(null);
+            return Result.success(productID);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             LoggerWrapper.error("Error adding product to store: " + e.getMessage(), e);  // Log error on failure

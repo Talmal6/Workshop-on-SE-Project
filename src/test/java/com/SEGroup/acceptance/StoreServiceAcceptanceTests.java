@@ -95,7 +95,7 @@ public class StoreServiceAcceptanceTests {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         Result<String> res = storeService.addProductToCatalog(CATALOG_ID, "iphone13", "apple", "Desc", Collections.singletonList("phones"));
 
-        Result<Void> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
+        Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
                 9.99, 5);
         assertTrue(result.isSuccess());
         Result<List<ShoppingProductDTO>> productResult = storeService.searchProducts("iphone",Collections.emptyList(),null,null);
@@ -106,7 +106,7 @@ public class StoreServiceAcceptanceTests {
 
     @Test
     public void addProductToStore_WithNegativeQuantity_ShouldFail() {
-        Result<Void> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
+        Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
                 9.99, -1);
         assertFalse(result.isSuccess());
     }
