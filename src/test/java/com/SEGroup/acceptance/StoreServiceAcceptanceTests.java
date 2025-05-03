@@ -83,7 +83,6 @@ public class StoreServiceAcceptanceTests {
     public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
         // Register a new user
         Result<Void> regResult = userService.register(userName, email, password);
-        System.out.println(regResult.getErrorMessage());
         // Authenticate the user and get a session key
         String sessionKey = authenticationService.authenticate(email);
         return sessionKey;
@@ -92,7 +91,6 @@ public class StoreServiceAcceptanceTests {
     @Test
     public void createStore_WithValidSession_ShouldSucceed() {
         Result<Void> result = storeService.createStore(VALID_SESSION, STORE_NAME);
-        System.out.println(result.getErrorMessage());
         assertTrue(result.isSuccess());
 
     }
@@ -132,11 +130,9 @@ public class StoreServiceAcceptanceTests {
         regLoginAndGetSession(newOwner, newOwnerEmail,  "newpass123"); // Register and login to get a valid session for the new owner
         storeService.createStore(VALID_SESSION, STORE_NAME);
         Result<Void> result = storeService.appointOwner(VALID_SESSION, STORE_NAME, newOwnerEmail);
-        System.out.println(result.getErrorMessage());
         assertTrue(result.isSuccess());
         Result<List<String>> res = storeService.getAllOwners(VALID_SESSION, STORE_NAME, OWNER_EMAIL);
         assertTrue(res.isSuccess());
-        System.out.println(res.getData().size() + " owners found");
         assertTrue((res.getData().size() == 2));
         assertTrue(res.getData().contains(OWNER_EMAIL));
         assertTrue(res.getData().contains(newOwnerEmail));

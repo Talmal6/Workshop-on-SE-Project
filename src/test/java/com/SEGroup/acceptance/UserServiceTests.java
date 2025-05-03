@@ -2,18 +2,28 @@ package com.SEGroup.acceptance;
 
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
+import com.SEGroup.Domain.Store.StoreRepository;
+import com.SEGroup.Domain.User.GuestRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
+import com.SEGroup.Domain.User.UserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Infrastructure.Security;
+import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.Result;
+import com.SEGroup.Service.StoreService;
 import com.SEGroup.Service.UserService;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
+import javax.crypto.SecretKey;
 import javax.naming.AuthenticationException;
 import java.util.Map;
 
@@ -47,47 +57,70 @@ class UserServiceTests {
     private final String email  = "owner@shop.com";
     private final String pw     = "P@ssw0rd";
     private final String hashPw = "enc(P@ssw0rd)";   // what our PasswordEncoder stub returns
-    private final String jwt    = "jwt-owner";
+    private String jwt    = "jwt-owner";
 
     private User existingUser;   // reused for subscriber scenarios
 
     /* ───────── generic stubbing ───────── */
     @BeforeEach
     void setUp() throws Exception {
-        auth   = mock(IAuthenticationService.class);
-        users  = mock(IUserRepository.class);
-        guests = mock(IGuestRepository.class);
+
+        Security security = new Security();
+        //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        security.setKey(key);
+        auth   = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
+        (( SecurityAdapter)auth).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+
+        users  = new UserRepository();
+        guests = new GuestRepository();
 
         guestSvc = new GuestService(guests, auth);
         sut      = new UserService(guestSvc, users, auth);
+        jwt = regLoginAndGetSession("owner", email, pw); // register & login to get a session key
+    }
 
-        // blanket auth behaviour for every test
-        doNothing().when(auth).checkSessionKey(anyString());
-        doNothing().when(auth).invalidateSession(anyString());
-        doNothing().when(auth).matchPassword(anyString(), anyString());
-        when(auth.encryptPassword(anyString())).thenReturn(hashPw);
-        when(auth.authenticate(anyString())).thenReturn(jwt);
-        doReturn("guest:g-xyz").when(auth).getUserBySession(anyString());
+    public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
+        // Register a new user
+        Result<Void> regResult = sut.register(userName, email, password);
+        // Authenticate the user and get a session key
+        return  auth.authenticate(email);
     }
 
     /* ───────── Registration & Login ───────── */
     @Nested @DisplayName("UC‑3  Subscriber registration & login")
     class RegistrationAndLogin {
 
+        @BeforeEach
+        void setUp() throws Exception {
+
+            Security security = new Security();
+            //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+            SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+            security.setKey(key);
+            auth   = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
+            (( SecurityAdapter)auth).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+
+            users  = new UserRepository();
+            guests = new GuestRepository();
+
+            guestSvc = new GuestService(guests, auth);
+            sut      = new UserService(guestSvc, users, auth);
+        }
+
         @Test @DisplayName("Fresh e‑mail → register succeeds")
         void registerSuccess() {
             Result<Void> r = sut.register("owner", email, pw);
             assertTrue(r.isSuccess());
-            verify(users).addUser(eq("owner"), eq(email), anyString());
         }
 
         @Test @DisplayName("Duplicate e‑mail → register fails")
         void registerDuplicate() {
-            doThrow(new IllegalArgumentException("dup"))
-                    .when(users).addUser(anyString(), eq(email), anyString());
 
-            Result<Void> r = sut.register("owner", email, pw);
-            assertTrue(r.isFailure());
+            Result<Void> r1 = sut.register("owner", email, pw);
+            assertTrue(r1.isSuccess());
+            Result<Void> r2 = sut.register("owner", email, pw);
+            assertTrue(r2.isFailure());
         }
 
 
@@ -95,26 +128,9 @@ class UserServiceTests {
         @Test
         @DisplayName("Correct credentials → login returns JWT")
         void loginSuccess() throws Exception {
-
-            reset(auth);                                    // fresh mock
-
-            // 1 - wrong password → exception (decided in Answer above)
-            doAnswer(inv -> { throw new AuthenticationException("bad-pw"); })
-                    .when(auth).matchPassword(not(eq(hashPw)), anyString());
-
-            // 2 - right user & password logic
-            doAnswer(inv -> {
-                String supplied = inv.getArgument(1);
-                if (!BCrypt.checkpw(pw, supplied))      // wrong pw?
-                    throw new AuthenticationException("bad-pw");
-                return null;                            // correct pw
-            })
-                    .when(auth).matchPassword(eq(hashPw), anyString());
-
-            when(auth.authenticate(anyString())).thenReturn(jwt);
-            when(users.findUserByEmail(email)).thenReturn(new User(email, hashPw));
-
-            // good password succeeds
+            // 1 - right password → no exception
+            Result<Void> r = sut.register("owner", email, pw);
+            assertTrue(r.isSuccess());
             assertTrue(sut.login(email, pw).isSuccess());
 
             // wrong password fails
@@ -123,31 +139,15 @@ class UserServiceTests {
 
         @Test @DisplayName("Wrong password → login fails")
         void loginWrongPassword() throws AuthenticationException {
-            reset(auth);                                    // fresh mock
+            Result<Void> r = sut.register("owner", email, pw);
+            assertTrue(r.isSuccess());
+            assertFalse(sut.login(email, "somepass").isSuccess());
 
-            // 1 - wrong password → exception (decided in Answer above)
-            doAnswer(inv -> { throw new AuthenticationException("bad-pw"); })
-                    .when(auth).matchPassword(not(eq(hashPw)), anyString());
-
-            // 2 - right user & password logic
-            doAnswer(inv -> {
-                String supplied = inv.getArgument(1);
-                if (!BCrypt.checkpw(pw, supplied))      // wrong pw?
-                    throw new AuthenticationException("bad-pw");
-                return null;                            // correct pw
-            })
-                    .when(auth).matchPassword(eq(hashPw), anyString());
-
-            when(auth.authenticate(anyString())).thenReturn(jwt);
-            when(users.findUserByEmail(email)).thenReturn(new User(email, hashPw));
-
-            // good password succeeds
-            assertTrue(sut.login(email, "somePass").isFailure());
+            // wrong password fails
         }
 
         @Test @DisplayName("Unknown e-mail → login fails")
         void loginUnknownEmail() {
-            when(users.findUserByEmail(email)).thenReturn(null);   // repo finds nothing
             Result<String> r = sut.login(email, pw);
             assertTrue(r.isFailure());
         }
@@ -158,24 +158,18 @@ class UserServiceTests {
     class Logout {
         @Test @DisplayName("Valid session key → invalidated")
         void logoutHappyPath() throws Exception{
-
+            regLoginAndGetSession("owner", email, pw); // register & login to get a session key
             Result<Void> r = sut.logout(jwt);
+            System.out.println(r.getErrorMessage());
             assertTrue(r.isSuccess());
-            try {
-                verify(auth).invalidateSession(jwt);
-            } catch (AuthenticationException e) {
-                fail(e);
-            }
+
         }
 
 
         @Test @DisplayName("Expired session key → logout reports failure")
         void logoutExpiredSession() throws Exception {
-            doThrow(new AuthenticationException("expired"))
-                    .when(auth).invalidateSession(jwt);
-
-            Result<Void> r = sut.logout(jwt);
-            assertTrue(r.isFailure());
+            //todo: implement, currently not possible to test
+            fail();
         }
     }
 
@@ -183,29 +177,34 @@ class UserServiceTests {
     @Nested @DisplayName("UC‑2  Guest entrance & cart")
     class GuestFlows {
         private final String guestId  = "g‑123";
-        private final String guestJwt = "jwt‑guest";
+        private String guestJwt;
         private ShoppingCart guestCart;
 
 
         @BeforeEach void stubGuest() throws Exception {
+
             guestCart = new ShoppingCart();
-            when(guests.create()).thenReturn(new com.SEGroup.Domain.User.Guest(guestId, java.time.Instant.now(), guestCart));
-            doReturn(guestCart).when(guests).cartOf(anyString());
-            when(auth.authenticate("guest:" + guestId)).thenReturn(guestJwt);
-            doReturn("guest:" + guestId).when(auth).getUserBySession(anyString());
+            //initiate store
+            StoreRepository store = new StoreRepository();
+            store.createStore("S1", email);
+            //initiate product catalog
+            InMemoryProductCatalog catalog = new InMemoryProductCatalog();
+            store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10);
         }
 
         @Test @DisplayName("Guest login → id token")
         void guestLogin() {
-            Result<String> r = sut.guestLogin();
+            Result<String> r =sut.guestLogin();
             assertTrue(r.isSuccess());
-            assertEquals(guestId, r.getData());
         }
 
         @Test @DisplayName("Guest add‑to‑cart updates basket")
         void guestAddToCart() {
+            //this test fails both with userservice and guestservice guestLogin!
+            guestJwt = sut.guestLogin().getData();
             sut.addToGuestCart(guestJwt, "P1", "S1");
             Result<String> res = sut.addToGuestCart(guestJwt, "P1", "S1");
+            System.out.println(res.getErrorMessage());
             assertTrue(res.isSuccess());
         }
     }
@@ -213,12 +212,8 @@ class UserServiceTests {
     /* ───────── Subscriber cart operations ───────── */
     @Nested class SubscriberCart {
         @BeforeEach void stubUser() {
-            existingUser = new User(email, "hash");
             existingUser.cart();
-            when(users.findUserByEmail(anyString())).thenReturn(existingUser);
-            // simulate repository clear by actually clearing the in‑memory cart
-            doAnswer(inv -> { existingUser.cart().clear(); return null; })
-                    .when(users).clearUserCart(email);
+
         }
 
         @Test @DisplayName("Add item → basket created")
