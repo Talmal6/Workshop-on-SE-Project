@@ -3,13 +3,10 @@ package com.SEGroup.acceptance;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.SEGroup.DTO.BasketDTO;
-import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.User.GuestRepository;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
@@ -18,7 +15,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IUserRepository;
@@ -26,14 +22,6 @@ import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 
-/*
- *     public StoreService(IStoreRepository storeRepository,
-            ProductCatalog productCatalog,
-            IAuthenticationService authenticationService,
-            IUserRepository userRepository) {
- */
-import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Domain.Store.StoreRepository;
 import com.SEGroup.Domain.User.UserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;

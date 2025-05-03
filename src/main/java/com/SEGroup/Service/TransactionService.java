@@ -79,11 +79,14 @@ public class TransactionService {
             LoggerWrapper.info("Initiating purchase for user: " + userEmail);  // Log the start of the purchase
 
             List<BasketDTO> cart = userRepository.getUserCart(userEmail);
+            System.out.println("cart: " + cart);
             Map<BasketDTO, Double> basketToPrice = storeRepository.removeItemsFromStores(cart);
+            System.out.println("basketToPrice: " + basketToPrice);
 
             double totalCost = basketToPrice.values().stream()
                     .mapToDouble(Double::doubleValue)
                     .sum();
+            System.out.println("1total cost: " + totalCost);
 
             try {
                 paymentGateway.processPayment(paymentDetails, totalCost);

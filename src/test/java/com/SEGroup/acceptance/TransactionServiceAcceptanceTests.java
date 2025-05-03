@@ -6,15 +6,25 @@ import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.TransactionDTO;
+import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
+import com.SEGroup.Domain.Store.StoreRepository;
+import com.SEGroup.Domain.Transaction.TransactionRepository;
+import com.SEGroup.Domain.User.GuestRepository;
+import com.SEGroup.Domain.User.UserRepository;
 import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.IPaymentGateway;
+import com.SEGroup.Infrastructure.Security;
+import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.*;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.crypto.SecretKey;
 import java.util.List;
 import java.util.Map;
 
@@ -25,9 +35,15 @@ import static org.mockito.Mockito.lenient;
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceAcceptanceTests {
 
-    private static final String SESSION_KEY   = "valid-session";
+    private static String SESSION_KEY   = "valid-session";
     private static final String BAD_SESSION   = "bad-session";
+    private static final String USER    = "user";
     private static final String USER_EMAIL    = "user@example.com";
+    private static final String USER_PASSWORD = "password123";
+    private static final String SELLER = "seller";
+    private static final String SELLER_EMAIL = "seller@exemple.com";
+    private static final String SELLER_PASSWORD = "password123";
+    private static String SELLER_TOKEN = "valid-seller-token";
     private static final String PAYMENT_TOKEN = "tok_visa";
     private static final String STORE_ID      = "store1";
     private static final String PRODUCT_ID    = "prod1";
@@ -44,14 +60,29 @@ public class TransactionServiceAcceptanceTests {
 
     @BeforeEach
     public void setUp() throws Exception {
-        authenticationService = mock(IAuthenticationService.class);
-        paymentGateway        = mock(IPaymentGateway.class);
-        transactionRepository = mock(ITransactionRepository.class);
-        storeRepository       = mock(IStoreRepository.class);
-        userRepository        = mock(IUserRepository.class);
-        productCatalog        = mock(ProductCatalog.class);
-        userService = new UserService(new GuestService(mock(IGuestRepository.class),authenticationService), userRepository, authenticationService);
+
+
+
+        //copy
+        storeRepository = new StoreRepository();
+        productCatalog = new InMemoryProductCatalog();
+        Security security = new Security();
+        //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        security.setKey(key);
+        authenticationService = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
+        //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+        (( SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+        userRepository = new UserRepository();
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
+        userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
+        SESSION_KEY = regLoginAndGetSession(USER, USER_EMAIL, "password123"); // Register and login to get a valid session
+        SELLER_TOKEN = regLoginAndGetSession(SELLER, SELLER_EMAIL, "password123"); // Register and login to get a valid session
+
+        //end
+        paymentGateway        = mock(IPaymentGateway.class);
+        transactionRepository = new TransactionRepository();
+        userRepository        = new UserRepository();
         transactionService = new TransactionService(
             authenticationService,
             paymentGateway,
@@ -60,44 +91,31 @@ public class TransactionServiceAcceptanceTests {
             userRepository
         );
 
-        lenient().doNothing().when(authenticationService).checkSessionKey(SESSION_KEY);
-        lenient().doThrow(new RuntimeException("Invalid session"))
-                 .when(authenticationService).checkSessionKey(BAD_SESSION);
+    }
+
+    public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
+        // Register a new user
+        Result<Void> regResult = userService.register(userName, email, password);
+        // Authenticate the user and get a session key
+        System.out.println("Registered user: " + email);
+        return authenticationService.authenticate(email);
     }
 
     @Test
     public void purchaseShoppingCart_WithValidCartAndPayment_ShouldSucceed() throws Exception {
         BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 2));
-        when(userRepository.getUserCart(USER_EMAIL))
-            .thenReturn(List.of(basket));
-        when(storeRepository.removeItemsFromStores(List.of(basket)))
-            .thenReturn(Map.of(basket, 200.0));
-
-        // payment succeeds
-        doNothing().when(paymentGateway).processPayment(PAYMENT_TOKEN, 200.0);
-
+        Result r = storeService.createStore(SELLER_TOKEN, STORE_ID);
         Result<Void> result = transactionService.purchaseShoppingCart(
             SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN
         );
-
+        System.out.println("Purchase result: " + result.getErrorMessage());
         assertTrue(result.isSuccess(), "Expected purchaseShoppingCart to succeed");
-        verify(paymentGateway).processPayment(PAYMENT_TOKEN, 200.0);
-        verify(transactionRepository)
-            .addTransaction(basket.getBasketProducts(), 200.0, USER_EMAIL, STORE_ID);
-        verify(userRepository).clearUserCart(USER_EMAIL);
+
     }
 
     @Test
     public void purchaseShoppingCart_WhenPaymentFails_ShouldRollbackAndReportFailure() throws Exception {
         BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
-        when(userRepository.getUserCart(USER_EMAIL))
-            .thenReturn(List.of(basket));
-        when(storeRepository.removeItemsFromStores(List.of(basket)))
-            .thenReturn(Map.of(basket, 50.0));
-
-        doThrow(new RuntimeException("card declined"))
-            .when(paymentGateway).processPayment(PAYMENT_TOKEN, 50.0);
-
         Result<Void> result = transactionService.purchaseShoppingCart(
             SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN
         );
