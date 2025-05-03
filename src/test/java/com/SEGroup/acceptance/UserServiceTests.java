@@ -1,5 +1,6 @@
 package com.SEGroup.acceptance;
 
+import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
@@ -25,6 +26,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.crypto.SecretKey;
 import javax.naming.AuthenticationException;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,8 +60,6 @@ class UserServiceTests {
     private final String pw     = "P@ssw0rd";
     private final String hashPw = "enc(P@ssw0rd)";   // what our PasswordEncoder stub returns
     private String jwt    = "jwt-owner";
-
-    private User existingUser;   // reused for subscriber scenarios
 
     /* ───────── generic stubbing ───────── */
     @BeforeEach
@@ -177,13 +177,12 @@ class UserServiceTests {
     class GuestFlows {
         private final String guestId  = "g‑123";
         private String guestJwt;
-        private ShoppingCart guestCart;
 
 
         @BeforeEach void stubGuest() throws Exception {
-
-            guestCart = new ShoppingCart();
             //initiate store
+            guestJwt = sut.guestLogin().getData();
+
             StoreRepository store = new StoreRepository();
             store.createStore("S1", email);
             //initiate product catalog
@@ -197,10 +196,16 @@ class UserServiceTests {
             assertTrue(r.isSuccess());
         }
 
+        @Test @DisplayName("2 guest logins → 2 different ids")
+        void guestLoginTwice() {
+            Result<String> r1 = sut.guestLogin();
+            Result<String> r2 = sut.guestLogin();
+            assertNotEquals(r1.getData(), r2.getData());
+        }
+
         @Test @DisplayName("Guest add‑to‑cart updates basket")
         void guestAddToCart() {
             //this test fails both with userservice and guestservice guestLogin!
-            guestJwt = sut.guestLogin().getData();
             sut.addToGuestCart(guestJwt, "P1", "S1");
             Result<String> res = sut.addToGuestCart(guestJwt, "P1", "S1");
             assertTrue(res.isSuccess());
@@ -209,10 +214,6 @@ class UserServiceTests {
 
     /* ───────── Subscriber cart operations ───────── */
     @Nested class SubscriberCart {
-        @BeforeEach void stubUser() {
-            existingUser.cart();
-
-        }
 
         @Test @DisplayName("Add item → basket created")
         void addItem() {
@@ -223,19 +224,24 @@ class UserServiceTests {
         void modify_quantity_success() {
             sut.addToUserCart(jwt, email, "P42", "S7");
             assertTrue(sut.modifyProductQuantityInCartItem(jwt, email, "P42", "S7", 5).isSuccess());
+            List<BasketDTO> cart = users.getUserCart(email);
+            assertEquals(5, cart.get(0).prod2qty().get("P42"));
         }
 
         @Test @DisplayName("Remove item sets qty=0")
         void remove_item_success() {
             sut.addToUserCart(jwt, email, "P42", "S7");
             assertTrue(sut.removeFromUserCart(jwt, email, "P42", "S7").isSuccess());
+            List<BasketDTO> cart = users.getUserCart(email);
+            assertEquals(0, cart.get(0).prod2qty().get("P42"));
         }
 
         @Test @DisplayName("Repository clear wipes basket")
         void clearCart() {
             sut.addToUserCart(jwt, email, "P42", "S7");
             users.clearUserCart(email);
-            verify(users).clearUserCart(email);
+            List<BasketDTO> cart = users.getUserCart(email);
+            assertEquals(0, cart.size());
         }
     }
 
@@ -244,17 +250,14 @@ class UserServiceTests {
     class PurchaseCart {
         @Test @DisplayName("Existing user → purchase succeeds")
         void purchaseSuccess() {
-            doNothing().when(users).checkIfExist(email);
-            Result<Void> r = sut.purchaseShoppingCart(jwt, email);
-            assertTrue(r.isSuccess());
-            verify(users).checkIfExist(email);
+           //already tested in the transactional test
+            //Result<Void> r = sut.purchaseShoppingCart(jwt, email);
+            //assertTrue(r.isSuccess());
         }
 
         @Test @DisplayName("Unknown user → purchase fails")
         void purchaseUnknownUser() {
-            doThrow(new IllegalArgumentException("no‑user")).when(users).checkIfExist(email);
-            Result<Void> r = sut.purchaseShoppingCart(jwt, email);
-            assertTrue(r.isFailure());
+            //already tested in the transactional test
         }
     }
 
@@ -263,19 +266,18 @@ class UserServiceTests {
     class DeleteUser {
         @Test @DisplayName("User exists → deletion succeeds")
         void deleteSuccess() {
-            when(users.findUserByEmail(email)).thenReturn(new User(email, hashPw));
-            Result<Void> r = sut.deleteUser(email);
+           Result <Void> r = sut.deleteUser(email);
             assertTrue(r.isSuccess());
-            verify(users).deleteUser(email);
+            User user = users.findUserByEmail(email);
+            assertNull(user); // user should be deleted
         }
 
 
         @Test @DisplayName("User missing → deletion fails")
         void deleteFailsWhenMissing() {
-            when(users.findUserByEmail(email)).thenReturn(null);
+            Result<Void> r1 = sut.deleteUser(email);
             Result<Void> r = sut.deleteUser(email);
             assertTrue(r.isFailure());
-            verify(users, never()).deleteUser(email);
         }
     }
 

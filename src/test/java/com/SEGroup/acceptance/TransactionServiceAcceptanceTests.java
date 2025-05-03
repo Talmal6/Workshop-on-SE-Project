@@ -140,6 +140,20 @@ public class TransactionServiceAcceptanceTests {
         assertEquals(1, history.size(), "expected exactly one transaction");
     }
 
+    @Test
+    void purchaseShoppingCart_WithUnknownUser_ShouldFail() throws Exception {
+        // Given: A shopping cart with a valid product
+        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
+
+        // When: Trying to purchase with an unknown user
+        Result<Void> result = transactionService.purchaseShoppingCart(
+                SESSION_KEY, "baduser@example.com", PAYMENT_TOKEN
+        );
+
+        // Then: The purchase should fail
+        assertFalse(result.isSuccess(), "Expected failure when using an unknown user");
+    }
+
 
     @Test
     public void purchaseShoppingCart_WhenPaymentFails_ShouldRollbackAndReportFailure() throws Exception {
