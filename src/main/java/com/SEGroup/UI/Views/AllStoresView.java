@@ -3,13 +3,16 @@ package com.SEGroup.UI.Views;
 import com.SEGroup.UI.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.*;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteParameters;
 
 import java.util.List;
 
@@ -94,8 +97,11 @@ public class AllStoresView extends VerticalLayout {
         Span infoText = new Span(store.description());
         infoLine.add(infoAnchor, infoText);
 
-        Button viewButton = new Button("View Store");
 
+        Button viewButton = new Button("View Store", e ->
+                UI.getCurrent().navigate(StoreView.class, new RouteParameters("storeName", store.name()))
+        );
+        viewButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         content.add(name, meta, infoLine, viewButton);
         card.add(storeIcon, content);
         return card;

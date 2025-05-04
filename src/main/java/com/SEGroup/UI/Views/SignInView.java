@@ -48,6 +48,7 @@ public class SignInView extends FlexLayout {
         FormLayout form = new FormLayout();
         form.add(email, password, signIn);
         form.setWidth("400px");
+        form.setHeight("100%");
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
 
         signIn.setWidthFull();
