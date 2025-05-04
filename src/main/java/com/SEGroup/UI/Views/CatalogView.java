@@ -1,7 +1,9 @@
 package com.SEGroup.UI.Views;
 
 import com.SEGroup.UI.MainLayout;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Image;
@@ -11,87 +13,114 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 @Route(value = "catalog", layout = MainLayout.class)
-@PageTitle("Catalog")
+@PageTitle("Product catalog")
 public class CatalogView extends VerticalLayout {
 
+    /* ───────── constructor ───────── */
     public CatalogView() {
-        addClassName("catalog-view");
         setWidthFull();
         setPadding(true);
-        setSpacing(true);
+        setSpacing(false);
 
-        // Centered Title with underline
-        H3 title = new H3("Product Catalog");
+        /* title */
+        H3 title = new H3("Product catalog");
         title.getStyle()
-                .set("text-align", "left")
-                .set("text-decoration", "underline")
-                .set("font-size", "1.6em")
-                .set("width", "100%")
-                .set("margin-bottom", "1em");
-        add(title);
+                .set("margin", "0 0 1em 0")
+                .set("text-align", "left");
 
-        // Wrap catalog in a left-aligned container
-        Div catalogContainer = new Div();
-        catalogContainer.getStyle()
+        /* responsive grid */
+        Div grid = new Div();
+        grid.getStyle()
                 .set("display", "flex")
                 .set("flex-wrap", "wrap")
-                .set("gap", "1em")
-                .set("align-items", "flex-start")
-                .set("justify-content", "flex-start")
-                .set("max-width", "800px")
-                .set("margin", "0 auto")
-                .set("align","left"); // center horizontally
+                .set("gap", "0.9em");
 
+        /* build demo cards */
+        fakeProducts().forEach(p -> {
+            RouterLink link = new RouterLink(
+                    "",
+                    ProductView.class,
+                    new RouteParameters(Map.of(
+                            "id",  p.id(),
+                            "img", encode(p.imageUrl())))
+            );
+            link.getElement().getStyle()
+                    .set("text-decoration", "none")
+                    .set("color", "inherit");
 
-        fakeProducts().forEach(product -> catalogContainer.add(createProductCard(product)));
+            link.add(createCard(p));
+            grid.add(link);
+        });
 
-        add(catalogContainer);
+        add(title, grid);
     }
 
-    private Div createProductCard(Product product) {
+    /* ───────── helpers ───────── */
+
+    private Div createCard(Product p) {
         Div card = new Div();
         card.getStyle()
-                .set("width", "180px")
-                .set("border", "1px solid lightgray")
+                .set("width", "200px")
+                .set("border", "1px solid #e0e0e0")
                 .set("border-radius", "8px")
-                .set("padding", "1em")
-                .set("box-shadow", "2px 2px 6px rgba(0,0,0,0.05)")
-                .set("flex", "0 0 calc(25% - 1em)"); // 4 per row, minus gap
+                .set("padding", "0.75em")
+                .set("background", "#fff")
+                .set("box-shadow", "0 3px 8px rgba(0,0,0,0.06)")
+                .set("transition", "transform .12s")
+                .set("cursor", "pointer");
 
-        Image placeholder = new Image(product.imageUrl(), "Product image");
-        placeholder.setWidth("100%");
-        card.add(placeholder);
+        /* smooth hover zoom */
+        card.addAttachListener(e ->
+                card.getElement().executeJs(
+                        "this.onmouseenter = _ => this.style.transform='scale(1.03)';" +
+                                "this.onmouseleave = _ => this.style.transform='';"));
 
-        Span name = new Span(product.name());
-        name.getStyle().set("display", "block").set("margin-top", "0.5em");
+        Image img = new Image(p.imageUrl(), "product");
+        img.setWidth("100%");
+        img.getStyle().set("border-radius", "4px");
 
-        Span price = new Span("$" + product.price());
-        price.getStyle().set("font-weight", "bold");
+        Span name  = new Span(p.name());
+        Span price = new Span("$" + p.price());
+        price.getStyle().set("font-weight", "600");
 
-        Button addToCart = new Button(VaadinIcon.CART.create());
-        addToCart.addClickListener(e -> Notification.show(product.name() + " added"));
+        Button cart = new Button(VaadinIcon.CART.create(), click ->
+                Notification.show(p.name() + " added", 2000, Notification.Position.BOTTOM_CENTER));
+        cart.addThemeVariants(ButtonVariant.LUMO_PRIMARY,
+                ButtonVariant.LUMO_ICON,
+                ButtonVariant.LUMO_SMALL);
 
-        HorizontalLayout bottom = new HorizontalLayout(price, addToCart);
+        HorizontalLayout bottom = new HorizontalLayout(price, cart);
         bottom.setWidthFull();
         bottom.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         bottom.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        card.add(name, bottom);
+        card.add(img, name, bottom);
         return card;
     }
 
+    private static String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
     private List<Product> fakeProducts() {
-        return IntStream.range(1, 13)
-                .mapToObj(i -> new Product("P" + i, "Art Image " + i, i * 10,   "https://picsum.photos/seed/" + i + "/200/200"))
+        return IntStream.rangeClosed(1, 12)
+                .mapToObj(i -> new Product(
+                        "P" + i,
+                        "Art Image " + i,
+                        i * 10,
+                        "https://picsum.photos/seed/" + i + "/380/280"))
                 .toList();
     }
 
-    record Product(String id, String name, double price, String imageUrl) {}
+    /* simple DTO */
+    public record Product(String id, String name, double price, String imageUrl) {}
 }

@@ -1,5 +1,8 @@
 // ui/MainLayout.java
 package com.SEGroup.UI;
+import com.SEGroup.Domain.IPaymentGateway;
+import com.SEGroup.Infrastructure.MockPaymentGateway;
+import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.UI.Views.AllStoresView;
 import com.SEGroup.UI.Views.CartView;
 import com.SEGroup.UI.Views.CatalogView;
@@ -22,7 +25,15 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 public class MainLayout extends AppLayout {
 
     public MainLayout() {
-
+        ServiceLocator.initialize(
+                new GuestRepository(),
+                new UserRepository(),
+                new TransactionRepository(),
+                new StoreRepository(),
+                new InMemoryProductCatalog(),
+                new MockPaymentGateway() {
+                }
+        );
         H2 title = new H2("eCommerce System");
         title.getStyle()
                 .set("margin", "0")
@@ -53,7 +64,7 @@ public class MainLayout extends AppLayout {
 
         HorizontalLayout auth = new HorizontalLayout();
         auth.setSpacing(true);
-        auth.setAlignItems(FlexComponent.Alignment.CENTER); // important
+        auth.setAlignItems(FlexComponent.Alignment.CENTER);
         auth.add(
                 new Button("sign up", e -> UI.getCurrent().navigate("signup")),
                 new Button("sign in", e -> UI.getCurrent().navigate("signin")),

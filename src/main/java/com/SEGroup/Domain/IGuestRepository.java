@@ -2,11 +2,13 @@ package com.SEGroup.Domain;
 
 import com.SEGroup.Domain.User.Guest;
 import com.SEGroup.Domain.User.ShoppingCart;
+import org.springframework.context.annotation.Bean;
 
 /**
  * Interface for managing guest users in the system.
  * It provides methods to create new guests and retrieve their shopping carts.
  */
+
 public interface IGuestRepository {
 
     /**
