@@ -1,22 +1,11 @@
 package com.SEGroup.acceptance;
 
-import com.SEGroup.Domain.IGuestRepository;
-import com.SEGroup.Domain.IStoreRepository;
-import com.SEGroup.Domain.ITransactionRepository;
-import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.*;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.TransactionDTO;
-import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
-import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
-import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
-import com.SEGroup.Domain.Store.StoreRepository;
-import com.SEGroup.Domain.Transaction.TransactionRepository;
-import com.SEGroup.Domain.User.GuestRepository;
-import com.SEGroup.Domain.User.UserRepository;
-import com.SEGroup.Infrastructure.IAuthenticationService;
-import com.SEGroup.Infrastructure.IPaymentGateway;
+
+import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
-import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -57,7 +46,7 @@ public class TransactionServiceAcceptanceTests {
     private IStoreRepository       storeRepository;
     private IUserRepository        userRepository;
     private StoreService            storeService;
-    private ProductCatalog          productCatalog;
+    private IProductCatalog          productCatalog;
     private TransactionService transactionService;
     private UserService userService;
 

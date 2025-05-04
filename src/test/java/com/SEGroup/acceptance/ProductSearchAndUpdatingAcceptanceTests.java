@@ -9,9 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.SEGroup.Domain.User.GuestRepository;
+import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
-import com.SEGroup.Infrastructure.SecurityAdapter;
+import com.SEGroup.Service.SecurityAdapter;
 import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.UserService;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -23,11 +24,6 @@ import static org.mockito.Mockito.mock;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
-import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
-import com.SEGroup.Domain.Store.StoreRepository;
-import com.SEGroup.Domain.User.UserRepository;
-import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 
@@ -41,7 +37,7 @@ public class ProductSearchAndUpdatingAcceptanceTests {
     UserService su;
     StoreService storeService;
     StoreRepository storeRepository;
-    ProductCatalog productCatalog;
+    InMemoryProductCatalog productCatalog;
     IAuthenticationService authenticationService;
     IUserRepository userRepository;
 

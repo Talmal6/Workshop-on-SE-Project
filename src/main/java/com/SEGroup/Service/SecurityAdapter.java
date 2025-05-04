@@ -15,9 +15,6 @@ import com.SEGroup.Infrastructure.Security;
  */
 public class SecurityAdapter implements IAuthenticationService {
 
-    public SecurityAdapter() {
-        // Default constructor
-    }
 
     public SecurityAdapter(Security sec, PasswordEncoder passwordEncoder) {
         this.sec = sec;

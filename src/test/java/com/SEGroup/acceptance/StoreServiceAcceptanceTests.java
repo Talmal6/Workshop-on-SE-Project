@@ -7,9 +7,13 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.SEGroup.Domain.User.GuestRepository;
+
+import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Infrastructure.Repositories.GuestRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.UserRepository;
 import com.SEGroup.Infrastructure.Security;
-import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -18,13 +22,7 @@ import org.junit.jupiter.api.Test;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
-import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
-import com.SEGroup.Infrastructure.IAuthenticationService;
 
-import com.SEGroup.Domain.Store.StoreRepository;
-import com.SEGroup.Domain.User.UserRepository;
-import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 
@@ -43,7 +41,7 @@ public class StoreServiceAcceptanceTests {
     StoreService storeService;
     StoreRepository storeRepository;
     IAuthenticationService authenticationService;
-    ProductCatalog productCatalog;
+    InMemoryProductCatalog productCatalog;
     IUserRepository userRepository;
     UserService userService;
 

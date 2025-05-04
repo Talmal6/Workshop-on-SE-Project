@@ -1,11 +1,10 @@
 package com.SEGroup.Service;
 
+import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
-import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
-import com.SEGroup.Infrastructure.LoggerWrapper;
 
 /**
  * UserService handles user-related operations such as login, registration, cart management, and user deletion.
