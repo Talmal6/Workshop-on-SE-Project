@@ -9,6 +9,7 @@ import javax.naming.AuthenticationException;
  * It provides methods for authenticating users, managing session keys,
  * and handling password encryption.
  */
+
 public interface IAuthenticationService {
 
     /**

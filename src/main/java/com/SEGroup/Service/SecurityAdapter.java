@@ -20,7 +20,7 @@ public class SecurityAdapter implements IAuthenticationService {
 
     @Autowired
     PasswordEncoder passwordEncoder;  // Instance of PasswordEncoder for password encryption and verification
-    SecurityAdapter(){
+    public SecurityAdapter(){
         passwordEncoder = new PasswordEncoder();    
     }
     /**
