@@ -3,16 +3,14 @@ package com.SEGroup.UI;
 import com.SEGroup.Domain.IPaymentGateway;
 import com.SEGroup.Infrastructure.MockPaymentGateway;
 import com.SEGroup.Infrastructure.Repositories.*;
-import com.SEGroup.UI.Views.AllStoresView;
-import com.SEGroup.UI.Views.CartView;
-import com.SEGroup.UI.Views.CatalogView;
-import com.SEGroup.UI.Views.SignInView;
+import com.SEGroup.UI.Views.*;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.*;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.tabs.Tab;
@@ -24,6 +22,11 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 
 public class MainLayout extends AppLayout {
 
+    private Button signInBtn;
+    private Button signUpBtn;
+    private  Span   greeting;
+    private String userName;
+    static MainLayout instance;
     public MainLayout() {
         ServiceLocator.initialize(
                 new GuestRepository(),
@@ -57,18 +60,20 @@ public class MainLayout extends AppLayout {
         HorizontalLayout searchBar = new HorizontalLayout(search, searchBtn);
         searchBar.setSpacing(true);
         searchBar.setAlignItems(FlexComponent.Alignment.CENTER);
-        Span guest = new Span("hello Guest");
-        guest.getStyle()
+        greeting =  new Span("hello Guest");
+        greeting.getStyle()
                 .set("color", "#1976d2")
                 .set("margin-left", "1em");
 
         HorizontalLayout auth = new HorizontalLayout();
         auth.setSpacing(true);
         auth.setAlignItems(FlexComponent.Alignment.CENTER);
+        signInBtn = new Button("sign in", e -> UI.getCurrent().navigate("signin"));
+        signUpBtn = new Button("sign up", e -> UI.getCurrent().navigate("signup"));
         auth.add(
-                new Button("sign up", e -> UI.getCurrent().navigate("signup")),
-                new Button("sign in", e -> UI.getCurrent().navigate("signin")),
-                guest
+                signInBtn,
+                signUpBtn,
+                greeting
         );
 
 
@@ -97,6 +102,11 @@ public class MainLayout extends AppLayout {
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         addToDrawer(tabs);
         setPrimarySection(Section.DRAWER);
+        instance = this;
+    }
+
+    public static MainLayout getInstance() {
+        return instance;
     }
 
 
@@ -134,5 +144,29 @@ public class MainLayout extends AppLayout {
                 .set("padding", "0.5em")
                 .set("cursor", "pointer");
         return new Tab(link);
+    }
+
+    public void switchToSignedInMode(){
+        //show notifications
+        Notification.show("Welcome " + this.userName, 3000, Notification.Position.MIDDLE);
+//        hide sign up and sign in buttons
+        if (this.userName == null) {
+            return;
+        }
+        signInBtn.setVisible(false);
+        signUpBtn.setVisible(false);
+        //change hello guest to hello user
+        greeting.setText("hello " + this.userName);
+        greeting.getStyle()
+                .set("color", "#1976d2")
+                .set("margin-left", "1em");
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getUserName() {
+        return userName;
     }
 }
