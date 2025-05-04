@@ -17,6 +17,8 @@ public class SignInPresenter {
 
     public void onSignIn(String email, String password) {
         System.out.println("Trying login: " + email);
+        Result <Void> result1 = userService.register("someuser", email, password); // <-- May be null!
+        view.showError(result1.getErrorMessage());
         Result<String> result = userService.login(email, password); // <-- May be null!
         System.out.println("Got result: " + result);
 

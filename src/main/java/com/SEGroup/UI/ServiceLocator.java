@@ -5,6 +5,10 @@ import com.SEGroup.Service.*;
 import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
+import javax.crypto.SecretKey;
 
 /**
  * A centralized service locator for retrieving singleton service instances.
@@ -15,7 +19,8 @@ public class ServiceLocator {
     // Core Dependencies
     private static final Security security = new Security();
     private static final PasswordEncoder passwordEncoder = new PasswordEncoder();
-    private static final IAuthenticationService authService = new SecurityAdapter();
+    //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+    private static IAuthenticationService authService = new SecurityAdapter();
 
     // Repositories (These must be set externally or mocked for now)
     private static IUserRepository userRepository;
@@ -43,7 +48,9 @@ public class ServiceLocator {
         storeRepository = stores;
         productCatalog = catalog;
         paymentGateway = gateway;
-
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        security.setKey(key);
+        authService = new SecurityAdapter(security, passwordEncoder);
         guestService = new GuestService(guestRepository, authService);
         userService = new UserService(guestService, userRepository, authService);
         storeService = new StoreService(storeRepository, productCatalog, authService, userRepository);
