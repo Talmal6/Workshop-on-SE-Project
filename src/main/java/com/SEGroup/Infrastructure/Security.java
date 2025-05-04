@@ -117,4 +117,9 @@ public class Security {
     public void makeTokenExpire(String token) {
         // Expiration logic (e.g., setting the expiration date in the past)
     }
+
+
+    public void setKey(SecretKey key) {
+        this.key = key;
+    }
 }

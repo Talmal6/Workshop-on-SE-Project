@@ -79,11 +79,9 @@ public class TransactionService {
 
             List<BasketDTO> cart = userRepository.getUserCart(userEmail);
             Map<BasketDTO, Double> basketToPrice = storeRepository.removeItemsFromStores(cart);
-
             double totalCost = basketToPrice.values().stream()
                     .mapToDouble(Double::doubleValue)
                     .sum();
-
             try {
                 paymentGateway.processPayment(paymentDetails, totalCost);
                 System.out.println("all good");

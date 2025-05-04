@@ -8,30 +8,40 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.SEGroup.Domain.User.GuestRepository;
+import com.SEGroup.Infrastructure.Security;
+import com.SEGroup.Infrastructure.SecurityAdapter;
+import com.SEGroup.Service.GuestService;
+import com.SEGroup.Service.UserService;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.Domain.IAuthenticationService;
-import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
-import com.SEGroup.Infrastructure.Repositories.StoreRepository;
-import com.SEGroup.Infrastructure.Repositories.UserRepository;
+import com.SEGroup.Domain.ProductCatalog.InMemoryProductCatalog;
+import com.SEGroup.Domain.ProductCatalog.ProductCatalog;
+import com.SEGroup.Domain.Store.StoreRepository;
+import com.SEGroup.Domain.User.UserRepository;
+import com.SEGroup.Infrastructure.IAuthenticationService;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 
+import javax.crypto.SecretKey;
 
 public class ProductSearchAndUpdatingAcceptanceTests {
 
-    private static final String VALID_SESSION = "valid-session";
+    private static String VALID_SESSION = "valid-session";
     private static final String OWNER_EMAIL = "owner@example.com";
-    
+
+    UserService su;
     StoreService storeService;
     StoreRepository storeRepository;
-    IProductCatalog productCatalog;
+    ProductCatalog productCatalog;
     IAuthenticationService authenticationService;
     IUserRepository userRepository;
 
@@ -39,17 +49,32 @@ public class ProductSearchAndUpdatingAcceptanceTests {
     public void setUp() throws Exception {
         storeRepository = new StoreRepository();
         productCatalog = new InMemoryProductCatalog();
-        authenticationService = mock(IAuthenticationService.class);
-        userRepository = mock(UserRepository.class);
-        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
 
+
+        //
+        Security security = new Security();
+        //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        security.setKey(key);
+        authenticationService   = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
+        (( SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+
+        //
+        userRepository = new UserRepository();
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
+        su = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
+        VALID_SESSION = regLoginAndGetSession("owner", OWNER_EMAIL, "password");
         // Basic authentication stubs
-        lenient().doNothing().when(authenticationService).checkSessionKey(VALID_SESSION);
-        lenient().when(authenticationService.authenticate(VALID_SESSION)).thenReturn(VALID_SESSION);
-        lenient().when(authenticationService.getUserBySession(VALID_SESSION)).thenReturn(OWNER_EMAIL);
 
         setupSampleCatalog();
         setupSampleStores();
+    }
+
+    public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
+        // Register a new user
+        Result<Void> regResult = su.register(userName, email, password);
+        // Authenticate the user and get a session key
+        return  authenticationService.authenticate(email);
     }
 
     private void setupSampleCatalog() throws Exception {

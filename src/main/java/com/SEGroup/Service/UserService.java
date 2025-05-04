@@ -1,9 +1,11 @@
 package com.SEGroup.Service;
 
-import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
+import com.SEGroup.Infrastructure.IAuthenticationService;
+import com.SEGroup.Infrastructure.PasswordEncoder;
+import com.SEGroup.Infrastructure.LoggerWrapper;
 
 /**
  * UserService handles user-related operations such as login, registration, cart management, and user deletion.
@@ -14,6 +16,7 @@ public class UserService {
     private final GuestService guestService;
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
+    private PasswordEncoder passwordEncoder;
 
     /**
      * Constructs a new UserService instance with the provided dependencies.
@@ -27,7 +30,7 @@ public class UserService {
         this.guestService = guestService;
         this.userRepository = userRepository;
         this.authenticationService = authenticationService;
-       
+        passwordEncoder = new PasswordEncoder();
     }
 
     /**
@@ -52,8 +55,7 @@ public class UserService {
      */
     public Result<Void> register(String username, String email, String password) {
         try {
-            
-            userRepository.addUser(username, email, authenticationService.encryptPassword(password));
+            userRepository.addUser(username, email, passwordEncoder.encrypt(password));
             LoggerWrapper.info("User registered successfully: " + username + ", Email: " + email);  // Log successful registration
             return Result.success(null);
         } catch (Exception e) {
@@ -73,7 +75,7 @@ public class UserService {
     public Result<String> login(String email, String password) {
         try {
             User user = userRepository.findUserByEmail(email);
-            authenticationService.matchPassword(user.getPassword(), authenticationService.encryptPassword(password));
+            authenticationService.matchPassword(user.getPassword(), password);
             String sessionKey = authenticationService.authenticate(email);
             LoggerWrapper.info("User logged in successfully: " + email);  // Log successful login
             return Result.success(sessionKey);

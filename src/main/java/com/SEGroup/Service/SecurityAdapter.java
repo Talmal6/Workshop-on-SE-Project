@@ -15,6 +15,15 @@ import com.SEGroup.Infrastructure.Security;
  */
 public class SecurityAdapter implements IAuthenticationService {
 
+    public SecurityAdapter() {
+        // Default constructor
+    }
+
+    public SecurityAdapter(Security sec, PasswordEncoder passwordEncoder) {
+        this.sec = sec;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Autowired
     Security sec;  // Instance of the Security class to handle JWT operations
 
@@ -99,6 +108,10 @@ public class SecurityAdapter implements IAuthenticationService {
         if (!passwordEncoder.checkPassword(realPassword, encryptedPassword)) {
             throw new AuthenticationException("Wrong password.");
         }
+    }
+
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 
 }
