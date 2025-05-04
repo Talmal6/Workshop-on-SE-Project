@@ -32,7 +32,6 @@ public class HomeView extends VerticalLayout {
         header.setAlignItems(Alignment.CENTER);
 
         add(header, description);
-
         Div relativeWrapper = new Div();
         relativeWrapper.setWidth("90%");
         relativeWrapper.setHeight("50px");
