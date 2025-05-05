@@ -56,6 +56,14 @@ public interface IProductCatalog {
      * @return A list of CatalogProduct objects representing all products in the catalog.
      */
     List<CatalogProduct> getAllProducts();
+
+    /**
+     * Retrieves a list of all products in the catalog.
+     *
+     * @return A list of CatalogProduct objects representing all products in the catalog.
+     */
+    List<CatalogProduct> getAllProductsLimited(int start, int limit);
+
     /**
      * Retrieves a list of all products from a specific category.
      *
@@ -63,6 +71,17 @@ public interface IProductCatalog {
      * @return A list of CatalogProduct objects representing all products in the specified category.
      */
     List<StoreSearchEntry> getAllProductsByCategory(String category);
+    /**
+     * Searches for products in the catalog based on a query and optional filters.
+     *
+     * @param query         The search query.
+     * @param searchFilters  A list of filters to apply to the search.
+     * @param storeName     The name of the store to filter results by.
+     * @param categories    A list of categories to filter results by.
+     * @return A list of StoreSearchEntry objects representing the search results.
+     */
+
+    List<StoreSearchEntry> getAllProductsByCategoryLimited(String category, int start, int limit);
     /**
      * Searches for products in the catalog based on a query and optional filters.
      *
@@ -80,5 +99,15 @@ public interface IProductCatalog {
      *  @param catalogID The unique identifier for the catalog product.
      *
      */
+
+    List<StoreSearchEntry> searchLimited(String query, List<String> searchFilters, String storeName, List<String> categories, int start, int limit);
+
+    /**
+     * Checks if a product exists in the catalog.
+     *
+     *  @param catalogID The unique identifier for the catalog product.
+     *
+     */
+
     void isProductExist(String catalogID) throws Exception;
 }

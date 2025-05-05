@@ -36,6 +36,14 @@ public interface ITransactionRepository {
      */
     List<TransactionDTO> getAllTransactions();
 
+
+    /**
+     * Retrieves all transactions from the repository.
+     *
+     * @return A list of all TransactionDTO objects.
+     */
+    List<TransactionDTO> getAllTransactionsLimited(int start, int limit);
+
     /**
      * Updates an existing transaction in the repository.
      *

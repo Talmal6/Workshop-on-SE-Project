@@ -20,6 +20,13 @@ public interface IStoreRepository {
     List<StoreDTO> getAllStores();
 
     /**
+     * Retrieves all the stores in the repository.
+     *
+     * @return A list of all stores.
+     */
+    List<StoreDTO> getAllStoresLimited(int start, int limit);
+
+    /**
      * Retrieves a store by its name.
      *
      * @param storeName The name of the store.
