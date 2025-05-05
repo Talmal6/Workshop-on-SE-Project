@@ -81,6 +81,7 @@ public class SecurityAdapter implements IAuthenticationService {
         return sec.generateToken(email);
     }
 
+
     /**
      * Encrypts the provided password using the PasswordEncoder service.
      *

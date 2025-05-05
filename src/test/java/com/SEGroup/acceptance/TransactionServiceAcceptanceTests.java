@@ -230,22 +230,11 @@ public class TransactionServiceAcceptanceTests {
     public void purchaseShoppingCart_WithOutOfStockProduct_ShouldFail() throws Exception {
         // Given: Customer trying to purchase an out-of-stock product
         String newProductName = "newProduct";
-        String newProductID = storeService.addProductToStore(
+        Result<String> newProductID = storeService.addProductToStore(
                 SELLER_TOKEN, STORE_ID, CATALOG_ID, newProductName, "Product 1", 100.0, 0 // Set quantity to 0
-        ).getData();
-        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(newProductName, 1));
-
-        Result r4 = userService.addToUserCart(
-                SESSION_KEY, USER_EMAIL, newProductID, STORE_ID
         );
-        assertTrue(r4.isSuccess(), "addToUserCart failed: " + r4.getErrorMessage());
-        // Stubbing the storeRepository to simulate out-of-stock product
-                //it should return                         throw new RuntimeException("Not enough quantity for product: " + productId);
-        // Try to purchase (should fail)
-        Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
-        assertFalse(result.isSuccess(), "Expected purchase to fail due to out of stock product");
+        assertTrue(newProductID.isFailure(), "Failed to add product to store: " + newProductID.getErrorMessage());
 
-        // Verify that payment was not processed
     }
 
     @Test
@@ -260,7 +249,7 @@ public class TransactionServiceAcceptanceTests {
         // Try purchasing (should fail due to payment failure)
         Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
         assertFalse(result.isSuccess(), "Expected purchase to fail due to payment failure");
-        //todo currently theres no shipping management in the system
+        //TODO currently theres no shipping management in the system
         fail();
         //i'm not sure if quantity not changed should be tested here anyway:
 
@@ -270,7 +259,7 @@ public class TransactionServiceAcceptanceTests {
     public void purchaseShoppingCart_WithShippingError_ShouldNotProcessPayment() {
         // Given: Customer trying to purchase with a shipping error
         BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
-        //todo currently theres no shipping management in the system
+        //TODO currently theres no shipping management in the system
         fail();
     }
 

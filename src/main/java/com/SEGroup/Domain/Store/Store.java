@@ -410,6 +410,14 @@ public class Store {
         return ratings.containsKey(email);
     }
 
+    public Integer getProductQuantity(String productId){
+        ShoppingProduct product = products.get(productId);
+        if (product != null) {
+            return product.getQuantity();
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return "Store{" +

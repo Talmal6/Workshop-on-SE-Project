@@ -17,7 +17,7 @@ public class User {
     private       String passwordHash;
     private final ConcurrentMap<String, EnumSet<Role>> storeRoles = new ConcurrentHashMap<>();
 
-    private volatile ShoppingCart cart;
+    private volatile ShoppingCart cart; // Ensure ShoppingCart is defined or imported
     private final List<String> purchaseHistory = new LinkedList<>();
 
     /**
@@ -104,8 +104,12 @@ public class User {
      * @return The shopping cart instance.
      */
     public ShoppingCart cart() {
-        if (cart == null) synchronized (this) {
-            if (cart == null) cart = new ShoppingCart();
+        if (cart == null) {
+            synchronized (this) {
+                if (cart == null) {
+                    cart = new ShoppingCart(); // Ensure ShoppingCart constructor is accessible
+                }
+            }
         }
         return cart;
     }
@@ -116,7 +120,14 @@ public class User {
      * @param storeId   The ID of the store.
      * @param productId The ID of the product.
      */
-    public void addToCart(String storeId,String productId){ cart().add(storeId, productId, 1); }
+    public void addToCart(String storeId, String productId) {
+        ShoppingCart currentCart = cart();
+        if (currentCart != null) {
+            currentCart.add(storeId, productId, 1);
+        } else {
+            throw new IllegalStateException("ShoppingCart is not initialized.");
+        }
+    }
 
     /**
      * Removes a product from the user's shopping cart for a specific store.
