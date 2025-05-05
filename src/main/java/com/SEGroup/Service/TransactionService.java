@@ -10,6 +10,7 @@ import com.SEGroup.Domain.IPaymentGateway;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.IShippingService;
 
 /**
  * TransactionService handles the operations related to transactions, including processing payments, viewing transaction history, and purchasing shopping carts.
@@ -21,6 +22,7 @@ public class TransactionService {
     private final ITransactionRepository transactionRepository;
     private final IStoreRepository storeRepository; // Added StoreRepository
     private final IUserRepository userRepository; // Added UserRepository
+    private final IShippingService shippingService; // Added ShippingService
 
     /**
      * Constructs a new TransactionService instance with the provided dependencies.
@@ -35,12 +37,14 @@ public class TransactionService {
                               IPaymentGateway paymentGateway,
                               ITransactionRepository transactionRepository,
                               IStoreRepository storeRepository,
-                              IUserRepository userRepository) {
+                              IUserRepository userRepository,
+                              IShippingService shippingService) {
         this.authenticationService = authenticationService;
         this.paymentGateway = paymentGateway;
         this.transactionRepository = transactionRepository;
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;
+        this.shippingService = shippingService; // Initialize ShippingService
     }
 
     /**
@@ -82,16 +86,28 @@ public class TransactionService {
             double totalCost = basketToPrice.values().stream()
                     .mapToDouble(Double::doubleValue)
                     .sum();
-            try {
-                paymentGateway.processPayment(paymentDetails, totalCost);
-                System.out.println("all good");
-                LoggerWrapper.info("Payment processed for user: " + userEmail + ", Amount: " + totalCost);  // Log successful payment processing
-            } catch (Exception e) {
-                storeRepository.rollBackItemsToStores(cart);
-                LoggerWrapper.error("Payment failed for user: " + userEmail + ", Error: " + e.getMessage(), e);  // Log payment failure
-                return Result.failure("Payment failed: " + e.getMessage());
+            try{
+                for (BasketDTO basket : cart) {
+                    shippingService.ship(basket,userEmail);              
+                }
+                try {
+                    
+                    paymentGateway.processPayment(paymentDetails, totalCost);
+                    LoggerWrapper.info("Payment processed for user: " + userEmail + ", Amount: " + totalCost);  // Log successful payment processing
+                } catch (Exception e) {
+                    storeRepository.rollBackItemsToStores(cart);
+                    LoggerWrapper.error("Payment failed for user: " + userEmail + ", Error: " + e.getMessage(), e);  // Log payment failure
+                    throw new RuntimeException("Payment failed: " + e.getMessage());
+                }
+                } catch (Exception e) {
+                    for (BasketDTO basket : cart) {
+                        shippingService.cancelShipping(basket,userEmail);  // Rollback items to stores in case of shipping failure
+                }
+                return Result.failure(  e.getMessage());
             }
+            
 
+            
             for (Map.Entry<BasketDTO, Double> entry : basketToPrice.entrySet()) {
                 BasketDTO basket = entry.getKey();
                 double storeCost = entry.getValue();
