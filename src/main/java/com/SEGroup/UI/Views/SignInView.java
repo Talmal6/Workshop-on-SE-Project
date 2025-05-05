@@ -1,7 +1,7 @@
 package com.SEGroup.UI.Views;
 
-import com.SEGroup.Presenter.SignInPresenter;
 import com.SEGroup.UI.MainLayout;
+import com.SEGroup.UI.Presenter.SignInPresenter;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.validator.EmailValidator;
@@ -26,6 +27,7 @@ import com.vaadin.flow.router.RouterLink;
 @PageTitle("Sign in")
 public class SignInView extends FlexLayout {
 
+//    add field for username
     private final EmailField email = new EmailField("Email");
     private final PasswordField password = new PasswordField("Password");
     private final Button signIn = new Button("Sign in", VaadinIcon.SIGN_IN.create());
@@ -88,13 +90,19 @@ public class SignInView extends FlexLayout {
             binder.writeBean(login);
             presenter.onSignIn(login.getEmail(), login.getPassword());
         } catch (ValidationException ex) {
-            Notification.show("Please fix validation errors", 3000, Notification.Position.MIDDLE);
+            Notification.show("could'nt sign in: " + ex.getMessage(), 3000, Notification.Position.MIDDLE);
         }
     }
 
-    public void showSuccess(String sessionKey) {
+    public void showSuccess(String sessionKey, String userName){
         Notification.show("Logged in successfully! Session: " + sessionKey);
         UI.getCurrent().navigate("catalog");
+        if (MainLayout.getInstance() != null) {
+            MainLayout.getInstance().setUserName(userName);
+            MainLayout.getInstance().switchToSignedInMode();
+        } else {
+            Notification.show("Main layout not found", 3000, Notification.Position.MIDDLE);
+        }
     }
 
     public void showError(String message) {
@@ -103,6 +111,7 @@ public class SignInView extends FlexLayout {
 
     // DTO class for login form
     private static class LoginDTO {
+        private String userName;
         private String email;
         private String password;
 
@@ -120,6 +129,14 @@ public class SignInView extends FlexLayout {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+
+        public String getUserName() {
+            return userName;
+        }
+
+        public void setUserName(String userName) {
+            this.userName = userName;
         }
     }
 }

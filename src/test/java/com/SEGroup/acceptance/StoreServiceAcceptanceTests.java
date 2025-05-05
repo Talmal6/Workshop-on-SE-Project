@@ -7,39 +7,43 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IAuthenticationService;
-import com.SEGroup.Domain.IProductCatalog;
-import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.UserRepository;
+import com.SEGroup.Infrastructure.Security;
+import com.SEGroup.Service.*;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.Domain.IUserRepository;
+
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 
-@ExtendWith(MockitoExtension.class)
+import javax.crypto.SecretKey;
+
 public class StoreServiceAcceptanceTests {
 
-    private static final String VALID_SESSION = "valid-session";
+    private static String VALID_SESSION = "valid-session";
     private static final String INVALID_SESSION = "invalid-session";
     private static final String OWNER_EMAIL = "owner@example.com";
+    private static final String OWNER = "owner";
+    private static final String OWNER_PASS = "pass123";
     private static final String STORE_NAME = "MyStore";
     private static final String CATALOG_ID = "catalog123";
     private static final String PRODUCT_ID = "product123";
     StoreService storeService;
     StoreRepository storeRepository;
     IAuthenticationService authenticationService;
-    IProductCatalog productCatalog;
+    InMemoryProductCatalog productCatalog;
     IUserRepository userRepository;
+    UserService userService;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -47,23 +51,27 @@ public class StoreServiceAcceptanceTests {
         // doNothing().when(authenticationService).checkSessionKey(VALID_SESSION);
         storeRepository = new StoreRepository();
         productCatalog = new InMemoryProductCatalog();
-        authenticationService = mock(IAuthenticationService.class);
-        userRepository = mock(UserRepository.class);
+        Security security = new Security();
+        //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        security.setKey(key);
+        authenticationService = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
+        //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+        (( SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+        userRepository = new UserRepository();
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
-        lenient().doNothing().when(authenticationService).checkSessionKey(VALID_SESSION);
-        lenient().doThrow(new RuntimeException("Invalid session")).when(authenticationService)
-                .checkSessionKey(INVALID_SESSION);
+        userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
+        VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS); // Register and login to get a valid session
 
-        lenient().when(authenticationService.authenticate(VALID_SESSION)).thenReturn(VALID_SESSION);
-        lenient().doThrow(new RuntimeException("Invalid authenticate")).when(authenticationService)
-                .authenticate(INVALID_SESSION);
 
-        lenient().when(authenticationService.getUserBySession(VALID_SESSION)).thenReturn(OWNER_EMAIL);
+    }
 
-        // Product catalog stub
-//         doNothing().when(productCatalog).isProductExist(CATALOG_ID); // Ensure
-        // exception is handled
-
+    public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
+        // Register a new user
+        Result<Void> regResult = userService.register(userName, email, password);
+        // Authenticate the user and get a session key
+        String sessionKey = authenticationService.authenticate(email);
+        return sessionKey;
     }
 
     @Test
@@ -85,7 +93,7 @@ public class StoreServiceAcceptanceTests {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         Result<String> res = storeService.addProductToCatalog(CATALOG_ID, "iphone13", "apple", "Desc", Collections.singletonList("phones"));
 
-        Result<Void> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
+        Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
                 9.99, 5);
         assertTrue(result.isSuccess());
         Result<List<ShoppingProductDTO>> productResult = storeService.searchProducts("iphone",Collections.emptyList(),null,null);
@@ -96,22 +104,24 @@ public class StoreServiceAcceptanceTests {
 
     @Test
     public void addProductToStore_WithNegativeQuantity_ShouldFail() {
-        Result<Void> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
+        Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
                 9.99, -1);
         assertFalse(result.isSuccess());
     }
 
     @Test
-    public void appointOwner_WithValidData_ShouldSucceed() {
-        String newOwner = "newowner@example.com";
+    public void appointOwner_WithValidData_ShouldSucceed() throws Exception {
+        String newOwner = "newOwner";
+        String newOwnerEmail = "newowner@example.com";
+        regLoginAndGetSession(newOwner, newOwnerEmail,  "newpass123"); // Register and login to get a valid session for the new owner
         storeService.createStore(VALID_SESSION, STORE_NAME);
-        Result<Void> result = storeService.appointOwner(VALID_SESSION, STORE_NAME, newOwner);
+        Result<Void> result = storeService.appointOwner(VALID_SESSION, STORE_NAME, newOwnerEmail);
         assertTrue(result.isSuccess());
         Result<List<String>> res = storeService.getAllOwners(VALID_SESSION, STORE_NAME, OWNER_EMAIL);
         assertTrue(res.isSuccess());
-        assertTrue(res.getData().size() == 2);
+        assertTrue((res.getData().size() == 2));
         assertTrue(res.getData().contains(OWNER_EMAIL));
-        assertTrue(res.getData().contains(newOwner));
+        assertTrue(res.getData().contains(newOwnerEmail));
 
     }
 
@@ -122,13 +132,14 @@ public class StoreServiceAcceptanceTests {
     }
 
     @Test
-    public void removeOwner_WithValidData_ShouldSucceed() {
-        String toRemove = "remove@example.com";
+    public void removeOwner_WithValidData_ShouldSucceed() throws Exception {
+        String toRemove = "remove";
+        String toRemoveEmail = "remove@example.com";
+        regLoginAndGetSession(toRemove, toRemoveEmail, "removePass123"); // Register and login to get a valid session for the new owner
         storeService.createStore(VALID_SESSION, STORE_NAME);
-        storeService.appointOwner(VALID_SESSION, STORE_NAME, toRemove);
-        doNothing().when(userRepository).removeOwner(STORE_NAME, toRemove);
+        storeService.appointOwner(VALID_SESSION, STORE_NAME, toRemoveEmail);
 
-        Result<Void> result = storeService.removeOwner(VALID_SESSION, STORE_NAME, toRemove);
+        Result<Void> result = storeService.removeOwner(VALID_SESSION, STORE_NAME, toRemoveEmail);
         assertTrue(result.isSuccess());
         Result<List<String>> res = storeService.getAllOwners(VALID_SESSION, STORE_NAME, OWNER_EMAIL);
         assertTrue(res.isSuccess());
@@ -143,18 +154,20 @@ public class StoreServiceAcceptanceTests {
     }
 
     @Test
-    public void appointManager_WithValidData_ShouldSucceed() {
+    public void appointManager_WithValidData_ShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
-        String manager = "manager@example.com";
+        String manager = "manager";
+        String managerEmail = "manager@example.com";
+        regLoginAndGetSession(manager, managerEmail, "managerPass123"); // Register and login to get a valid session for the new manager
         List<String> perms = Collections.singletonList("MANAGE_PRODUCTS");
 
-        Result<Void> result = storeService.appointManager(VALID_SESSION, STORE_NAME, manager, perms);
+        Result<Void> result = storeService.appointManager(VALID_SESSION, STORE_NAME, managerEmail, perms);
         assertTrue(result.isSuccess());
 
         Result<List<String>> mgrs = storeService.getAllManagers(VALID_SESSION, STORE_NAME, OWNER_EMAIL);
         assertTrue(mgrs.isSuccess());
         assertEquals(1, mgrs.getData().size());
-        assertTrue(mgrs.getData().contains(manager));
+        assertTrue(mgrs.getData().contains(managerEmail));
     }
 
     @Test
@@ -258,19 +271,24 @@ public class StoreServiceAcceptanceTests {
     }
 
     @Test
-    public void appointManager_WithTwoManagersOnlyOneShouldSucceed() {
+    public void appointManager_WithTwoManagersOnlyOneShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
 
         String manager1 = "manager1@gmail.com";
+        String manager1Name = "manager1";
+        regLoginAndGetSession(manager1Name, manager1, "manager1Pass123"); // Register and login to get a valid session for the new manager
         String manager2 = "manager2@gmail.com";
-        lenient().when(authenticationService.authenticate(manager1)).thenReturn(VALID_SESSION);
-        lenient().when(authenticationService.authenticate(manager2)).thenReturn(VALID_SESSION);
+        String manager2Name = "manager2";
+        regLoginAndGetSession(manager2Name, manager2, "manager2Pass123"); // Register and login to get a valid session for the new manager
         storeService.appointManager(VALID_SESSION, STORE_NAME, manager1, List.of("MANAGE_ROLES"));
         storeService.appointManager(VALID_SESSION, STORE_NAME, manager2, List.of("MANAGE_ROLES"));
 
         String manager3 = "manager3@gmail.com";
+        String manager3Name = "manager3";
+        regLoginAndGetSession(manager3Name, manager3, "manager3Pass123"); // Register and login to get a valid session for the new manager
 
         Result<Void> result1 = storeService.appointManager(authenticationService.authenticate(manager1),STORE_NAME, manager3, List.of("MANAGE_ROLES"));
+        //this one fails because currently the system allows only for owner to appoint a manager, it has to be changed
         assertTrue(result1.isSuccess());
 
         Result<Void> result2 = storeService.appointManager(authenticationService.authenticate(manager2),STORE_NAME, manager3, List.of("MANAGE_ROLES"));

@@ -106,4 +106,14 @@ public class TransactionDTO {
     public void setSellerStore(String sellerStore) {
         this.sellerStore = sellerStore;
     }
+
+    @Override
+    public String toString() {
+        return "TransactionDTO{" +
+                "itemsToTransact=" + itemsToTransact +
+                ", cost=" + cost +
+                ", buyersEmail='" + buyersEmail + '\'' +
+                ", sellerStore='" + sellerStore + '\'' +
+                '}';
+    }
 }
