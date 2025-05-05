@@ -97,7 +97,7 @@ public class MainLayout extends AppLayout {
                 nav("Catalog", CatalogView.class, VaadinIcon.LIST),
                 nav("My cart", CartView.class, VaadinIcon.CART),
                 nav("All Stores", AllStoresView.class, VaadinIcon.STORAGE),
-                nav("Notifications", SignInView.class, VaadinIcon.BELL)
+                nav("Notifications", NotificationView.class, VaadinIcon.BELL)
         );
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         addToDrawer(tabs);
