@@ -27,7 +27,7 @@ public class ServiceLocator {
     private static IGuestRepository guestRepository;
     private static ITransactionRepository transactionRepository;
     private static IStoreRepository storeRepository;
-    private static IProductCatalog productCatalog;
+    public static IProductCatalog productCatalog;
     private static IPaymentGateway paymentGateway;
 
     // Services

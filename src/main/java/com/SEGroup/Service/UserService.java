@@ -217,6 +217,36 @@ public class UserService {
         }
     }
 
+    //get user cart
+    /**
+     * Retrieves the user's cart.
+     * Logs the retrieval of the cart.
+     *
+     * @param sessionKey The session key of the authenticated user.
+     * @param email The email of the user.
+     * @return A Result object containing the user's cart if successful, or an error message.
+     */
+    public Result<ShoppingCart> getUserCart(String sessionKey, String email) {
+
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            ShoppingCart cart = null;
+            if (email == null || email.isEmpty()) {
+                cart = guestService.cart(sessionKey);  // Retrieve guest cart if email is null or empty
+                LoggerWrapper.info("Retrieved guest cart for session key: " + sessionKey);  // Log guest cart retrieval
+            }
+            else {
+                User user = userRepository.findUserByEmail(email);
+                cart = user.cart();
+                LoggerWrapper.info("Retrieved user cart: " + email);  // Log cart retrieval
+            }
+            return Result.success(cart);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving user cart: " + e.getMessage(), e);  // Log error on failure
+            return Result.failure(e.getMessage());
+        }
+    }
+
     /**
      * Modifies the quantity of a product in the user's cart.
      * Logs the modification of the product quantity.

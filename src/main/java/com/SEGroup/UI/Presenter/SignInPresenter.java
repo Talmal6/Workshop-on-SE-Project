@@ -3,6 +3,7 @@ package com.SEGroup.UI.Presenter;
 import com.SEGroup.Service.LoggerWrapper;
 import com.SEGroup.Service.UserService;
 import com.SEGroup.Service.Result;
+import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.SignInView;
 
@@ -22,9 +23,9 @@ public class SignInPresenter {
         LoggerWrapper.info("Sign in result: " + result);
 
         if (result.isSuccess()) {
-            //todo: get user name from userService
-            String userName = "dummy";//userService.getUserName(email);
-            view.showSuccess(result.getData(), userName);
+            view.showSuccess(result.getData(), email);
+            MainLayout.getInstance().setSessionKey(result.getData());
+            MainLayout.getInstance().setUserEmail(email);
         } else {
             view.showError(result.getErrorMessage());
         }
