@@ -44,42 +44,44 @@ public class SearchProductPresenter {
             catalogView.showProducts(catalogView.getAllProducts());
             return;
         }
-        var lower = query.toLowerCase();
-        List<CatalogView.Product> filtered =
-                catalogView.getAllProducts().stream()
-                        .filter(p -> p.name().toLowerCase().contains(lower))
-                        .collect(Collectors.toList());
+        // for fake products
+//        var lower = query.toLowerCase();
+//        List<CatalogView.Product> filtered =
+//                catalogView.getAllProducts().stream()
+//                        .filter(p -> p.name().toLowerCase().contains(lower))
+//                        .collect(Collectors.toList());
+//
+//        catalogView.showProducts(filtered);
 
-        catalogView.showProducts(filtered);
-//        // call the service:
-//        Result<List<ShoppingProductDTO>> result =
-//                storeService.searchProducts(
-//                        query,
-//                        List.of(),     // no extra filters for now
-//                        null,          // all stores
-//                        List.of()      // no category filters
-//                );
-//
-//        if (result.isSuccess()) {
-//            List<CatalogView.Product> products =
-//                    result.getData()
-//                            .stream()
-//                            .map(dto -> new CatalogView.Product(
-//                                    dto.getProductId(),
-//                                    dto.getName(),
-//                                    dto.getPrice(),
-//                                    null,
-//                                    dto.getCategory()
-//                            ))
-//                            .collect(Collectors.toList());
-//
-//            catalogView.showProducts(products);
-//        } else {
-//            Notification.show(
-//                    "Search failed: " + result.getErrorMessage(),
-//                    2500,
-//                    Position.MIDDLE
-//            );
-//        }
+        // for real products
+        Result<List<ShoppingProductDTO>> result =
+                storeService.searchProducts(
+                        query,
+                        List.of(),     // no extra filters for now
+                        null,          // all stores
+                        List.of()      // no category filters
+                );
+
+        if (result.isSuccess()) {
+            List<CatalogView.Product> products =
+                    result.getData()
+                            .stream()
+                            .map(dto -> new CatalogView.Product(
+                                    dto.getProductId(),
+                                    dto.getName(),
+                                    dto.getPrice(),
+                                    null,
+                                    dto.getCategory()
+                            ))
+                            .collect(Collectors.toList());
+
+            catalogView.showProducts(products);
+        } else {
+            Notification.show(
+                    "Search failed: " + result.getErrorMessage(),
+                    2500,
+                    Position.MIDDLE
+            );
+        }
     }
 }
