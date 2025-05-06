@@ -204,4 +204,27 @@ public class InMemoryProductCatalog implements IProductCatalog {
             throw new Exception("Product with catalog ID " + catalogID + " does not exist.");
         }
     }
+
+    /**
+     * Returns all categories associated with a given catalogID.
+     *
+     * @param catalogID The ID of the product in the catalog.
+     * @return          A list of category names, or empty list if not found.
+     */
+    public List<String> getCategoriesOfProduct(String catalogID) {
+        List<String> result = new ArrayList<>();
+
+        for (Map.Entry<String, List<String>> entry : categoriesToProducts.entrySet()) {
+            String category = entry.getKey();
+            List<String> products = entry.getValue();
+
+            if (products.contains(catalogID)) {
+                result.add(category);
+            }
+        }
+
+        return result;
+    }
+
+
 }
