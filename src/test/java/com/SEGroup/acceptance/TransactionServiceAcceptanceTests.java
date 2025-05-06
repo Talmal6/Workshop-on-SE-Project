@@ -20,7 +20,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceAcceptanceTests {
@@ -49,6 +48,7 @@ public class TransactionServiceAcceptanceTests {
     private IProductCatalog          productCatalog;
     private TransactionService transactionService;
     private UserService userService;
+    private IShippingService shippingService;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -70,7 +70,7 @@ public class TransactionServiceAcceptanceTests {
         userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
         SESSION_KEY = regLoginAndGetSession(USER, USER_EMAIL, "password123"); // Register and login to get a valid session
         SELLER_TOKEN = regLoginAndGetSession(SELLER, SELLER_EMAIL, "password123"); // Register and login to get a valid session
-
+        shippingService = mock(IShippingService.class);
         //end
         paymentGateway        = mock(IPaymentGateway.class);
         transactionRepository = new TransactionRepository();
@@ -79,7 +79,8 @@ public class TransactionServiceAcceptanceTests {
             paymentGateway,
             transactionRepository,
             storeRepository,
-            userRepository
+            userRepository,
+            shippingService
         );
         storeService.createStore(
                 SELLER_TOKEN, STORE_ID
@@ -132,8 +133,8 @@ public class TransactionServiceAcceptanceTests {
     @Test
     void purchaseShoppingCart_WithUnknownUser_ShouldFail() throws Exception {
         // Given: A shopping cart with a valid product
-        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
-
+        userService.addToUserCart(
+                SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
         // When: Trying to purchase with an unknown user
         Result<Void> result = transactionService.purchaseShoppingCart(
                 SESSION_KEY, "baduser@example.com", PAYMENT_TOKEN
@@ -146,7 +147,8 @@ public class TransactionServiceAcceptanceTests {
 
     @Test
     public void purchaseShoppingCart_WhenPaymentFails_ShouldRollbackAndReportFailure() throws Exception {
-        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
+        userService.addToUserCart(
+                SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
         doThrow(new RuntimeException("card declined") // Simulating payment failure
         ).when(paymentGateway).processPayment(
             anyString(), anyDouble());
@@ -240,8 +242,8 @@ public class TransactionServiceAcceptanceTests {
     @Test
     public void purchaseShoppingCart_WithPaymentFailure_ShouldNotProceedWithShipping(){
         // Given: Customer trying to purchase with declined payment
-        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
-
+        userService.addToUserCart(
+                SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
         // Simulating payment failure
         doThrow(new RuntimeException("Payment declined")).when(paymentGateway)
                 .processPayment(anyString(), anyDouble());
@@ -249,27 +251,37 @@ public class TransactionServiceAcceptanceTests {
         // Try purchasing (should fail due to payment failure)
         Result<Void> result = transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN);
         assertFalse(result.isSuccess(), "Expected purchase to fail due to payment failure");
-        //TODO currently theres no shipping management in the system
-        fail();
-        //i'm not sure if quantity not changed should be tested here anyway:
 
     }
 
     @Test
-    public void purchaseShoppingCart_WithShippingError_ShouldNotProcessPayment() {
+    public void purchaseShoppingCart_WithShippingError_ShouldNotProcessPayment() throws Exception {
         // Given: Customer trying to purchase with a shipping error
-        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
-        //TODO currently theres no shipping management in the system
-        fail();
+        //adjust shipping mock to throw an exception on ship method call
+        doThrow(new RuntimeException("Shipping error")).when(shippingService)
+                .ship(any(BasketDTO.class), anyString());
+        userService.addToUserCart(
+                SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
+        assertFalse(
+                transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN).isSuccess(),
+                "Expected purchase to fail due to shipping error"
+        );
     }
 
     @Test
     public void purchaseShoppingCart_WithPaymentFailure_ShouldRollbackProductRemoval() {
-        BasketDTO basket = new BasketDTO(STORE_ID, Map.of(PRODUCT_ID, 1));
+        int quantity = -1;
+        Result<Integer> initialQuantity = storeService.getProductQuantity(
+                SESSION_KEY,
+                STORE_ID, ACTUAL_PRODUCT_ID
+        );
+        assertTrue(initialQuantity.isSuccess(), "Failed to get initial product quantity");
+        quantity = initialQuantity.getData();
         doThrow(new RuntimeException("card declined") // Simulating payment failure
         ).when(paymentGateway).processPayment(
                 anyString(), anyDouble());
-
+        userService.addToUserCart(
+                SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
         Result<Void> result = transactionService.purchaseShoppingCart(
                 SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN
         );
@@ -281,7 +293,12 @@ public class TransactionServiceAcceptanceTests {
         );
         // Verify that the items were rolled back to the store
         //todo currently theres no method to check the items quantity in the store
-        fail();
+        Result<Integer> finalQuantity = storeService.getProductQuantity(
+                SESSION_KEY,
+                STORE_ID, ACTUAL_PRODUCT_ID
+        );
+        assertTrue(finalQuantity.isSuccess(), "Failed to get final product quantity");
+        assertEquals(quantity, finalQuantity.getData(), "Product quantity should be rolled back to initial value");
 
     }
 
