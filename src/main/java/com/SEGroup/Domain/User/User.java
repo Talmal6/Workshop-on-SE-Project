@@ -16,6 +16,7 @@ public class User {
     private final String email;
     private       String passwordHash;
     private final ConcurrentMap<String, EnumSet<Role>> storeRoles = new ConcurrentHashMap<>();
+    private final String username;
 
     private volatile ShoppingCart cart; // Ensure ShoppingCart is defined or imported
     private final List<String> purchaseHistory = new LinkedList<>();
@@ -25,10 +26,13 @@ public class User {
      *
      * @param email        The email of the user.
      * @param passwordHash The hashed password of the user.
+     * @param username     The username of the user.
      */
-    public User(String email, String passwordHash) {
+    public User(String email,String username ,String passwordHash) {
         this.email        = email;
         this.passwordHash = passwordHash;
+        this.username     = username;
+
 
     }
 
@@ -141,6 +145,5 @@ public class User {
     public String getPassword() { return passwordHash; }
     public String          getEmail()     { return email; }
     public List<String>    getHistory()   { return List.copyOf(purchaseHistory); }
-
-
+    public String          getUserName()  { return username; }
 }

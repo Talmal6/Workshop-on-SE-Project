@@ -1,5 +1,8 @@
 package com.SEGroup.Service;
 
+import java.util.List;
+
+import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
@@ -245,4 +248,29 @@ public class UserService {
             return Result.failure(e.getMessage());
         }
     }
+
+
+    public Result<List<BasketDTO>> getUserCart(String sessionKey, String email) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            LoggerWrapper.info("Retrieved user cart: " + email);
+            return Result.success(userRepository.getUserCart(email));
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving user cart: " + e.getMessage(), e);  // Log error on failure
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    public Result<String> getUserName(String sessionKey, String email){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            LoggerWrapper.info("Retrieved user name: " + email);
+            return Result.success(userRepository.getUserName(email));
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving user name: " + e.getMessage(), e);  // Log error on failure
+            return Result.failure(e.getMessage());
+        }
+    }
+
 }

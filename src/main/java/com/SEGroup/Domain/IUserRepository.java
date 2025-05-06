@@ -109,4 +109,13 @@ public interface IUserRepository {
      * @param email The email of the user whose cart is to be cleared.
      */
     void clearUserCart(String email);
+
+
+    /**
+     * Retrieves the username of a user by their email.
+     *
+     * @param email The email of the user.
+     * @return The username of the user.
+     */
+    String getUserName(String email);
 }

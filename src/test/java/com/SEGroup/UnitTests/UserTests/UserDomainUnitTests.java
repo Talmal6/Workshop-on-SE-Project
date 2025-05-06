@@ -78,7 +78,7 @@ class UserDomainUnitTests {
     @Nested class UserTests {
         User user;
 
-        @BeforeEach void newUser() { user = new User("u@bgu.ac.il", "hash"); }
+        @BeforeEach void newUser() { user = new User("u@bgu.ac.il","zaziBazazi", "hash"); }
 
         @Test void Given_NewUser_When_AddOwnerRole_Then_HasRoleTrue() {
             user.addRole("Shop", Role.STORE_OWNER);
