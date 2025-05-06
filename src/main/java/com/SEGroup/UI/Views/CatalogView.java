@@ -197,7 +197,6 @@ public class CatalogView extends VerticalLayout {
     }
     public void showProducts(List<Product> products) {
         this.searchedProducts = products;
-        // reuse your existing rendering:
         updateCatalog(null, null);
     }
     public List<Product> getAllProducts(){

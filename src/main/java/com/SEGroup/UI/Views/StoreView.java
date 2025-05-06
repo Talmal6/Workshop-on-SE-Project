@@ -1,6 +1,7 @@
 package com.SEGroup.UI.Views;
 
 import com.SEGroup.UI.MainLayout;
+import com.SEGroup.UI.Presenter.RatingStorePresenter;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
@@ -14,6 +15,8 @@ import java.util.List;
 @PageTitle("Store Details")
 public class StoreView extends VerticalLayout implements BeforeEnterObserver {
 
+    public RatingStoreView ratingStoreView;
+    private RatingStorePresenter ratingStorePresenter;
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         String name = event.getRouteParameters()
@@ -45,6 +48,11 @@ public class StoreView extends VerticalLayout implements BeforeEnterObserver {
 
         // description
         add(new Paragraph(store.description()));
+        // inside beforeEnter(...)
+        add(new Span("Your rating:"));
+        ratingStoreView = new RatingStoreView();
+        add(ratingStoreView);
+        ratingStoreView.addClickListener(evt -> new RatingStorePresenter(this,name));
     }
 
     private List<Store> fakeStores() {
@@ -53,6 +61,9 @@ public class StoreView extends VerticalLayout implements BeforeEnterObserver {
                 new Store("Toy store",          "Laura", 2, "This is a store for kids, …"),
                 new Store("iHerb store",       "Kaplan", 1, "Selling herbs …")
         );
+    }
+    public RatingStoreView getRatingStoreView(){
+        return this.ratingStoreView;
     }
 
     record Store(String name, String owner, int rating, String description) {}
