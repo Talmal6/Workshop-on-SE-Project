@@ -7,7 +7,7 @@ import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-
+import static org.mockito.Mockito.*;
 import javax.crypto.SecretKey;
 
 /**
@@ -35,6 +35,7 @@ public class ServiceLocator {
     private static UserService userService;
     private static StoreService storeService;
     private static TransactionService transactionService;
+    private static IShippingService shippingService;
 
     public static void initialize(IGuestRepository guests,
                                   IUserRepository users,
@@ -54,7 +55,8 @@ public class ServiceLocator {
         guestService = new GuestService(guestRepository, authService);
         userService = new UserService(guestService, userRepository, authService);
         storeService = new StoreService(storeRepository, productCatalog, authService, userRepository);
-        transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository);
+        shippingService = mock(IShippingService.class);
+        transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService);
     }
 
     public static IAuthenticationService getAuthenticationService() {
