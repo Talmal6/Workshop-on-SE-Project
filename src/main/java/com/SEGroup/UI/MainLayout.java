@@ -37,11 +37,21 @@ public class MainLayout extends AppLayout {
                 new MockPaymentGateway() {
                 }
         );
-        H2 title = new H2("eCommerce System");
-        title.getStyle()
-                .set("margin", "0")
-                .set("font-size", "1.8em")
-                .set("text-shadow", "1px 1px 2px rgba(0,0,0,0.2)");
+
+        // Add logo image
+        Image logoImage = new Image("/images/icon_eCommerce.png", "Logo");
+        logoImage.setHeight("60px");
+        logoImage.getStyle().set("max-height", "100%");
+
+// Title and logo layout
+        HorizontalLayout titleWithIcon = new HorizontalLayout(logoImage);
+        titleWithIcon.setAlignItems(FlexComponent.Alignment.CENTER);
+
+//        H2 title = new H2("eCommerce System");
+//        title.getStyle()
+//                .set("margin", "0")
+//                .set("font-size", "1.8em")
+//                .set("text-shadow", "1px 1px 2px rgba(0,0,0,0.2)");
 
         TextField search = new TextField();
         search.setPlaceholder("Search");
@@ -77,18 +87,22 @@ public class MainLayout extends AppLayout {
         );
 
 
-        HorizontalLayout navbar = new HorizontalLayout(title, searchBar, createSpacer(), auth);
+        HorizontalLayout navbar = new HorizontalLayout(titleWithIcon, searchBar, createSpacer(), auth);
         navbar.setAlignItems(FlexComponent.Alignment.CENTER);
         navbar.setWidthFull();
         navbar.setPadding(true);
         navbar.setSpacing(true);
+        navbar.setHeight("80px");
+        navbar.getStyle().set("min-height", "80px");
 
         Div navbarWrapper = new Div(navbar);
         navbarWrapper.setWidthFull();
+        navbarWrapper.setHeight("80px");
         navbarWrapper.getStyle()
                 .set("background-color", "#e0e0e0")
-                .set("padding", "1em 2em")
-                .set("box-shadow", "0 2px 4px rgba(0,0,0,0.05)");
+                .set("padding", "0 2em")
+                .set("box-shadow", "0 2px 4px rgba(0,0,0,0.05)")
+                .set("overflow", "hidden");
 
         addToNavbar(navbarWrapper);
 
