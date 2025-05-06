@@ -1,13 +1,21 @@
 package com.SEGroup.Infrastructure;
 
 import io.jsonwebtoken.*;
+import java.util.Collections;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import ch.qos.logback.core.subst.Token;
+
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -21,6 +29,7 @@ public class Security {
     private String secret;  // The secret key for signing JWTs
     private SecretKey key;  // The SecretKey object derived from the secret
     private final long expirationTime = 1000 * 60 * 60 * 24; // 24 hours expiration time for JWTs
+    private final Map<String, Date> tokenBlacklistToDate = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Initializes the SecretKey using the configured secret.
@@ -54,6 +63,9 @@ public class Security {
      */
     public boolean validateToken(String token) {
         try {
+            if (tokenBlacklistToDate.containsKey(token)) {
+                throw new JwtException("Token is invalid");
+            }
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);  // Parse the token
             return true;  // If no exceptions were thrown, the token is valid
         } catch (JwtException e) {
@@ -108,14 +120,16 @@ public class Security {
                 .getBody();  // Return the body (claims) of the token
     }
 
+
+
     /**
-     * Marks the token as expired.
-     * This method currently does not have an implementation.
+     * Marks the token as expired by adding it to the in-memory blacklist.
+     * The token will remain blacklisted until its natural expiration.
      *
      * @param token The JWT token to expire.
      */
     public void makeTokenExpire(String token) {
-        // Expiration logic (e.g., setting the expiration date in the past)
+         tokenBlacklistToDate.put(token, new Date());  // Add the token to the blacklist with its expiration date
     }
 
 

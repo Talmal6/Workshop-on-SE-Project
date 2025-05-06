@@ -485,4 +485,14 @@ public class StoreRepository implements IStoreRepository {
         store.submitAuctionOffer(productId,bidAmount,Email);
     }
 
+    @Override
+    public Integer getProductQuantity(String storeName, String productId){
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+        return product.getQuantity();
+    }
+
 }

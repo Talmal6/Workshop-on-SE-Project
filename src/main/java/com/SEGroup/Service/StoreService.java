@@ -532,5 +532,14 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+    public Result<Integer> getProductQuantity(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getProductQuantity(storeName,productId));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 }
 

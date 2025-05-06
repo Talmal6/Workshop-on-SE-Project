@@ -144,8 +144,9 @@ public class UserService {
             LoggerWrapper.info("Added product to user cart: " + email + ", Product ID: " + productID);  // Log product addition to cart
             return Result.success("Add item to cart successfully!");
         } catch (Exception e) {
-            LoggerWrapper.error("Error adding item to user cart: " + e.getMessage(), e);  // Log error on failure
-            return Result.failure(e.getMessage());
+            String errorMessage = "Failed to add item to cart: " + e.getMessage();
+            LoggerWrapper.error(errorMessage, e);  // Log error on failure
+            return Result.failure(errorMessage);
         }
     }
 

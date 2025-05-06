@@ -272,22 +272,21 @@ public class StoreServiceAcceptanceTests {
 
     @Test
     public void appointManager_WithTwoManagersOnlyOneShouldSucceed() throws Exception {
-        storeService.createStore(VALID_SESSION, STORE_NAME);
-
         String manager1 = "manager1@gmail.com";
         String manager1Name = "manager1";
-        regLoginAndGetSession(manager1Name, manager1, "manager1Pass123"); // Register and login to get a valid session for the new manager
+        String manager1_sk = regLoginAndGetSession(manager1Name, manager1, "manager1Pass123"); // Register and login to get a valid session for the new manager
+        storeService.createStore(manager1_sk, STORE_NAME);
         String manager2 = "manager2@gmail.com";
         String manager2Name = "manager2";
-        regLoginAndGetSession(manager2Name, manager2, "manager2Pass123"); // Register and login to get a valid session for the new manager
+        String manager2_sk = regLoginAndGetSession(manager2Name, manager2, "manager2Pass123"); // Register and login to get a valid session for the new manager
         storeService.appointManager(VALID_SESSION, STORE_NAME, manager1, List.of("MANAGE_ROLES"));
         storeService.appointManager(VALID_SESSION, STORE_NAME, manager2, List.of("MANAGE_ROLES"));
 
         String manager3 = "manager3@gmail.com";
         String manager3Name = "manager3";
-        regLoginAndGetSession(manager3Name, manager3, "manager3Pass123"); // Register and login to get a valid session for the new manager
+        String manager3_sk = regLoginAndGetSession(manager3Name, manager3, "manager3Pass123"); // Register and login to get a valid session for the new manager
 
-        Result<Void> result1 = storeService.appointManager(authenticationService.authenticate(manager1),STORE_NAME, manager3, List.of("MANAGE_ROLES"));
+        Result<Void> result1 = storeService.appointManager(manager1_sk,STORE_NAME, manager3, List.of("MANAGE_ROLES"));
         //this one fails because currently the system allows only for owner to appoint a manager, it has to be changed
         assertTrue(result1.isSuccess());
 

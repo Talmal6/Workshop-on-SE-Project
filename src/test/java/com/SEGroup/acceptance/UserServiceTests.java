@@ -165,8 +165,15 @@ class UserServiceTests {
 
         @Test @DisplayName("Expired session key → logout reports failure")
         void logoutExpiredSession() throws Exception {
-            //todo: implement, currently not possible to test
-            fail();
+            // register new user
+            Result<Void> r1 = sut.register("zaziBazazi", "bazazi@gmail.com", "zaziBazazi");
+            assertTrue(r1.isSuccess());
+            // login to get a session key
+            String jwt = sut.login("bazazi@gmail.com", "zaziBazazi").getData();
+            Result<Void> r2 = sut.logout(jwt);
+            assertTrue(r2.isSuccess());
+            Result<Void> r3 = sut.logout(jwt);
+            assertTrue(r3.isFailure());
         }
     }
 
@@ -204,7 +211,8 @@ class UserServiceTests {
         @Test @DisplayName("Guest add‑to‑cart updates basket")
         void guestAddToCart() {
             //this test fails both with userservice and guestservice guestLogin!
-            sut.addToGuestCart(guestJwt, "P1", "S1");
+            String guestJwt = sut.guestLogin().getData();
+            Result r = sut.addToGuestCart(guestJwt, "P1", "S1");
             Result<String> res = sut.addToGuestCart(guestJwt, "P1", "S1");
             assertTrue(res.isSuccess());
         }

@@ -61,4 +61,6 @@ public interface IAuthenticationService {
      * @throws AuthenticationException If the passwords do not match.
      */
     void matchPassword(String encryptedPassword, String userPassword) throws AuthenticationException;
+
+
 }

@@ -33,7 +33,9 @@ public class GuestService {
     public Result<String> createGuestSession() {
         String guestId = guests.create().id();
         LoggerWrapper.info("Created a new guest session with ID: " + guestId);  // Logging the creation of a guest session
-        return Result.success(guestId);
+        String token  = auth.authenticate(guestId);  // Authenticating the guest session
+        
+        return Result.success(token);
     }
 
     /**
@@ -46,20 +48,17 @@ public class GuestService {
      */
     public ShoppingCart cart(String guestToken) throws Exception {
         LoggerWrapper.info("Retrieving cart for guest token: " + guestToken);  // Logging the request for a shopping cart
-        auth.checkSessionKey(guestToken);
-
         String subject = auth.getUserBySession(guestToken);
-
         // Check if the token belongs to a guest
-        if (!subject.startsWith("guest:")) {
+        if (!subject.startsWith("g-")) {
             LoggerWrapper.warning("Token does not belong to a guest: " + guestToken);  // Logging if the token is not a guest token
             throw new IllegalArgumentException("token does not belong to a guest");
         }
 
-        String guestId = subject.substring("guest:".length());
-        ShoppingCart cart = guests.cartOf(guestId);
+        ;
+        ShoppingCart cart = guests.cartOf(subject);
 
-        LoggerWrapper.info("Retrieved shopping cart for guest with ID: " + guestId);  // Logging the successful retrieval of the shopping cart
+        LoggerWrapper.info("Retrieved shopping cart for guest with ID: " + subject);  // Logging the successful retrieval of the shopping cart
 
         return cart;
     }
