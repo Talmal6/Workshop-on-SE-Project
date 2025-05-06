@@ -9,10 +9,10 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RatingStoreView extends HorizontalLayout {
+public class RatingView extends HorizontalLayout {
 
     public int score;
-    public RatingStoreView() {
+    public RatingView() {
         // no extra padding/gaps beyond what we set below
         setPadding(false);
         setSpacing(false);

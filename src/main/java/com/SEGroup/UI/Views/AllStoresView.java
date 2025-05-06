@@ -64,13 +64,13 @@ public class AllStoresView extends VerticalLayout {
         add(topBar, sortBar);
 
         // Store cards
-//        fakeStores().forEach(store -> add(createStoreCard(store)));
+        fakeStores().forEach(store -> add(createStoreCard(store)));
         // View stores in backend
-        allStoresPresenter = new AllStoresPresenter();
-        allStoresPresenter.getStores().stream().map(store -> {
-            add(createStoreCard(store));
-            return null;
-        });
+//        allStoresPresenter = new AllStoresPresenter();
+//        allStoresPresenter.getStores().stream().map(store -> {
+//            add(createStoreCard(store));
+//            return null;
+//        });
 
     }
 
@@ -125,13 +125,13 @@ public class AllStoresView extends VerticalLayout {
         return spacer;
     }
 
-//    private List<Store> fakeStores() {
-//        return List.of(
-//                new Store("Adults +18 store", "Goseph", 5, "This is a store for adults only! Get in at your own risk"),
-//                new Store("Toy store", "Laura", 2, "This is a store for kids, if you are not a kid grow up!"),
-//                new Store("iHerb store", "Kaplan", 1, "Selling herbs for the lefties only if you are not a facist and follow bibii")
-//        );
-//    }
+    private List<Store> fakeStores() {
+        return List.of(
+                new Store("Adults +18 store", "Goseph", 5, "This is a store for adults only! Get in at your own risk"),
+                new Store("Toy store", "Laura", 2, "This is a store for kids, if you are not a kid grow up!"),
+                new Store("iHerb store", "Kaplan", 1, "Selling herbs for the lefties only if you are not a facist and follow bibii")
+        );
+    }
 
     public record Store(String name, String owner, double rating, String description) {}
 }

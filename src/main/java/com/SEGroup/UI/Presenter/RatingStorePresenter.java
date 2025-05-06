@@ -1,12 +1,8 @@
 package com.SEGroup.UI.Presenter;
 
-import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
-import com.SEGroup.UI.Views.RatingStoreView;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.StoreView;
-
-import java.util.function.Consumer;
 
 public class RatingStorePresenter {
     private StoreView storeView;
@@ -31,8 +27,8 @@ public class RatingStorePresenter {
     }
 
     private void bind(StoreView storeView) {
-        storeView.ratingStoreView.addClickListener(evt -> {
-            int score = storeView.ratingStoreView.getScore();
+        storeView.ratingView.addClickListener(evt -> {
+            int score = storeView.ratingView.getScore();
             storeService.rateStore("",storeName, score,"Great");
 //            Result<Void> result = storeService.rateStore("",storeName, score,"Great");
 //            if (result.isSuccess()) {

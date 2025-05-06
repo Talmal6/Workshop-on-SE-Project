@@ -1,6 +1,9 @@
 package com.SEGroup.UI.Views;
 
 import com.SEGroup.UI.MainLayout;
+//import com.SEGroup.UI.Presenter.RatingProductPresenter;
+import com.SEGroup.UI.Presenter.RatingStorePresenter;
+import com.SEGroup.UI.ServiceLocator;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.*;
@@ -17,6 +20,7 @@ import java.util.Map;
 @PageTitle("Product details")
 public class ProductView extends VerticalLayout implements HasUrlParameter<String> {
 
+    public RatingView ratingView;
     /* tiny demo “repository” ---------------------------------- */
     private static final Map<String, Product> repo = Map.of(
             "P1",  new Product("P1",  "Red Gun",   50, "Kaplan Store", 4),
@@ -34,12 +38,16 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
     public ProductView() {
         setAlignItems(Alignment.CENTER);
         setPadding(true);
-
         pic.setWidth("320px");
         pic.getStyle().set("border-radius", "8px");
 
         add(new VerticalLayout(name, pic, stars, meta, add));
         add.addClickListener(e -> Notification.show("Added"));
+        ratingView = new RatingView();
+        add("Your rating:");
+        add(ratingView);
+//        ratingView.addClickListener(evt -> new RatingProductPresenter(this,"1"));
+
     }
 
     /* read both parameters ------------------------------------ */
@@ -64,6 +72,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         stars.setText("★".repeat(p.rating()) + "☆".repeat(5 - p.rating()));
         pic.setSrc(img);
     }
+
 
     private record Product(String id, String name, int price,
                            String store, int rating) {}
