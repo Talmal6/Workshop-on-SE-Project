@@ -38,20 +38,19 @@ public class MainLayout extends AppLayout {
                 }
         );
 
-        // Add logo image
+        RouterLink logoLink = new RouterLink("", HomeView.class);
         Image logoImage = new Image("/images/icon_eCommerce.png", "Logo");
         logoImage.setHeight("60px");
         logoImage.getStyle().set("max-height", "100%");
+        logoLink.add(logoImage);
+        logoLink.getStyle()
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("text-decoration", "none");
 
 // Title and logo layout
-        HorizontalLayout titleWithIcon = new HorizontalLayout(logoImage);
+        HorizontalLayout titleWithIcon = new HorizontalLayout(logoLink);
         titleWithIcon.setAlignItems(FlexComponent.Alignment.CENTER);
-
-//        H2 title = new H2("eCommerce System");
-//        title.getStyle()
-//                .set("margin", "0")
-//                .set("font-size", "1.8em")
-//                .set("text-shadow", "1px 1px 2px rgba(0,0,0,0.2)");
 
         TextField search = new TextField();
         search.setPlaceholder("Search");
@@ -70,6 +69,10 @@ public class MainLayout extends AppLayout {
         HorizontalLayout searchBar = new HorizontalLayout(search, searchBtn);
         searchBar.setSpacing(true);
         searchBar.setAlignItems(FlexComponent.Alignment.CENTER);
+        searchBar.getStyle()
+                .set("background-color", "transparent")
+                .set("box-shadow", "none")
+                .set("border", "none");
         greeting =  new Span("hello Guest");
         greeting.getStyle()
                 .set("color", "#1976d2")
@@ -122,8 +125,6 @@ public class MainLayout extends AppLayout {
     public static MainLayout getInstance() {
         return instance;
     }
-
-
 
 
     private void addToNavbar(H2 title, TextField search, Component spacer, Component component) {
