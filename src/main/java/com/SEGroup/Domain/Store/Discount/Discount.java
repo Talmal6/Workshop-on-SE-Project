@@ -2,19 +2,20 @@ package com.SEGroup.Domain.Store.Discount;
 
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import java.util.Map;
 
 
-interface Discount {
+public interface Discount {
 
     /**
      * * Calculates the discount amount to be applied
      * @param entries           An array of products in the basket (from a specific store).
-     * @param catalogMap        A map of catalogID to CatalogProduct, used to retrieve brand/category information.
+     * @param catalog           catalog The product catalog
      * @return                  The total discount amount.
      **/
-    double calculate(StoreSearchEntry[] entries, Map<String, CatalogProduct> catalogMap);
+    double calculate(StoreSearchEntry[] entries, InMemoryProductCatalog catalog);
 
     /**
      * Returns a description of the discount.
