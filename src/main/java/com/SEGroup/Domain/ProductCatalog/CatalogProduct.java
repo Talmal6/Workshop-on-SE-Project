@@ -59,4 +59,5 @@ public class CatalogProduct {
     public String getDescription() {
         return description;
     }
+
 }
