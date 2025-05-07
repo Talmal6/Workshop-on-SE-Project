@@ -1,10 +1,12 @@
 package com.SEGroup.UI.Presenter;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.CatalogView;
+import com.SEGroup.UI.Views.StoreView;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.Notification;
@@ -52,36 +54,37 @@ public class SearchProductPresenter {
 //                        .collect(Collectors.toList());
 //
 //        catalogView.showProducts(filtered);
+        for(StoreDTO storeDTO: ServiceLocator.getStoreService().viewAllStores().getData()) {
+            // for real products
+            Result<List<ShoppingProductDTO>> result =
+                    storeService.searchProducts(
+                            query,
+                            List.of(),     // no extra filters for now
+                            storeDTO.getName(),          // all stores
+                            List.of()      // no category filters
+                    );
 
-        // for real products
-        Result<List<ShoppingProductDTO>> result =
-                storeService.searchProducts(
-                        query,
-                        List.of(),     // no extra filters for now
-                        null,          // all stores
-                        List.of()      // no category filters
+            if (result.isSuccess()) {
+                List<CatalogView.Product> products =
+                        result.getData()
+                                .stream()
+                                .map(dto -> new CatalogView.Product(
+                                        dto.getProductId(),
+                                        dto.getName(),
+                                        dto.getPrice(),
+                                        null,
+                                        dto.getCategory()
+                                ))
+                                .collect(Collectors.toList());
+
+                catalogView.showProducts(products);
+            } else {
+                Notification.show(
+                        "Search failed: " + result.getErrorMessage(),
+                        2500,
+                        Position.MIDDLE
                 );
-
-        if (result.isSuccess()) {
-            List<CatalogView.Product> products =
-                    result.getData()
-                            .stream()
-                            .map(dto -> new CatalogView.Product(
-                                    dto.getProductId(),
-                                    dto.getName(),
-                                    dto.getPrice(),
-                                    null,
-                                    dto.getCategory()
-                            ))
-                            .collect(Collectors.toList());
-
-            catalogView.showProducts(products);
-        } else {
-            Notification.show(
-                    "Search failed: " + result.getErrorMessage(),
-                    2500,
-                    Position.MIDDLE
-            );
+            }
         }
     }
 }
