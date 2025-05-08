@@ -25,11 +25,13 @@ public class StoreView extends VerticalLayout implements BeforeEnterObserver {
 
     private final Div catalogContainer = new Div();
     public RatingView ratingView;
+    public String storeName;
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         String name = event.getRouteParameters()
                 .get("storeName")
                 .orElse("");
+        storeName = name;
         Store store = fakeStores().stream()
                 .filter(s -> s.name().equals(name))
                 .findFirst()
@@ -69,10 +71,10 @@ public class StoreView extends VerticalLayout implements BeforeEnterObserver {
         this.allProducts.stream()
                 .forEach(p -> {
                     RouterLink link = new RouterLink(
-                            "View",
-                            ProductView.class,
+                            ProductInStoreView.class,
                             new RouteParameters(Map.of(
-                                    "id", p.id(),
+                                    "id1", getStoreName(),
+                                    "id2", p.id(),
                                     "img", encode(p.imageUrl()))));
                     link.getElement().getStyle()
                             .set("text-decoration", "none")
@@ -137,6 +139,9 @@ public class StoreView extends VerticalLayout implements BeforeEnterObserver {
                         "https://picsum.photos/seed/" + i + "/380/280",
                         i % 3 == 0 ? "Sports" : i % 3 == 1 ? "Office" : "Home"
                 )).toList();
+    }
+    public String getStoreName(){
+        return storeName;
     }
     private static String encode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
