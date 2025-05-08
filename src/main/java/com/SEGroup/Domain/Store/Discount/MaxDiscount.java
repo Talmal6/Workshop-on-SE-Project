@@ -2,6 +2,7 @@ package com.SEGroup.Domain.Store.Discount;
 
 
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Domain.Store.Discount.Conditions.CompositeConditions;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import java.util.List;
@@ -9,13 +10,14 @@ import java.util.List;
 /**
  * A discount that returns the maximum value from a set of discounts.
  */
-public class MaxDiscount implements Discount{
+public class MaxDiscount extends CompositeConditions {
     private final List<Discount> discounts;
     private double lastComputedDiscount = 0;          // Stores last calculated discount for reporting
     private String Description = "None";              // Description of the best discount
 
 
     public MaxDiscount(List<Discount> discounts) {
+        super(discounts);
         this.discounts = discounts;
     }
 
