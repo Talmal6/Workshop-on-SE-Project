@@ -1,23 +1,23 @@
-package com.SEGroup.Domain.Store.Discount.Conditions;
+package com.SEGroup.Domain.Discount.Conditions;
 
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 
 import java.util.List;
 import java.util.function.Predicate;
 
-public class AndCondition extends CompositeCondition {
+public class OrCondition extends CompositeCondition{
 
-    public AndCondition(List<Predicate<StoreSearchEntry[]>> conditions){
+    public OrCondition(List<Predicate<StoreSearchEntry[]>> conditions){
         super(conditions);
     }
 
     @Override
     public boolean test(StoreSearchEntry[] entries) {
         for (Predicate<StoreSearchEntry[]> condition : conditions) {
-            if (!condition.test(entries)) {
-                return false;
+            if (condition.test(entries)) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 }

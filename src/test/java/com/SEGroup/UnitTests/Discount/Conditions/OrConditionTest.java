@@ -1,11 +1,11 @@
-package com.SEGroup.UnitTests.StoreTests.Discount.Conditions;
+package com.SEGroup.UnitTests.Discount.Conditions;
 
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Domain.Store.Discount.ConditionalDiscount;
-import com.SEGroup.Domain.Store.Discount.Conditions.OrCondition;
-import com.SEGroup.Domain.Store.Discount.Discount;
-import com.SEGroup.Domain.Store.Discount.DiscountScope;
-import com.SEGroup.Domain.Store.Discount.SimpleDiscount;
+import com.SEGroup.Domain.Discount.ConditionalDiscount;
+import com.SEGroup.Domain.Discount.Conditions.OrCondition;
+import com.SEGroup.Domain.Discount.Discount;
+import com.SEGroup.Domain.Discount.DiscountScope;
+import com.SEGroup.Domain.Discount.SimpleDiscount;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import org.junit.jupiter.api.Test;
 

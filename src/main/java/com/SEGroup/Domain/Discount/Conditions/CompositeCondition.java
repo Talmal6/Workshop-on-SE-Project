@@ -1,4 +1,4 @@
-package com.SEGroup.Domain.Store.Discount.Conditions;
+package com.SEGroup.Domain.Discount.Conditions;
 
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 

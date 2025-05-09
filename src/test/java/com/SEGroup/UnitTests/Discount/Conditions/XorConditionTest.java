@@ -1,14 +1,16 @@
-package com.SEGroup.UnitTests.StoreTests.Discount.Conditions;
+package com.SEGroup.UnitTests.Discount.Conditions;
+import com.SEGroup.Domain.Discount.ConditionalDiscount;
+import com.SEGroup.Domain.Discount.Discount;
+import com.SEGroup.Domain.Discount.DiscountScope;
+import com.SEGroup.Domain.Discount.SimpleDiscount;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Domain.Store.Discount.*;
-import com.SEGroup.Domain.Store.Discount.Conditions.XorCondition;
+import com.SEGroup.Domain.Discount.Conditions.XorCondition;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
