@@ -1,6 +1,7 @@
-package com.SEGroup.Domain.Store.Discount;
+package com.SEGroup.Domain.Store.Discount.Numerical;
 
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Domain.Store.Discount.Discount;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import java.util.List;
