@@ -1,15 +1,14 @@
-package com.SEGroup.Domain.Store.Discount.Conditions;
+package com.SEGroup.Domain.Store.Discount;
 
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Domain.Store.Discount.Discount;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import java.util.List;
 
-public abstract class CompositeConditions implements Discount {
+public abstract class NumericalComposite implements Discount {
     protected final List<Discount> discountList;
 
-    public CompositeConditions(List<Discount> discountList) {
+    public NumericalComposite(List<Discount> discountList) {
         this.discountList = discountList;
     }
 
