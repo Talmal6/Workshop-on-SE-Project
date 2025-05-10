@@ -11,11 +11,13 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import org.springframework.stereotype.Service;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
  */
 
+@Service
 public class StoreService {
 
     private final IStoreRepository storeRepository;

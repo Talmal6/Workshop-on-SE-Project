@@ -1,5 +1,6 @@
 package com.SEGroup.Infrastructure.Controllers;
 
+import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Service.UserService;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Service.Result;
@@ -149,9 +150,10 @@ public class UserController {
     }
 
     @GetMapping("/cart")
-    public ResponseEntity<List<BasketDTO>> getUserCart(@RequestParam String sessionKey,
+    public ResponseEntity<ShoppingCart> getUserCart(@RequestParam String sessionKey,
                                               @RequestParam String email) {
-        Result<List<BasketDTO>> result = userService.getUserCart(sessionKey, email);
+
+        Result<ShoppingCart> result = userService.getUserCart(sessionKey, email);
         if (result.isSuccess()) {
             return ResponseEntity.ok(result.getData());
         } else {

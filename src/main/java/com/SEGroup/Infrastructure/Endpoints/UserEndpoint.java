@@ -1,6 +1,7 @@
 package com.SEGroup.Infrastructure.Endpoints;
 
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.UserService;
 import com.vaadin.hilla.EndpointExposed;
@@ -73,7 +74,7 @@ public class UserEndpoint {
     }
 
     @Nonnull
-    public List<BasketDTO> getUserCart(String sessionKey, String email) {
+    public ShoppingCart getUserCart(String sessionKey, String email) {
         return unwrap(userService.getUserCart(sessionKey, email));
     }
 

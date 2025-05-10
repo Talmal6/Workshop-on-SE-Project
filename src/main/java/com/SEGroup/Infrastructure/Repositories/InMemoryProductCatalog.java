@@ -11,12 +11,13 @@ import java.util.stream.Collectors;
 import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import org.springframework.stereotype.Repository;
 
 /**
  * An in-memory implementation of the ProductCatalog interface.
  * This class manages catalog products, store product entries, and their relationships.
  */
-
+@Repository
 public class InMemoryProductCatalog implements IProductCatalog {
 
     private final Map<String, CatalogProduct> catalogIDtoCatalogProduct = new HashMap<>();

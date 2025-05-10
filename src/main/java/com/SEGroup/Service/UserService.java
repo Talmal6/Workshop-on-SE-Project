@@ -8,11 +8,13 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 /**
  * UserService handles user-related operations such as login, registration, cart management, and user deletion.
  * It interacts with the authentication service, user repository, and guest service.
  */
+@Service
 public class UserService {
 
     private final GuestService guestService;
@@ -279,17 +281,7 @@ public class UserService {
         }
     }
 
-
-    public Result<List<BasketDTO>> getUserCart(String sessionKey, String email) {
-        try {
-            authenticationService.checkSessionKey(sessionKey);
-            LoggerWrapper.info("Retrieved user cart: " + email);
-            return Result.success(userRepository.getUserCart(email));
-        } catch (Exception e) {
-            LoggerWrapper.error("Error retrieving user cart: " + e.getMessage(), e);  // Log error on failure
-            return Result.failure(e.getMessage());
-        }
-    }
+    
 
 
     public Result<String> getUserName(String sessionKey, String email){

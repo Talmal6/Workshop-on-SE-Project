@@ -3,11 +3,13 @@ package com.SEGroup.Service;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
+import org.springframework.stereotype.Service;
 
 /**
  * Service class for managing guest sessions and shopping carts.
  * Provides methods to create a guest session and retrieve a shopping cart.
  */
+@Service
 public class GuestService {
 
     private final IGuestRepository guests;

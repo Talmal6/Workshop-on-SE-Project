@@ -53,7 +53,7 @@ public class CartPresenter {
             Map<String, Integer> products = basket.snapshot();
             for (String productId : products.keySet()) {
                 int qty = products.get(productId);
-                Result<ShoppingProductDTO> productResult = storeService.getProduct(mainLayout.getSessionKey(), storeName, productId);
+                Result<ShoppingProductDTO> productResult = storeService.getProductFromStore(mainLayout.getSessionKey(), storeName, productId);
                 if (productResult.isFailure()) {
                     view.showError(productResult.getErrorMessage());
                     continue;
