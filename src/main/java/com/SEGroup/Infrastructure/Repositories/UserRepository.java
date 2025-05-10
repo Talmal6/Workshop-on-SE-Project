@@ -48,7 +48,7 @@ public class UserRepository implements IUserRepository {
         if (users.containsKey(email))
             throw new IllegalArgumentException("User already exists: " + email);
 
-        User u = new User(email, passwordHash);
+        User u = new User(email,username, passwordHash);
         users.put(email, u);
     }
 
@@ -201,6 +201,14 @@ public class UserRepository implements IUserRepository {
         synchronized (u) {
             u.cart().clear();
         }
+    }
+
+
+    @Override
+    public String getUserName(String email) {
+        User u = users.get(email);
+        if (u == null) throw new IllegalArgumentException("User not found: " + email);
+        return u.getUserName();
     }
 
 

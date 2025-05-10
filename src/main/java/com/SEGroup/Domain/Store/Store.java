@@ -1,4 +1,8 @@
 package com.SEGroup.Domain.Store;
+import com.SEGroup.Domain.Discount.Discount;
+import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -429,4 +433,43 @@ public class Store {
                 ", products=" + products.keySet() +
                 '}';
     }
+
+    public void addDiscount(Discount discount) {
+        if (discount == null) throw new IllegalArgumentException("Discount cannot be null");
+        discounts.add(discount);
+    }
+
+    public double calculateFinalPriceAfterDiscount(Map<String, Integer> productIdToQuantity, InMemoryProductCatalog catalog) {
+        List<StoreSearchEntry> entries = new ArrayList<>();
+        double totalPrice = 0.0;
+
+        for (Map.Entry<String, Integer> entry : productIdToQuantity.entrySet()) {
+            ShoppingProduct product = this.getProduct(entry.getKey());
+            if (product == null) continue;
+
+            int quantity = entry.getValue();
+            double productPrice = product.getPrice() * quantity;
+            totalPrice += productPrice;
+
+            entries.add(new StoreSearchEntry(
+                    product.getCatalogID(),
+                    this.name,
+                    product.getProductId(),
+                    product.getPrice(),
+                    quantity,
+                    product.averageRating(),
+                    product.getName()
+            ));
+        }
+
+        double totalDiscount = 0;
+        for (Discount discount : this.discounts) {
+            totalDiscount += discount.calculate(entries.toArray(new StoreSearchEntry[0]), catalog);
+        }
+
+        return totalPrice - totalDiscount;
+    }
+
+
+
 }
