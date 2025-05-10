@@ -542,6 +542,7 @@ public class StoreService {
         }
     }
 
+
     public Result<ShoppingProductDTO> getProductFromStore(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);

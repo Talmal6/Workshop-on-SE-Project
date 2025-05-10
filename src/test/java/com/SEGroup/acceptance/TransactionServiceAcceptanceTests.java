@@ -292,7 +292,6 @@ public class TransactionServiceAcceptanceTests {
                 "Should report the payment failure message"
         );
         // Verify that the items were rolled back to the store
-        //todo currently theres no method to check the items quantity in the store
         Result<Integer> finalQuantity = storeService.getProductQuantity(
                 SESSION_KEY,
                 STORE_ID, ACTUAL_PRODUCT_ID

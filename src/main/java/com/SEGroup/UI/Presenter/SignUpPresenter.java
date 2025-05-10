@@ -23,9 +23,6 @@ public class SignUpPresenter {
         LoggerWrapper.info("Sign in result: " + result);
 
         if (result.isSuccess()) {
-            if (MainLayout.getInstance() != null) {
-                MainLayout.getInstance().setUserName(userName);
-            }
             view.showSuccess("Registration successful! You can now sign in.");
         } else {
             view.showError(result.getErrorMessage());

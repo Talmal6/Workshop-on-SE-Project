@@ -25,8 +25,10 @@ public class MainLayout extends AppLayout {
     private Button signInBtn;
     private Button signUpBtn;
     private  Span   greeting;
+    private String userEmail;
     private String userName;
     static MainLayout instance;
+    private String sessionKey;
     public static Button searchBtn;
     public static TextField search;
     public MainLayout() {
@@ -119,6 +121,7 @@ public class MainLayout extends AppLayout {
         addToDrawer(tabs);
         setPrimarySection(Section.DRAWER);
         instance = this;
+        sessionKey = ServiceLocator.getUserService().guestLogin().getData();
     }
 
     public static MainLayout getInstance() {
@@ -164,25 +167,33 @@ public class MainLayout extends AppLayout {
 
     public void switchToSignedInMode(){
         //show notifications
-        Notification.show("Welcome " + this.userName, 3000, Notification.Position.MIDDLE);
+        Notification.show("Welcome " + this.userEmail, 3000, Notification.Position.MIDDLE);
 //        hide sign up and sign in buttons
-        if (this.userName == null) {
+        if (this.userEmail == null) {
             return;
         }
         signInBtn.setVisible(false);
         signUpBtn.setVisible(false);
         //change hello guest to hello user
-        greeting.setText("hello " + this.userName);
+        greeting.setText("hello " + this.userEmail);
         greeting.getStyle()
                 .set("color", "#1976d2")
                 .set("margin-left", "1em");
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setSessionKey(String sessionKey) {
+        this.sessionKey = sessionKey;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getSessionKey() {
+        return sessionKey;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
     }
 }

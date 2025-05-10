@@ -98,7 +98,7 @@ public class SignInView extends FlexLayout {
         Notification.show("Logged in successfully! Session: " + sessionKey);
         UI.getCurrent().navigate("catalog");
         if (MainLayout.getInstance() != null) {
-            MainLayout.getInstance().setUserName(userName);
+            MainLayout.getInstance().setUserEmail(userName);
             MainLayout.getInstance().switchToSignedInMode();
         } else {
             Notification.show("Main layout not found", 3000, Notification.Position.MIDDLE);
