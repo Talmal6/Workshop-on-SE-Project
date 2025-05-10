@@ -1,10 +1,10 @@
-package com.SEGroup.UnitTests.Discount.Conditions;
+package com.SEGroup.UnitTests.Conditions;
 import com.SEGroup.Domain.Discount.ConditionalDiscount;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Discount.DiscountScope;
 import com.SEGroup.Domain.Discount.SimpleDiscount;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Domain.Discount.Conditions.XorCondition;
+import com.SEGroup.Domain.Conditions.XorCondition;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

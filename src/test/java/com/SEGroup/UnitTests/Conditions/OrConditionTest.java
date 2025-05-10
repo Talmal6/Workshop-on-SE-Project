@@ -1,8 +1,8 @@
-package com.SEGroup.UnitTests.Discount.Conditions;
+package com.SEGroup.UnitTests.Conditions;
 
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Discount.ConditionalDiscount;
-import com.SEGroup.Domain.Discount.Conditions.OrCondition;
+import com.SEGroup.Domain.Conditions.OrCondition;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Discount.DiscountScope;
 import com.SEGroup.Domain.Discount.SimpleDiscount;
