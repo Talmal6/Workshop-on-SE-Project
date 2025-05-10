@@ -2,6 +2,7 @@ package com.SEGroup.acceptance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.SEGroup.Domain.Conditions.AndCondition;
 import com.SEGroup.Domain.Discount.ConditionalDiscount;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Discount.DiscountScope;
@@ -10,6 +11,7 @@ import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Domain.User.Basket;
 import com.SEGroup.Infrastructure.Repositories.*;
 
 import com.SEGroup.Infrastructure.Security;
@@ -80,7 +82,7 @@ public class DiscountAcceptanceTest {
     }
 
     @Test
-    public void purchase_WithConditionalDiscount_ShouldApplyDiscountOnMatchingProduct() throws Exception {
+    public void purchase_WithConditionalDiscount_UsingBasket_ShouldApplyDiscountOnMatchingProduct() throws Exception {
         // Arrange: create store, register catalog, and add products
         storeService.createStore(VALID_SESSION, STORE_NAME);
         storeService.addProductToCatalog("cat1", "Tomato", "FreshCo", "Fresh tomatoes", List.of("Vegetables"));
@@ -89,9 +91,8 @@ public class DiscountAcceptanceTest {
         String tomatoId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Tomato", "Fresh", 100.0, 2).getData();
         String cucumberId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Cucumber", "Fresh", 50.0, 2).getData();
 
-        // Prepare discount: if total purchase > 200, give 10% discount on tomatoes
+        // Prepare conditional discount: if total purchase > 200, 10% discount on tomatoes
         Store store = storeRepository.findByName(STORE_NAME);
-
         DiscountScope tomatoScope = new DiscountScope(DiscountScope.ScopeType.PRODUCT, tomatoId);
         Discount discountOnTomato = new SimpleDiscount(10.0, tomatoScope);
 
@@ -105,15 +106,64 @@ public class DiscountAcceptanceTest {
         Discount tomatoConditionalDiscount = new ConditionalDiscount(condition, discountOnTomato);
         store.addDiscount(tomatoConditionalDiscount);
 
-        // Act: prepare purchase (2 tomatoes = 200, 2 cucumbers = 100, total = 300)
-        Map<String, Integer> productMap = new HashMap<>();
-        productMap.put(tomatoId, 2);
-        productMap.put(cucumberId, 2);
+        // Act: use Basket to represent user's purchase
+        Basket basket = new Basket(STORE_NAME);
+        basket.add(tomatoId, 2);   // 2 x 100 = 200
+        basket.add(cucumberId, 2); // 2 x 50 = 100
 
-        double finalPrice = store.calculateFinalPriceAfterDiscount(productMap, productCatalog);
+        double finalPrice = store.calculateFinalPriceAfterDiscount(basket.snapshot(), productCatalog);
 
-        // Assert: 10% discount on tomatoes (200 → 180), cucumbers = 100, total = 280
+        // Assert: tomato price becomes 180, cucumber stays 100, total = 280
         assertEquals(280.0, finalPrice, 0.001);
+    }
+
+    @Test
+    public void purchase_WithCompositeConditionUsingUserBasket_ShouldApplyDairyDiscount() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+
+        productCatalog.addCatalogProduct("c1", "Pasta A", "Barilla", "500g", List.of("pasta"));
+        productCatalog.addCatalogProduct("c2", "Pasta B", "Barilla", "Spaghetti", List.of("pasta"));
+        productCatalog.addCatalogProduct("c3", "Milk", "Tnuva", "1L", List.of("dairy"));
+
+        String p1 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c1", "Pasta A", "desc", 20.0, 10).getData();
+        String p2 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c2", "Pasta B", "desc", 25.0, 10).getData();
+        String p3 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c3", "Milk", "desc", 10.0, 10).getData();
+
+        Basket userBasket = new Basket(STORE_NAME);
+        userBasket.add(p1, 2); // 2 x 20 = 40
+        userBasket.add(p2, 1); // 1 x 25 = 25
+        userBasket.add(p3, 5); // 5 x 10 = 50
+
+        Predicate<StoreSearchEntry[]> over100 = arr -> {
+            double total = 0;
+            for (StoreSearchEntry e : arr) {
+                total += e.getPrice() * e.getQuantity();
+            }
+            return total > 100;
+        };
+
+        Predicate<StoreSearchEntry[]> atLeast3Pastas = arr -> {
+            int count = 0;
+            for (StoreSearchEntry e : arr) {
+                if (productCatalog.getCategoriesOfProduct(e.getCatalogID()).contains("pasta")) {
+                    count += e.getQuantity();
+                }
+            }
+            return count >= 3;
+        };
+
+
+        Predicate<StoreSearchEntry[]> combined = new AndCondition(List.of(over100, atLeast3Pastas));
+
+        Discount dairyDiscount = new SimpleDiscount(5, new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy"));
+        Discount conditional = new ConditionalDiscount(combined, dairyDiscount);
+
+        Store store = storeRepository.findByName(STORE_NAME);
+        store.addDiscount(conditional);
+
+        double finalPrice = store.calculateFinalPriceAfterDiscount(userBasket.snapshot(), productCatalog);
+
+        assertEquals(112.5, finalPrice, 0.001);
     }
 
 
