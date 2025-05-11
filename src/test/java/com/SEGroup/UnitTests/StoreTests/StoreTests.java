@@ -150,7 +150,7 @@ public class StoreTests {
     @DisplayName("Given store with owners, when removeOwner valid, then owner removed")
     public void Given_StoreWithOwners_When_RemoveOwner_Then_Removed() {
         store.appointOwner(founderEmail, "owner2@test.com", false);
-        assertTrue(store.removeOwner(founderEmail, "owner2@test.com"));
+        assertTrue(store.removeOwner(founderEmail, "owner2@test.com",false));
         assertFalse(store.getAllOwners().contains("owner2@test.com"));
     }
 

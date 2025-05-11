@@ -22,4 +22,7 @@ public record BasketDTO(String storeId, Map<String, Integer> prod2qty) {
         prod2qty.forEach((pid, q) -> out.addAll(java.util.Collections.nCopies(q, pid)));
         return out;
     }
+    public String getStoreId() {
+        return storeId;
+    }
 }

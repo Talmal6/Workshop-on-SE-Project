@@ -38,9 +38,9 @@ public class UserEndpoint {
         unwrap(userService.logout(sessionKey));
     }
 
-    public void deleteUser(String email) {       // admin operation?
-        unwrap(userService.deleteUser(email));
-    }
+//    public void deleteUser(String email) {       // admin operation?
+//        unwrap(userService.deleteUser(email));
+//    }
 
     /* ---------- cart operations ---------- */
 

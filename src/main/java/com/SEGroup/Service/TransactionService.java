@@ -11,6 +11,7 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.IShippingService;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 
 /**
  * TransactionService handles the operations related to transactions, including processing payments, viewing transaction history, and purchasing shopping carts.
@@ -23,6 +24,7 @@ public class TransactionService {
     private final IStoreRepository storeRepository; // Added StoreRepository
     private final IUserRepository userRepository; // Added UserRepository
     private final IShippingService shippingService; // Added ShippingService
+    private final NotificationCenter notificationService;
 
     /**
      * Constructs a new TransactionService instance with the provided dependencies.
@@ -38,13 +40,15 @@ public class TransactionService {
                               ITransactionRepository transactionRepository,
                               IStoreRepository storeRepository,
                               IUserRepository userRepository,
-                              IShippingService shippingService) {
+                              IShippingService shippingService,
+                              NotificationCenter notificationService) {
         this.authenticationService = authenticationService;
         this.paymentGateway = paymentGateway;
         this.transactionRepository = transactionRepository;
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;
         this.shippingService = shippingService; // Initialize ShippingService
+        this.notificationService = notificationService;
     }
 
     /**
@@ -112,6 +116,12 @@ public class TransactionService {
             for (Map.Entry<BasketDTO, Double> entry : basketToPrice.entrySet()) {
                 BasketDTO basket = entry.getKey();
                 double storeCost = entry.getValue();
+                String storeFounder = storeRepository.getStoreFounder(basket.storeId());
+                notificationService.sendSystemNotification(
+                        sessionKey,
+                        storeFounder,
+                        "A product has been purchased from your store '" + basket.getBasketProducts() + "'."
+                );
                 transactionRepository.addTransaction(basket.getBasketProducts(), storeCost, userEmail, basket.storeId());
                 LoggerWrapper.info("Transaction added for user: " + userEmail + ", Store: " + basket.storeId());  // Log successful transaction addition
             }

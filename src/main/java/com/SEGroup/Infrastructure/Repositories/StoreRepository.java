@@ -68,11 +68,11 @@ public class StoreRepository implements IStoreRepository {
      @param storeName The name of the store to close.
      @param founderEmail The email of the store's founder. */
     @Override
-    public List<String> closeStore(String storeName, String founderEmail) {
+    public List<String> closeStore(String storeName, String founderEmail,boolean isAdmin) {
         Store store = findByName(storeName);
 
-        if (!store.getfounderEmail().equals(founderEmail)) {
-            throw new RuntimeException("Only the founder can close the store");
+        if (!store.getfounderEmail().equals(founderEmail) && !isAdmin) {
+            throw new RuntimeException("Only the founder or Admin can close the store");
         }
         store.close();
         return store.getAllWorkers();
@@ -83,13 +83,14 @@ public class StoreRepository implements IStoreRepository {
      @param storeName The name of the store to reopen.
      @param founderEmail The email of the store's founder. */
     @Override
-    public void reopenStore(String storeName, String founderEmail) {
+    public List<String> reopenStore(String storeName, String founderEmail,boolean isAdmin) {
         Store store = findByName(storeName);
-        if (!store.getfounderEmail().equals(founderEmail)) {
-            throw new RuntimeException("Only the founder can reopen the store");
+        if (!store.getfounderEmail().equals(founderEmail) && !isAdmin) {
+            throw new RuntimeException("Only the founder or Admin can reopen the store");
         }
 
         store.open();
+        return store.getAllWorkers();
     }
     /**
      Updates the details of a shopping product in the store.
@@ -194,9 +195,9 @@ public class StoreRepository implements IStoreRepository {
      @param removerEmail The email of the current owner removing the owner.
      @param ownerToRemove The email of the owner to remove. */
     @Override
-    public void removeOwner(String storeName, String removerEmail, String ownerToRemove) {
+    public void removeOwner(String storeName, String removerEmail, String ownerToRemove,boolean isAdmin) {
         Store store = findByName(storeName);
-        store.removeOwner(removerEmail, ownerToRemove);
+        store.removeOwner(removerEmail, ownerToRemove,isAdmin);
     }
 
     /**
@@ -497,6 +498,16 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("Product not found in store ");
         }
         return product.getQuantity();
+    }
+    @Override
+    public String getStoreFounder(String storeName){
+        Store store = findByName(storeName);
+        return store.getfounderEmail();
+    }
+    @Override
+    public List<String> getAllBidManagers(String storeName){
+        Store store = findByName(storeName);
+        return store.getAllBidManagers();
     }
 
 }

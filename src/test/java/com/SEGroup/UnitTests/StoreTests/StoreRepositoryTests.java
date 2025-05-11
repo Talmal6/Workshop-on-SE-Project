@@ -71,9 +71,9 @@ public class StoreRepositoryTests {
     @Test
     @DisplayName("Given repository with store, when close and reopen, then StoreDTO isActive toggles")
     public void testCloseReopenTogglesIsActive() {
-        repo.closeStore(storeName, founderEmail);
+        repo.closeStore(storeName, founderEmail,false);
         assertFalse(repo.getStore(storeName).isActive());
-        repo.reopenStore(storeName, founderEmail);
+        repo.reopenStore(storeName, founderEmail,false);
         assertTrue(repo.getStore(storeName).isActive());
     }
 
@@ -81,7 +81,7 @@ public class StoreRepositoryTests {
     @DisplayName("Given non-founder, when closeStore, then RuntimeException")
     public void testCloseStoreThrowsForNonFounder() {
         assertThrows(RuntimeException.class,
-            () -> repo.closeStore(storeName, "other@test.com"));
+            () -> repo.closeStore(storeName, "other@test.com",false));
     }
 
     @Test
@@ -182,7 +182,7 @@ public class StoreRepositoryTests {
     @Test
     @DisplayName("Given closed store, when rateStore, then RuntimeException")
     public void testRateStoreThrowsWhenClosed() {
-        repo.closeStore(storeName, founderEmail);
+        repo.closeStore(storeName, founderEmail,false);
         assertThrows(RuntimeException.class,
             () -> repo.rateStore("u@test.com", storeName, 4, ""));
     }

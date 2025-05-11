@@ -41,7 +41,7 @@ public interface IStoreRepository {
      * @param name The name of the store.
      * @param founderEmail The email address of the founder.
      */
-    List<String> closeStore(String name, String founderEmail);
+    List<String> closeStore(String name, String founderEmail,boolean isAdmin);
 
     /**
      * Reopens a store by its name and the founder's email.
@@ -49,7 +49,7 @@ public interface IStoreRepository {
      * @param storeName The name of the store.
      * @param founderEmail The email address of the founder.
      */
-    void reopenStore(String storeName, String founderEmail);
+    List<String> reopenStore(String storeName, String founderEmail,boolean isAdmin);
 
     // Omri functions
 
@@ -129,7 +129,7 @@ public interface IStoreRepository {
      * @param operatorEmail The email of the operator performing the operation.
      * @param ownerToRemove The email of the owner to remove.
      */
-    void removeOwner(String storeName, String operatorEmail, String ownerToRemove);
+    void removeOwner(String storeName, String operatorEmail, String ownerToRemove,boolean isAdmin);
 
     /**
      * The operator resigns ownership of a store.
@@ -222,4 +222,7 @@ public interface IStoreRepository {
     void submitBidToShoppingItem(String Email,String storeName,String productId,double bidAmount);
     void sendAuctionOffer(String Email,String storeName,String productId,double bidAmount);
     Integer getProductQuantity(String storeName, String productId);
+    String getStoreFounder(String storeName);
+    List<String> getAllBidManagers(String storeName);
+
 }

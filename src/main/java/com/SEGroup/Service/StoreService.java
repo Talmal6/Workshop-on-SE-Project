@@ -156,13 +156,23 @@ public class StoreService {
     public Result<Void> closeStore(String sessionKey, String storeName) {
         try {
             StoreDTO storeDTO = storeRepository.getStore(storeName);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            List<String> WorkersInStore = storeRepository.closeStore(storeName, authenticationService.getUserBySession(sessionKey));
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            boolean isAdmin = userRepository.userIsAdmin(email);
+            List<String> WorkersInStore = storeRepository.closeStore(storeName, email,isAdmin);
+
             for (ShoppingProductDTO sp : storeDTO.getProducts()) {
                 productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId());
             }
             for (String worker : WorkersInStore) {
-                notificationService.sendNotification(worker, "Store " + storeName + " has been closed.");
+                notificationService.sendSystemNotification(
+                        sessionKey,
+                        worker,
+                        "The store '" + storeName + "' has been closed."
+                );
+                if(isAdmin){
+                    removeOwner(sessionKey,storeName,worker);
+                }
             }
             LoggerWrapper.info("Store closed: " + storeName); // Log store closure
             return Result.success(null);
@@ -182,11 +192,20 @@ public class StoreService {
      */
     public Result<Void> reopenStore(String sessionKey, String storeName) {
         try {
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.reopenStore(storeName, authenticationService.getUserBySession(sessionKey));
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            boolean isAdmin = userRepository.userIsAdmin(email);
+            List<String> WorkersInStore = storeRepository.reopenStore(storeName, email,isAdmin);
             for (ShoppingProductDTO sp : storeRepository.getStore(storeName).getProducts()) {
                 productCatalog.addStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId(), sp.getPrice(),
                         sp.getQuantity(), sp.getAvgRating(), sp.getName());
+            }
+            for (String worker : WorkersInStore) {
+                notificationService.sendSystemNotification(
+                        sessionKey,
+                        worker,
+                        "The store '" + storeName + "' has been reopen."
+                );
             }
             LoggerWrapper.info("Store reopened: " + storeName); // Log store reopening
             return Result.success(null);
@@ -385,9 +404,16 @@ public class StoreService {
     public Result<Void> removeOwner(String sessionKey, String storeName, String apointeeEmail) {
         try {
             authenticationService.authenticate(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.removeOwner(storeName, authenticationService.getUserBySession(sessionKey), apointeeEmail);
+            String email = authenticationService.getUserBySession(sessionKey);
+            boolean isAdmin = userRepository.userIsAdmin(email);
+            userRepository.checkUserSuspension(email);
+            storeRepository.removeOwner(storeName, email, apointeeEmail,isAdmin);
             userRepository.removeOwner(storeName, apointeeEmail);
+            notificationService.sendSystemNotification(
+                    sessionKey,
+                    apointeeEmail,
+                    "Your ownership role in store '" + storeName + "' has been removed."
+            );
             LoggerWrapper.info("Removed owner from store: " + storeName + ", Owner: " + apointeeEmail); // Log owner
                                                                                                         // removal
             return Result.success(null);
@@ -580,9 +606,20 @@ public class StoreService {
             double bidAmount) {
         try {
             authenticationService.authenticate(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.submitBidToShoppingItem(authenticationService.getUserBySession(sessionKey), storeName,
+            String bidderEmail = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(bidderEmail);
+            storeRepository.submitBidToShoppingItem(bidderEmail, storeName,
                     productId, bidAmount);
+            List<String> ownersAndManagers = storeRepository.getAllBidManagers(storeName);
+            for (String recipient : ownersAndManagers) {
+                notificationService.sendSystemNotification(
+                        sessionKey,
+                        recipient,
+                        "A new bid was submitted by " + bidderEmail +
+                                " on product '" + productId + "' in store '" + storeName +
+                                "' for amount: " + bidAmount
+                );
+            }
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -601,6 +638,28 @@ public class StoreService {
                     bidAmount);
             return Result.success(null);
         } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    // 3.12
+    public Result<Void> sendMessageToStoreFounder(String sessionKey, String storeName, String messageContent) {
+        try {
+            authenticationService.authenticate(sessionKey);
+            String senderEmail = authenticationService.getUserBySession(sessionKey);
+
+            String founderEmail = storeRepository.getStoreFounder(storeName);
+
+            notificationService.sendUserNotification(
+                    sessionKey,
+                    founderEmail,
+                    messageContent,
+                    senderEmail
+            );
+
+            LoggerWrapper.info("User " + senderEmail + " sent message to founder of store '" + storeName + "'");
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error sending message to store founder: " + e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
     }
