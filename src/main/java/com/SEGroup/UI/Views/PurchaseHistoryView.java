@@ -7,10 +7,7 @@ import com.SEGroup.UI.Presenter.PurchaseHistoryPresenter;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.ListItem;
-import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -96,12 +93,28 @@ public class PurchaseHistoryView extends VerticalLayout {
         dialog.open();
     }
 
+    public void hideGrid() {
+        grid.setVisible(false);
+        Span  noItemsField = new Span ("No purchases are recorded for you yet. please shop to see your purchase history");
+        noItemsField.setWidth("400px");
+        noItemsField.setHeight("100%");
+        noItemsField.getStyle().set("text-align", "center");
+        noItemsField.getStyle().set("margin-top", "var(--lumo-space-xl)");
+        noItemsField.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        noItemsField.getStyle().set("font-size", "var(--lumo-font-size-l)");
+        noItemsField.getStyle().set("font-weight", "bold");
+        noItemsField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
+        noItemsField.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
+        noItemsField.getStyle().set("padding", "var(--lumo-space-m)");
+        noItemsField.getStyle().set("box-shadow", "0 4px 16px rgba(0,0,0,0.1)");
+        noItemsField.getStyle().set("margin", "auto");
+        add(noItemsField);
+    }
+
     public void showItems(List<TransactionDTO> transactions) {
-        if (transactions == null || transactions.size() == 0){
-           grid.setVisible(false);
-           //add new textview showing that there's no
-            TextField noTractions = new TextField("There is no transactions yet, start shopping to see your transactions here");
-            add(noTractions);
+        if (transactions == null || transactions.isEmpty()) {
+            hideGrid();
+            return;
         }
         grid.setItems(transactions);
     }
