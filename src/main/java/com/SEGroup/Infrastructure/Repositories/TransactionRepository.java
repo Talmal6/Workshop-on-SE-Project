@@ -10,13 +10,14 @@ import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.Transaction.Transaction;
 import com.SEGroup.Mapper.TransactionMapper;
-
+import org.springframework.stereotype.Service;
 
 
 /**
  * TransactionRepository is responsible for managing transactions in the system.
  * It provides methods to add, retrieve, update, and delete transactions.
  */
+@Service
 public class TransactionRepository implements ITransactionRepository {
     private final Map<Integer, Transaction> transactions = new ConcurrentHashMap<>(); // <Identifier, Transaction>
     private final AtomicInteger nextId = new AtomicInteger(1); // Identifier for transactions

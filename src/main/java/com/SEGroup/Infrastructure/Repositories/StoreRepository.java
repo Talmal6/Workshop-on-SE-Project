@@ -15,12 +15,14 @@ import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Mapper.StoreMapper;
+import org.springframework.stereotype.Service;
 
 //implement iStore
 /**
  The StoreRepository class is responsible for managing the stores in the system.
  It provides methods to create, update, and retrieve store information, as well as
  manage store products, owners, and managers. */
+@Service
 public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
     private StoreMapper storeMapper = new StoreMapper();

@@ -6,6 +6,7 @@ import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
+import org.springframework.stereotype.Service;
 
 
 import java.util.EnumSet;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * UserRepository is responsible for managing user accounts in the system.
  * It provides methods to add, find, delete users, and manage their shopping carts.
  */
+@Service
 public class UserRepository implements IUserRepository {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();

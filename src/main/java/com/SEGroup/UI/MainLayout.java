@@ -4,6 +4,7 @@ import com.SEGroup.Domain.IPaymentGateway;
 import com.SEGroup.Infrastructure.MockPaymentGateway;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.UI.Views.*;
+import com.SEGroup.UI.Views.PurchaseHistory.UserPurchaseHistoryView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -114,7 +115,8 @@ public class MainLayout extends AppLayout {
                 nav("Catalog", CatalogView.class, VaadinIcon.LIST),
                 nav("My cart", CartView.class, VaadinIcon.CART),
                 nav("All Stores", AllStoresView.class, VaadinIcon.STORAGE),
-                nav("Notifications", SignInView.class, VaadinIcon.BELL)
+                nav("Notifications", SignInView.class, VaadinIcon.BELL),
+                nav("My Purchase History", UserPurchaseHistoryView.class, VaadinIcon.PLUS)
         );
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         addToDrawer(tabs);

@@ -7,6 +7,8 @@ import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import static org.mockito.Mockito.*;
 import javax.crypto.SecretKey;
 
@@ -14,6 +16,7 @@ import javax.crypto.SecretKey;
  * A centralized service locator for retrieving singleton service instances.
  * Use this to inject services into Presenters or UI layers.
  */
+
 public class ServiceLocator {
 
     // Core Dependencies
@@ -75,7 +78,18 @@ public class ServiceLocator {
         return storeService;
     }
 
+    @Autowired
     public static TransactionService getTransactionService() {
         return transactionService;
     }
+//    public static TransactionService getTransactionServiceWithMock(ITransactionRepository transactionRepo,
+//                                                                   IStoreRepository storeRepo,
+//                                                                   IUserRepository userRepo,
+//                                                                   IPaymentGateway paymentGateway) {
+//        // יצירת mock של IShippingService
+//        IShippingService mockShippingService = mock(IShippingService.class);
+//
+//        // יצירת TransactionService עם ה-mock של IShippingService
+//        return new TransactionService(authService, paymentGateway, transactionRepo, storeRepo, userRepo, mockShippingService);
+//    }
 }

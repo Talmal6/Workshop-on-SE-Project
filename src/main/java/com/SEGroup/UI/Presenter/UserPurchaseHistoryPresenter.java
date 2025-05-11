@@ -1,34 +1,33 @@
 package com.SEGroup.UI.Presenter;
 
-import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Service.TransactionService;
+import com.SEGroup.UI.ServiceLocator;
+import com.SEGroup.UI.Views.PurchaseHistory.UserPurchaseHistoryView;
+import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Service.Result;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Collections;
 import java.util.List;
 
-@Component
 public class UserPurchaseHistoryPresenter {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserPurchaseHistoryPresenter.class);
+    private final UserPurchaseHistoryView userPurchaseHistoryView;
+    private final String userEmail;
     private final TransactionService transactionService;
 
-    @Autowired
-    public UserPurchaseHistoryPresenter(TransactionService transactionService) {
-        this.transactionService = transactionService;
+    public UserPurchaseHistoryPresenter(UserPurchaseHistoryView userPurchaseHistoryView, String userEmail) {
+        this.userEmail = userEmail;
+        this.userPurchaseHistoryView = userPurchaseHistoryView;
+        this.transactionService = ServiceLocator.getTransactionService();
     }
 
-    public List<TransactionDTO> getUserPurchaseHistory(String sessionKey, String userEmail) {
+    public List<TransactionDTO> loadTransactionHistory(String sessionKey) {
         Result<List<TransactionDTO>> result = transactionService.getTransactionHistory(sessionKey, userEmail);
+
         if (result.isSuccess()) {
-            return result.getData();
+            userPurchaseHistoryView.displayPurchaseHistory(result.getData());
         } else {
-            logger.error("Failed to get purchase history for user {}: {}", userEmail, result.getErrorMessage());
-            return Collections.emptyList();
+            userPurchaseHistoryView.displayErrorMessage(result.getErrorMessage());
         }
+        return null;
     }
 }
+

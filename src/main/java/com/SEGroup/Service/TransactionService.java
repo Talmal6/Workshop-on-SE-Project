@@ -11,7 +11,10 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.IShippingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * TransactionService handles the operations related to transactions, including processing payments, viewing transaction history, and purchasing shopping carts.
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TransactionService {
     private final IAuthenticationService authenticationService;
+    @Autowired
     private final IPaymentGateway paymentGateway;
     private final ITransactionRepository transactionRepository;
     private final IStoreRepository storeRepository; // Added StoreRepository
@@ -46,6 +50,7 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;
+        shippingService = mock(IShippingService.class);
         this.shippingService = shippingService; // Initialize ShippingService
     }
 
