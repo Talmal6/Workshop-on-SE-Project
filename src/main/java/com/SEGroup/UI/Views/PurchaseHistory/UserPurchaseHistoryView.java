@@ -44,10 +44,6 @@ public class UserPurchaseHistoryView extends VerticalLayout {
                 .setHeader("Total Cost")
                 .setAutoWidth(true);
 
-        // הסרה של בדיקת session
-        // אין צורך לבדוק אם המשתמש מחובר כרגע
-
-        // יצירת ה-Presenter דרך ServiceLocator
         TransactionService transactionService = ServiceLocator.getTransactionService();
         UserPurchaseHistoryPresenter presenter = new UserPurchaseHistoryPresenter(this, null); // כאן לא נשלח דוא"ל של משתמש
 
@@ -60,7 +56,6 @@ public class UserPurchaseHistoryView extends VerticalLayout {
         }
 
         if (transactions.isEmpty()) {
-            // הראה הודעה אם אין רכישות
             Notification.show("No purchases found.", 5000, Notification.Position.MIDDLE);
         }
 
