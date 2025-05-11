@@ -65,7 +65,7 @@ public interface IStoreRepository {
      * @param quantity The quantity of the product.
      * @return The ID of the added product.
      */
-    String addProductToStore(String email, String storeName, String catalogID, String product_name, String description, double price, int quantity);
+    String addProductToStore(String email, String storeName, String catalogID, String product_name, String description, double price, int quantity, String imageURL);
 
     /**
      * Updates the details of a shopping product.
@@ -222,4 +222,9 @@ public interface IStoreRepository {
     void submitBidToShoppingItem(String Email,String storeName,String productId,double bidAmount);
     void sendAuctionOffer(String Email,String storeName,String productId,double bidAmount);
     Integer getProductQuantity(String storeName, String productId);
+    List<StoreDTO> getStoresOwnedBy(String ownerEmail);
+
+    void updateStoreDescription(String storeName, String operatorEmail, String description);
+
+
 }

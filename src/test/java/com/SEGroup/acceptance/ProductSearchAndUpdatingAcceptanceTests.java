@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Service.SecurityAdapter;
@@ -41,26 +42,38 @@ public class ProductSearchAndUpdatingAcceptanceTests {
     IAuthenticationService authenticationService;
     IUserRepository userRepository;
 
+
     @BeforeEach
     public void setUp() throws Exception {
         storeRepository = new StoreRepository();
         productCatalog = new InMemoryProductCatalog();
 
-
-        //
+        // Create a Security instance
         Security security = new Security();
-        //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
         SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         security.setKey(key);
-        authenticationService   = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
-        (( SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
 
-        //
-        userRepository = new UserRepository();
+        // Create a shared PasswordEncoder for consistent usage
+
+
+
+        // This line is redundant now that we're using constructor injection
+        // ((SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+
+        PasswordEncoder passwordEncoder = new PasswordEncoder();
+        authenticationService = new SecurityAdapter(security, passwordEncoder);
+        userRepository = new UserRepository(passwordEncoder);
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
-        su = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
+
+        // Add passwordEncoder parameter here
+        su = new UserService(
+                new GuestService(new GuestRepository(), authenticationService),
+                userRepository,
+                authenticationService,
+                passwordEncoder  // Use the same passwordEncoder instance
+        );
+
         VALID_SESSION = regLoginAndGetSession("owner", OWNER_EMAIL, "password");
-        // Basic authentication stubs
 
         setupSampleCatalog();
         setupSampleStores();
@@ -74,36 +87,36 @@ public class ProductSearchAndUpdatingAcceptanceTests {
     }
 
     private void setupSampleCatalog() throws Exception {
-        productCatalog.addCatalogProduct("iphone13", "iPhone 13", "Apple", "Latest iPhone", Arrays.asList("phones", "electronics"));
-        productCatalog.addCatalogProduct("macbookair", "Macbook Air", "Apple", "M2 Chip", Arrays.asList("laptops", "electronics"));
-        productCatalog.addCatalogProduct("pixel7", "Pixel 7", "Google", "Android flagship", Arrays.asList("phones"));
-        productCatalog.addCatalogProduct("galaxys23", "Galaxy S23", "Samsung", "Android premium", Arrays.asList("phones"));
-        productCatalog.addCatalogProduct("ipadpro", "iPad Pro", "Apple", "12.9 inch Tablet", Arrays.asList("tablets", "electronics"));
-        productCatalog.addCatalogProduct("surfacepro9", "Surface Pro 9", "Microsoft", "Tablet and Laptop hybrid", Arrays.asList("tablets", "laptops"));
-        productCatalog.addCatalogProduct("dellxps13", "Dell XPS 13", "Dell", "Premium Windows laptop", Arrays.asList("laptops"));
-        productCatalog.addCatalogProduct("galaxyzfold4", "Galaxy Z Fold 4", "Samsung", "Folding phone innovation", Arrays.asList("phones"));
-        productCatalog.addCatalogProduct("rogphone6", "ROG Phone 6", "Asus", "Gaming smartphone", Arrays.asList("phones", "gaming"));
-        productCatalog.addCatalogProduct("nintendoswitch", "Nintendo Switch", "Nintendo", "Hybrid gaming console", Arrays.asList("gaming", "electronics"));
-        productCatalog.addCatalogProduct("ps5", "PlayStation 5", "Sony", "Next-gen gaming console", Arrays.asList("gaming"));
-        productCatalog.addCatalogProduct("xboxseriesx", "Xbox Series X", "Microsoft", "High-end gaming console", Arrays.asList("gaming"));
-        productCatalog.addCatalogProduct("kindlepw", "Kindle Paperwhite", "Amazon", "E-ink ebook reader", Arrays.asList("electronics"));
-        productCatalog.addCatalogProduct("fitbitcharge5", "Fitbit Charge 5", "Fitbit", "Fitness tracker", Arrays.asList("electronics", "fitness"));
-        productCatalog.addCatalogProduct("garminfenix7", "Garmin Fenix 7", "Garmin", "Premium sports smartwatch", Arrays.asList("electronics", "fitness"));
-        productCatalog.addCatalogProduct("dysonv15", "Dyson V15", "Dyson", "Cordless vacuum cleaner", Arrays.asList("home", "electronics"));
-        productCatalog.addCatalogProduct("iphonese", "iPhone SE", "Apple", "Budget iPhone model", Arrays.asList("phones", "electronics"));
-        productCatalog.addCatalogProduct("galaxya54", "Galaxy A54", "Samsung", "Mid-range Android", Arrays.asList("phones"));
-        productCatalog.addCatalogProduct("xiaomiredminote12", "Redmi Note 12", "Xiaomi", "Affordable Android phone", Arrays.asList("phones"));
-        productCatalog.addCatalogProduct("lenovothinkpadx1", "ThinkPad X1 Carbon", "Lenovo", "Business ultrabook", Arrays.asList("laptops"));
-        productCatalog.addCatalogProduct("hpomen16", "HP Omen 16", "HP", "Gaming laptop", Arrays.asList("laptops", "gaming"));
-        productCatalog.addCatalogProduct("asuszenbook", "Asus Zenbook 14", "Asus", "Ultralight laptop", Arrays.asList("laptops"));
-        productCatalog.addCatalogProduct("macstudio", "Mac Studio", "Apple", "High-end desktop for creators", Arrays.asList("desktops", "electronics"));
-        productCatalog.addCatalogProduct("chromecast4k", "Chromecast 4K", "Google", "Streaming media device", Arrays.asList("electronics"));
-        productCatalog.addCatalogProduct("boseqc45", "Bose QuietComfort 45", "Bose", "Noise-cancelling headphones", Arrays.asList("electronics"));
-        productCatalog.addCatalogProduct("sonywh1000xm5", "Sony WH-1000XM5", "Sony", "Flagship noise-cancelling headphones", Arrays.asList("electronics"));
-        productCatalog.addCatalogProduct("logitechmxkeys", "Logitech MX Keys", "Logitech", "Premium keyboard", Arrays.asList("electronics", "accessories"));
-        productCatalog.addCatalogProduct("logitechmxmaster3s", "Logitech MX Master 3S", "Logitech", "High-end productivity mouse", Arrays.asList("electronics", "accessories"));
-        productCatalog.addCatalogProduct("canonr6", "Canon EOS R6", "Canon", "Professional mirrorless camera", Arrays.asList("electronics", "photography"));
-        productCatalog.addCatalogProduct("nikonz9", "Nikon Z9", "Nikon", "Flagship mirrorless camera", Arrays.asList("electronics", "photography"));
+        productCatalog.addCatalogProduct("iphone13", "iPhone 13", Arrays.asList("phones", "electronics"));
+        productCatalog.addCatalogProduct("macbookair", "Macbook Air", Arrays.asList("laptops", "electronics"));
+        productCatalog.addCatalogProduct("pixel7", "Pixel 7",  Arrays.asList("phones"));
+        productCatalog.addCatalogProduct("galaxys23", "Galaxy S23",  Arrays.asList("phones"));
+        productCatalog.addCatalogProduct("ipadpro", "iPad Pro", Arrays.asList("tablets", "electronics"));
+        productCatalog.addCatalogProduct("surfacepro9", "Surface Pro 9", Arrays.asList("tablets", "laptops"));
+        productCatalog.addCatalogProduct("dellxps13", "Dell XPS 13",  Arrays.asList("laptops"));
+        productCatalog.addCatalogProduct("galaxyzfold4", "Galaxy Z Fold 4",  Arrays.asList("phones"));
+        productCatalog.addCatalogProduct("rogphone6", "ROG Phone 6",  Arrays.asList("phones", "gaming"));
+        productCatalog.addCatalogProduct("nintendoswitch", "Nintendo Switch", Arrays.asList("gaming", "electronics"));
+        productCatalog.addCatalogProduct("ps5", "PlayStation 5",  Arrays.asList("gaming"));
+        productCatalog.addCatalogProduct("xboxseriesx", "Xbox Series X",  Arrays.asList("gaming"));
+        productCatalog.addCatalogProduct("kindlepw", "Kindle Paperwhite",  Arrays.asList("electronics"));
+        productCatalog.addCatalogProduct("fitbitcharge5", "Fitbit Charge 5",  Arrays.asList("electronics", "fitness"));
+        productCatalog.addCatalogProduct("garminfenix7", "Garmin Fenix 7",  Arrays.asList("electronics", "fitness"));
+        productCatalog.addCatalogProduct("dysonv15", "Dyson V15", Arrays.asList("home", "electronics"));
+        productCatalog.addCatalogProduct("iphonese", "iPhone SE", Arrays.asList("phones", "electronics"));
+        productCatalog.addCatalogProduct("galaxya54", "Galaxy A54",  Arrays.asList("phones"));
+        productCatalog.addCatalogProduct("xiaomiredminote12", "Redmi Note 12",  Arrays.asList("phones"));
+        productCatalog.addCatalogProduct("lenovothinkpadx1", "ThinkPad X1 Carbon",  Arrays.asList("laptops"));
+        productCatalog.addCatalogProduct("hpomen16", "HP Omen 16",  Arrays.asList("laptops", "gaming"));
+        productCatalog.addCatalogProduct("asuszenbook", "Asus Zenbook 14", Arrays.asList("laptops"));
+        productCatalog.addCatalogProduct("macstudio", "Mac Studio",  Arrays.asList("desktops", "electronics"));
+        productCatalog.addCatalogProduct("chromecast4k", "Chromecast 4K",  Arrays.asList("electronics"));
+        productCatalog.addCatalogProduct("boseqc45", "Bose QuietComfort 45",  Arrays.asList("electronics"));
+        productCatalog.addCatalogProduct("sonywh1000xm5", "Sony WH-1000XM5",  Arrays.asList("electronics"));
+        productCatalog.addCatalogProduct("logitechmxkeys", "Logitech MX Keys",  Arrays.asList("electronics", "accessories"));
+        productCatalog.addCatalogProduct("logitechmxmaster3s", "Logitech MX Master 3S", Arrays.asList("electronics", "accessories"));
+        productCatalog.addCatalogProduct("canonr6", "Canon EOS R6", Arrays.asList("electronics", "photography"));
+        productCatalog.addCatalogProduct("nikonz9", "Nikon Z9",  Arrays.asList("electronics", "photography"));
     }
 
     private void setupSampleStores() throws Exception {
@@ -111,13 +124,13 @@ public class ProductSearchAndUpdatingAcceptanceTests {
         storeService.createStore(VALID_SESSION, "GadgetWorld");
         storeService.createStore(VALID_SESSION, "GamingHub");
 
-
-        storeService.addProductToStore(VALID_SESSION, "TechHeaven", "iphone13", "iPhone 13 128GB", "Latest iPhone", 999.99, 5);
-        storeService.addProductToStore(VALID_SESSION, "TechHeaven", "macbookair", "Macbook Air Used", "M2 Chip", 1299.99, 3);
-        storeService.addProductToStore(VALID_SESSION, "GadgetWorld", "pixel7", "Pixel 7 64GB 15MP Camera", "Android flagship", 599.99, 10);
-        storeService.addProductToStore(VALID_SESSION, "GadgetWorld", "galaxya54", "Galaxy A54", "Android flagship", 549.99, 10);
-        storeService.addProductToStore(VALID_SESSION, "GamingHub", "ps5", "PlayStation 5", "Next-gen console", 499.99, 8);
-        storeService.addProductToStore(VALID_SESSION, "GamingHub", "xboxseriesx", "Xbox Series X", "Gaming console", 499.99, 7);
+        String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+        storeService.addProductToStore(VALID_SESSION, "TechHeaven", "iphone13", "iPhone 13 128GB", "Latest iPhone", 999.99, 5, imageURL);
+        storeService.addProductToStore(VALID_SESSION, "TechHeaven", "macbookair", "Macbook Air Used", "M2 Chip", 1299.99, 3, imageURL);
+        storeService.addProductToStore(VALID_SESSION, "GadgetWorld", "pixel7", "Pixel 7 64GB 15MP Camera", "Android flagship", 599.99, 10, imageURL);
+        storeService.addProductToStore(VALID_SESSION, "GadgetWorld", "galaxya54", "Galaxy A54", "Android flagship", 549.99, 10, imageURL);
+        storeService.addProductToStore(VALID_SESSION, "GamingHub", "ps5", "PlayStation 5", "Next-gen console", 499.99, 8, imageURL);
+        storeService.addProductToStore(VALID_SESSION, "GamingHub", "xboxseriesx", "Xbox Series X", "Gaming console", 499.99, 7, imageURL);
     }
 
     @Test

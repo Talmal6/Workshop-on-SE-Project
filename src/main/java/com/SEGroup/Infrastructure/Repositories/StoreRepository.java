@@ -15,12 +15,14 @@ import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Mapper.StoreMapper;
+import org.springframework.stereotype.Repository;
 
 //implement iStore
 /**
  The StoreRepository class is responsible for managing the stores in the system.
  It provides methods to create, update, and retrieve store information, as well as
  manage store products, owners, and managers. */
+@Repository
 public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
     private StoreMapper storeMapper = new StoreMapper();
@@ -125,10 +127,10 @@ public class StoreRepository implements IStoreRepository {
      @return A string indicating success or failure. */
     @Override
     public String addProductToStore(String email, String storeName, String catalogID, String product_name,String description, double price,
-                                  int quantity) {
+                                  int quantity, String imageURL) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
-            return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity);
+            return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity, imageURL);
         }
         return null;
 
@@ -400,7 +402,8 @@ public class StoreRepository implements IStoreRepository {
                 product.getDescription(),
                 product.getPrice(),
                 product.getQuantity(),
-                product.averageRating()
+                product.averageRating(),
+                product.getImageUrl()
         );
     }
 
@@ -494,5 +497,31 @@ public class StoreRepository implements IStoreRepository {
         }
         return product.getQuantity();
     }
+
+    @Override
+    public List<StoreDTO> getStoresOwnedBy(String ownerEmail) {
+        return stores.stream()                      // iterate over the list
+                .filter(s -> s.isOwner(ownerEmail)) // or s.getAllOwners().contains(ownerEmail)
+                .map(storeMapper::toDTO)       // convert to DTO
+                .toList();                     // Java 16 +  (Collectors.toList() for older)
+    }
+    public void createStoreIfNotExists(String storeName, String founderEmail) {
+        if (!isStoreExist(storeName)) {
+            createStore(storeName, founderEmail);
+        }
+    }
+
+    @Override
+    public void updateStoreDescription(String storeName, String operatorEmail, String description) {
+        // Use findByName instead of stores.get(storeName)
+        Store store = findByName(storeName);
+
+        if (!store.isOwner(operatorEmail)) {
+            throw new IllegalArgumentException("User is not authorized to update store description");
+        }
+
+        store.setDescription(description);
+    }
+
 
 }

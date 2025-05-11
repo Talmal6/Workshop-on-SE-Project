@@ -84,6 +84,7 @@ public class SignInView extends FlexLayout {
                 .bind(LoginDTO::getPassword, LoginDTO::setPassword);
     }
 
+
     private void submit() {
         try {
             LoginDTO login = new LoginDTO();
@@ -94,17 +95,17 @@ public class SignInView extends FlexLayout {
         }
     }
 
-    public void showSuccess(String sessionKey, String userName){
-        Notification.show("Logged in successfully! Session: " + sessionKey);
-        UI.getCurrent().navigate("catalog");
-        if (MainLayout.getInstance() != null) {
-            MainLayout.getInstance().setUserName(userName);
-            MainLayout.getInstance().switchToSignedInMode();
-        } else {
-            Notification.show("Main layout not found", 3000, Notification.Position.MIDDLE);
-        }
-    }
+    public void showSuccess(String sessionKey, String userName) {
+        Notification.show("Logged in successfully!", 2500, Notification.Position.TOP_CENTER);
 
+        // Make sure to update the MainLayout display
+        if (MainLayout.getInstance() != null) {
+            MainLayout.getInstance().switchToSignedInMode(userName);
+        }
+
+        // Navigation to catalog
+        UI.getCurrent().navigate(CatalogView.class);
+    }
     public void showError(String message) {
         Notification.show("Login failed: " + message, 4000, Notification.Position.MIDDLE);
     }

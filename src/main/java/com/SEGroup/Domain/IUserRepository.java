@@ -1,9 +1,11 @@
 package com.SEGroup.Domain;
 
 import com.SEGroup.Domain.Store.ManagerPermission;
+import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.Service.UserService;
 
 import java.util.List;
 import java.util.Set;
@@ -15,7 +17,9 @@ import java.util.Set;
  */
 public interface IUserRepository {
 
+
     /**
+     *
      * Retrieves a user by their email.
      *
      * @param email The email of the user.
@@ -109,4 +113,45 @@ public interface IUserRepository {
      * @param email The email of the user whose cart is to be cleared.
      */
     void clearUserCart(String email);
+
+    /**  ----►  UI needs this to populate the combo-box in SuspensionView */
+    List<String> getAllEmails();          // stub for now
+
+
+
+    /**
+     * Retrieves a user by their email.
+     *
+     * @param email The email of the user.
+     * @return The user object corresponding to the provided email.
+     */
+
+
+    /**
+     * Adds a new user to the repository.
+     *
+     * @param username The username of the new user.
+     * @param email The email of the new user.
+     * @param password The password of the new user.
+     */
+
+
+    /**
+     * Deletes a user from the repository by their email.
+     *
+     * @param email The email of the user to delete.
+     */
+
+
+
+    String getUserName(String email);
+
+
+    Set<Role> getGlobalRoles(String email);
+
+    void suspend(String email, int days);
+    void unsuspend(String email);
+    List<UserService.SuspensionDTO> getAllSuspensions();
+    boolean isSuspended(String email);
+
 }

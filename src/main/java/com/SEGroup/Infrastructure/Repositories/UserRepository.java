@@ -4,24 +4,38 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
+import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.Service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * UserRepository is responsible for managing user accounts in the system.
  * It provides methods to add, find, delete users, and manage their shopping carts.
  */
+@Repository
 public class UserRepository implements IUserRepository {
 
-    private final Map<String, User> users = new ConcurrentHashMap<>();
-    
+    private final ConcurrentMap<String, User> users = new ConcurrentHashMap<>();
+
+    private final PasswordEncoder encoder;  // ← our BCrypt wrapper
+
+    private final Map<String, UserService.SuspensionDTO> susp = new ConcurrentHashMap<>();
+
+
+    @Autowired
+    public UserRepository(PasswordEncoder encoder) {
+        this.encoder = encoder;
+    }
 
     /**
      * Retrieves a user by their email address.
@@ -40,17 +54,17 @@ public class UserRepository implements IUserRepository {
      *
      * @param username     The username of the user.
      * @param email        The email address of the user.
-     * @param passwordHash The hashed password of the user.
      * @throws IllegalArgumentException if the user already exists.
      */
     @Override
-    public void addUser(String username, String email, String passwordHash) {
+    public void addUser(String username, String email, String rawPassword) {
+
         if (users.containsKey(email))
             throw new IllegalArgumentException("User already exists: " + email);
-
-        User u = new User(email, passwordHash);
-        users.put(email, u);
+        String hash=encoder.encrypt(rawPassword);
+        users.put(email, new User(email, username, hash));
     }
+
 
     /**
      * Deletes a user from the repository.
@@ -203,7 +217,50 @@ public class UserRepository implements IUserRepository {
         }
     }
 
+    @Override
+    public List<String> getAllEmails() {
+        // keys() is a view of the map – copy to avoid concurrent-mod exceptions
+        return List.copyOf(users.keySet());
+    }
 
 
+    @Override
+    public void suspend(String email, int days) {
+        requireUser(email);
+        susp.put(email, new UserService.SuspensionDTO(
+                email,
+                LocalDate.now().toString(),
+                days == 0 ? "PERMANENT" : LocalDate.now().plusDays(days).toString()
+        ));
+    }
+
+
+    @Override
+    public void unsuspend(String email) { susp.remove(email); }
+
+    @Override
+    public List<UserService.SuspensionDTO> getAllSuspensions() {
+        return new ArrayList<>(susp.values());
+    }
+
+    @Override
+    public boolean isSuspended(String email) { return susp.containsKey(email); }
+
+    @Override
+    public Set<Role> getGlobalRoles(String email) {
+        User u = requireUser(email);
+        // union of all role sets (store-specific + system)
+        return u.snapshotRoles()
+                .values()
+                .stream()
+                .flatMap(EnumSet::stream)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getUserName(String email) {
+        User user = requireUser(email);      // זורק IllegalArgumentException אם לא קיים
+        return user.getUsername();           // או getName() – תלוי בשם המתודה במחלקת User
+    }
 }
 

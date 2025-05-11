@@ -3,7 +3,9 @@ package com.SEGroup.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.SEGroup.DTO.CatalogProductDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.DTO.StoreCardDto;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IProductCatalog;
@@ -11,11 +13,14 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import org.springframework.stereotype.Service;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
  */
 
+
+@Service
 public class StoreService {
 
     private final IStoreRepository storeRepository;
@@ -56,7 +61,7 @@ public class StoreService {
                                               List<String> categories) {
         try {
             LoggerWrapper.info("Adding product to catalog: " + catalogID);  // Log the product addition
-            productCatalog.addCatalogProduct(catalogID, name, brand, description, categories);
+            productCatalog.addCatalogProduct(catalogID, name, categories);
             return Result.success(catalogID);
         } catch (Exception e) {
             LoggerWrapper.error("Error adding product to catalog: " + e.getMessage(), e);  // Log errors
@@ -196,12 +201,12 @@ public class StoreService {
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<String> addProductToStore(String sessionKey, String storeName, String catalogID, String productName,
-                                            String description, double price, int quantity) {
+                                            String description, double price, int quantity, String imageURL) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             productCatalog.isProductExist(catalogID);
             String productID = storeRepository.addProductToStore(authenticationService.getUserBySession(sessionKey), storeName, catalogID,
-                    productName, description, price, quantity);
+                    productName, description, price, quantity, imageURL);
             productCatalog.addStoreProductEntry(catalogID, storeName, productID, price, quantity, 0, productName);
             LoggerWrapper.info("Added product to store: " + storeName + ", Product ID: " + productID);  // Log the product addition
             return Result.success(productID);
@@ -497,7 +502,11 @@ public class StoreService {
         try {
             List<ShoppingProductDTO> searchResults = new ArrayList<>();
             for (StoreSearchEntry spe : productCatalog.search(query, searchFilters, storeName, categories)) {
-                searchResults.add(storeRepository.getProduct(spe.getStoreName(), spe.getProductID()));
+                ShoppingProductDTO p = storeRepository.getProduct(spe.getStoreName(), spe.getProductID());
+                if (p != null && spe.getImageUrl() != null && !spe.getImageUrl().isBlank()) {
+                    p.setImageUrl(spe.getImageUrl());        // copy picture into the DTO
+                }
+                searchResults.add(p);
             }
             LoggerWrapper.info("Searched products in store: " + storeName + ", Query: " + query);  // Log product search
             return Result.success(searchResults);
@@ -541,5 +550,192 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+
+    public List<StoreCardDto> listAllStores() {
+        return storeRepository.getAllStores()
+                .stream()
+                .map(this::toCard)
+                .toList();
+    }
+    public List<StoreCardDto> listStoresOwnedBy(String ownerEmail) {
+        return storeRepository.getStoresOwnedBy(ownerEmail)   // ← new repo method
+                .stream()
+                .map(this::toCard)
+                .toList();
+    }
+    // helper for “my stores only”
+    private StoreCardDto toCard(StoreDTO dto) {
+        return new StoreCardDto(
+                dto.getName(),
+                dto.getFounderEmail(),
+                dto.getAvgRating(),
+                dto.getDescription());
+    }
+
+    public boolean isOwner(String email, String storeName) {
+        return storeRepository.getAllOwners(storeName, email).contains(email);
+    }
+
+    /**
+     * Retrieves a product from the store by its ID.
+     *
+     * @param storeName The name of the store.
+     * @param productId The ID of the product.
+     * @return The product details or null if not found.
+     */
+    public ShoppingProductDTO getProduct(String storeName, String productId) {
+        try {
+            // Get the product from the store repository
+            ShoppingProductDTO product = storeRepository.getProduct(storeName, productId);
+
+            // Look up additional information from the catalog like the image URL
+            if (product != null) {
+                // Find the product entry in the catalog to get its image
+                List<StoreSearchEntry> entries = productCatalog.search(
+                        product.getName(), List.of(), storeName, null
+                );
+
+                // Find the matching entry
+                for (StoreSearchEntry entry : entries) {
+                    if (entry.getProductID().equals(productId) && entry.getStoreName().equals(storeName)) {
+                        // If the entry has an image URL, update the product with it
+                        if (entry.getImageUrl() != null && !entry.getImageUrl().isEmpty()) {
+                            product.setImageUrl(entry.getImageUrl());
+                        }
+                        break;
+                    }
+                }
+            }
+
+            return product;
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving product from store: " + e.getMessage(), e);
+            return null;
+        }
+    }
+    /**
+     * Gets all products for a specific store.
+     *
+     * @param storeName The name of the store to get products for.
+     * @return A Result object containing a list of products in the store if successful, or an error message.
+     */
+    public Result<List<ShoppingProductDTO>> getStoreProducts(String storeName) {
+        try {
+            LoggerWrapper.info("Fetching products for store: " + storeName);
+
+            // Use the existing searchProducts method with empty query and filters
+            return searchProducts("", List.of(), storeName, null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting store products: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    /**
+     * Gets all products available in the system, across all stores.
+     * This is useful for the main catalog display.
+     *
+     * @return A Result object containing a list of all products if successful, or an error message.
+     */
+    public Result<List<ShoppingProductDTO>> getAllProducts() {
+        try {
+            LoggerWrapper.info("Fetching all products from all stores");
+
+            List<ShoppingProductDTO> allProducts = new ArrayList<>();
+
+            // Get all stores
+            List<StoreDTO> stores = storeRepository.getAllStores();
+
+            // For each store, get its products
+            for (StoreDTO store : stores) {
+                allProducts.addAll(store.getProducts());
+            }
+            for (ShoppingProductDTO p : allProducts) {
+                List<StoreSearchEntry> entries = productCatalog.search(
+                        p.getName(), List.of(), p.getStoreName(), null);
+
+                for (StoreSearchEntry e : entries) {
+                    if (e.getProductID().equals(p.getProductId()) &&
+                            e.getStoreName().equals(p.getStoreName()) &&
+                            e.getImageUrl() != null && !e.getImageUrl().isBlank()) {
+
+                        p.setImageUrl(e.getImageUrl());
+                        break;                 // picture found → stop inner loop
+                    }
+                }
+            }
+
+
+            return Result.success(allProducts);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting all products: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+
+    /**
+     * Retrieves product details from a store.
+     *
+     * @param sessionKey The session key for authentication
+     * @param storeName The name of the store
+     * @param productId The ID of the product to retrieve
+     * @return A Result object containing the product details if successful, or an error message
+     */
+    public Result<ShoppingProductDTO> getProductFromStore(String sessionKey, String storeName, String productId) {
+        try {
+            // Authenticate the session if provided
+            if (sessionKey != null && !sessionKey.isEmpty()) {
+                try {
+                    authenticationService.checkSessionKey(sessionKey);
+                } catch (Exception e) {
+                    // Authentication failed but we'll continue for public products
+                    LoggerWrapper.info("Non-authenticated product view request: " + e.getMessage());
+                }
+            }
+
+            // Get the product from the store
+            ShoppingProductDTO product = getProduct(storeName, productId);
+
+            if (product != null) {
+                LoggerWrapper.info("Retrieved product from store: " + storeName + ", Product: " + productId);
+                return Result.success(product);
+            } else {
+                LoggerWrapper.info("Product not found: " + productId + " in store: " + storeName);
+                return Result.failure("Product not found");
+            }
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving product from store: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+    /**
+     * Fetches a single catalog product by its catalog ID.
+     *
+     * @param catalogId the unique ID of the catalog product
+     * @return a Result containing a CatalogProductDTO on success, or an error message on failure
+     */
+    public Result<CatalogProductDTO> getCatalogProduct(String catalogId) {
+        try {
+            LoggerWrapper.info("Fetching catalog product: " + catalogId);
+            CatalogProduct cp = productCatalog.getCatalogProduct(catalogId);
+            if (cp == null) {
+                return Result.failure("Catalog product not found: " + catalogId);
+            }
+            CatalogProductDTO dto = new CatalogProductDTO(
+                    cp.getCatalogID(),
+                    cp.getName(),
+                    cp.getCategories()
+            );
+            return Result.success(dto);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error fetching catalog product: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
 }
 

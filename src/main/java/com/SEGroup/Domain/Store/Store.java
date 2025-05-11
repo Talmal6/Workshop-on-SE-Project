@@ -22,6 +22,8 @@ public class Store {
     private double balance;
     private int numOfitems;
     private final AtomicInteger inStoreProductId = new AtomicInteger(-1);
+    private String description=""; //default ;
+
 
     //products and reviews
     private Map<String, ShoppingProduct> products = new java.util.concurrent.ConcurrentHashMap<>();
@@ -111,12 +113,12 @@ public class Store {
      * @param quantity     The quantity of the product.
      * @return The ID of the added product.
      */
-    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity){
+    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity, String imageURL){
         if(quantity == 0)
             throw new IllegalArgumentException("quantity cannot be 0 ");
         if (isOwnerOrHasManagerPermissions(email)) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
-            ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity);
+            ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity, imageURL);
             products.put(productId, product);
             return productId;
         }
@@ -429,4 +431,23 @@ public class Store {
                 ", products=" + products.keySet() +
                 '}';
     }
+
+    /**
+     * Gets the store description.
+     *
+     * @return The store description.
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the store description.
+     *
+     * @param description The new description for the store.
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
 }

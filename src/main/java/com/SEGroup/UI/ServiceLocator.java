@@ -2,7 +2,6 @@ package com.SEGroup.UI;
 
 import com.SEGroup.Domain.*;
 import com.SEGroup.Service.*;
-import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -10,17 +9,16 @@ import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 
-/**
- * A centralized service locator for retrieving singleton service instances.
- * Use this to inject services into Presenters or UI layers.
- */
 public class ServiceLocator {
+    private static boolean initialised = false;
+    public static boolean isInitialized() { return initialised; }
 
     // Core Dependencies
     private static final Security security = new Security();
     private static final PasswordEncoder passwordEncoder = new PasswordEncoder();
-    //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
-    private static IAuthenticationService authService = new SecurityAdapter();
+
+    // Remove initialization here - just declare the variable
+    private static IAuthenticationService authService;
 
     // Repositories (These must be set externally or mocked for now)
     private static IUserRepository userRepository;
@@ -29,34 +27,62 @@ public class ServiceLocator {
     private static IStoreRepository storeRepository;
     private static IProductCatalog productCatalog;
     private static IPaymentGateway paymentGateway;
+    private static IShippingService shipping;
 
     // Services
     private static GuestService guestService;
     private static UserService userService;
     private static StoreService storeService;
     private static TransactionService transactionService;
-
     public static void initialize(IGuestRepository guests,
                                   IUserRepository users,
                                   ITransactionRepository transactions,
                                   IStoreRepository stores,
                                   IProductCatalog catalog,
-                                  IPaymentGateway gateway) {
+                                  IPaymentGateway gateway, IShippingService shipping) {
+        if (initialised) return;     // already done – skip
+        initialised = true;
+
         guestRepository = guests;
+
+        // If UserRepository was created with a different PasswordEncoder, we need to:
+        // Option 1: If possible, inject our PasswordEncoder into the existing repository
+        if (users instanceof com.SEGroup.Infrastructure.Repositories.UserRepository) {
+            try {
+                // Try to set our shared passwordEncoder via reflection if needed
+                java.lang.reflect.Field encoderField = users.getClass().getDeclaredField("encoder");
+                encoderField.setAccessible(true);
+                encoderField.set(users, passwordEncoder);
+            } catch (Exception e) {
+                // If this fails, just use the repository as-is, but login may not work
+                System.err.println("Warning: Could not set shared PasswordEncoder in UserRepository");
+            }
+        }
+
         userRepository = users;
         transactionRepository = transactions;
         storeRepository = stores;
         productCatalog = catalog;
         paymentGateway = gateway;
+
         SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         security.setKey(key);
+
         authService = new SecurityAdapter(security, passwordEncoder);
         guestService = new GuestService(guestRepository, authService);
-        userService = new UserService(guestService, userRepository, authService);
-        storeService = new StoreService(storeRepository, productCatalog, authService, userRepository);
-        transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository);
-    }
+        userService = new UserService(guestService, userRepository, authService, passwordEncoder);
 
+        ServiceLocator.shipping = shipping;
+        storeService = new StoreService(storeRepository, productCatalog, authService, userRepository);
+        transactionService = new TransactionService(
+                authService,
+                paymentGateway,
+                transactionRepository,
+                storeRepository,
+                userRepository,
+                shipping
+        );
+    }
     public static IAuthenticationService getAuthenticationService() {
         return authService;
     }

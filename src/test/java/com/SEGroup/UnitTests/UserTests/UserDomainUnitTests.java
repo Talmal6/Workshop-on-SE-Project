@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.SEGroup.Infrastructure.PasswordEncoder;
 /**
  * Pure unit-level tests for the concrete in-memory classes that live in
  * {@code com.SEGroup.Domain.User}.
@@ -78,7 +79,7 @@ class UserDomainUnitTests {
     @Nested class UserTests {
         User user;
 
-        @BeforeEach void newUser() { user = new User("u@bgu.ac.il", "hash"); }
+        @BeforeEach void newUser() { user = new User("u@bgu.ac.il","asher", "hash"); }
 
         @Test void Given_NewUser_When_AddOwnerRole_Then_HasRoleTrue() {
             user.addRole("Shop", Role.STORE_OWNER);
@@ -111,8 +112,16 @@ class UserDomainUnitTests {
     /* ─────────────────────── UserRepository (extras) ─────────────────── */
     @Nested class UserRepositoryExtras {
         UserRepository repo;
+        PasswordEncoder passwordEncoder;
 
-        @BeforeEach void freshRepo() { repo = new UserRepository(); }
+        @BeforeEach void freshRepo() {
+
+            passwordEncoder = new PasswordEncoder();
+
+            // If UserRepository has been updated to accept a PasswordEncoder in constructor:
+            repo = new UserRepository(passwordEncoder);
+
+        }
 
         @Test void Given_UserWithCart_When_ClearCart_Then_CartEmpty() {
             repo.addUser("U", "u@mail", "h");
