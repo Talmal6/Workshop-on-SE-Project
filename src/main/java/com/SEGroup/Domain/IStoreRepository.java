@@ -6,6 +6,8 @@ import java.util.Map;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.Domain.Store.Store;
+
 /**
  * Interface representing a repository for managing stores.
  * It provides methods to create, retrieve, update, and delete stores and their products.
@@ -196,6 +198,11 @@ public interface IStoreRepository {
      */
     void addToBalance(String userBySession, String storeName, double amount);
 
+    /**
+     * Get ratings of some store
+     * @param storeName The name of the store to update.
+     */
+    Map<String, Store.Rating> findRatingsByStore(String storeName);
     /**
      * Removes items from stores based on a list of basket items.
      *

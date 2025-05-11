@@ -15,7 +15,10 @@ import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Mapper.StoreMapper;
+import com.SEGroup.Service.Result;
 import org.springframework.stereotype.Repository;
+
+
 
 //implement iStore
 /**
@@ -523,5 +526,11 @@ public class StoreRepository implements IStoreRepository {
         store.setDescription(description);
     }
 
+
+    @Override
+    public Map<String,Store.Rating> findRatingsByStore(String storeName) {
+        Store store = findByName(storeName);
+        return store.getRatings();
+    }
 
 }

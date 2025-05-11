@@ -2,6 +2,7 @@ package com.SEGroup.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.SEGroup.DTO.CatalogProductDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
@@ -13,7 +14,10 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Domain.Store.Store;
 import org.springframework.stereotype.Service;
+
+import javax.naming.AuthenticationException;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
@@ -45,6 +49,7 @@ public class StoreService {
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
     }
+
 
     /**
      * Adds a product to the catalog.
@@ -736,6 +741,12 @@ public class StoreService {
         }
     }
 
+    public Result<Map<String,Store.Rating>> getAllRatings(String sessionKey, String storeName)
+            throws AuthenticationException {
+        authenticationService.checkSessionKey(sessionKey);
+        Map<String,Store.Rating> ratings = storeRepository.findRatingsByStore(storeName);
+        return Result.success(ratings);
+    }
 
 }
 

@@ -21,6 +21,7 @@ import com.vaadin.flow.shared.ui.Transport;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import reactor.core.Disposable;
 import reactor.core.scheduler.Schedulers;
 
@@ -222,9 +223,12 @@ public class MainLayout extends AppLayout {
                 baseCatalogTab,
                 nav("All Stores", AllStoresView.class, VaadinIcon.STORAGE),
                 nav("Notifications", NotificationView.class, VaadinIcon.BELL),
-                nav("purchase history", PurchaseHistoryView.class, VaadinIcon.ARCHIVE)
+                nav("purchase history", PurchaseHistoryView.class, VaadinIcon.ARCHIVE),
+                nav("Admin panel", AdminView.class, VaadinIcon.USER)
         );
+
         tabs.getTabAt(6).setVisible(false);
+        tabs.getTabAt(7).setVisible(false);
 
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         addToDrawer(tabs);
@@ -475,6 +479,7 @@ public class MainLayout extends AppLayout {
 
                 // 5) Base Catalog tab only for admins or store-owners (global or per-store)
                 baseCatalogTab.setVisible(isAdmin || isGlobalOwner || ownsStore);
+                tabs.getTabAt(7).setVisible(isAdmin);
                 // Notifications always once logged in
                 notificationBtn.setVisible(true);
 

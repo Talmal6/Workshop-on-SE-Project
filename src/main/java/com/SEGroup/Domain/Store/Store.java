@@ -40,6 +40,14 @@ public class Store {
         final int score;
         final String review ;
         Rating (int s , String r ){score =s;review =r; }
+
+
+        public int getScore(){
+            return score;
+        }
+        public String getReview(){
+            return review;
+        }
     }
     // Disocunt and policy fields
     private PurchasePolicy purchasePolicy;
@@ -449,5 +457,10 @@ public class Store {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public Map<String,Rating> getRatings() {
+        return Collections.unmodifiableMap(ratings);
+    }
+
 
 }
