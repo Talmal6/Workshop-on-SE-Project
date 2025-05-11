@@ -3,9 +3,11 @@ package com.SEGroup.Domain;
 import java.util.List;
 import java.util.Map;
 
+import com.SEGroup.DTO.AuctionDTO;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.Domain.Store.Auction;
 import com.SEGroup.Domain.Store.Store;
 
 /**
@@ -232,6 +234,24 @@ public interface IStoreRepository {
     List<StoreDTO> getStoresOwnedBy(String ownerEmail);
 
     void updateStoreDescription(String storeName, String operatorEmail, String description);
+    void startAuction(String storeName, String productId, double startingPrice, long durationMillis);
 
 
-}
+    /**
+     * Place a bid on an auction.
+     */
+    boolean bidOnAuction(String bidderEmail,
+                         String storeName,
+                         String productId,
+                         double amount);
+
+    /**
+     * Fetch the auction entity for UI display.
+     */
+    Auction getAuctionInfo(String storeName,
+                           String productId);
+
+
+    List<String> getBidUsers(String storeName, String productId);
+
+    AuctionDTO    getAuction(String storeName, String productId);}

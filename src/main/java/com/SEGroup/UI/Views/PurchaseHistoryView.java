@@ -7,10 +7,7 @@ import com.SEGroup.UI.Presenter.PurchaseHistoryPresenter;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.ListItem;
-import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -98,15 +95,22 @@ public class PurchaseHistoryView extends VerticalLayout {
 
     public void showItems(List<TransactionDTO> transactions) {
         if (transactions == null || transactions.size() == 0){
-           grid.setVisible(false);
-           //add new textview showing that there's no
-            TextField noTractions = new TextField("There is no transactions yet, start shopping to see your transactions here");
-            add(noTractions);
+            hideGrid();
+            return;
         }
         grid.setItems(transactions);
     }
 
     public void showError(String errorMessage) {
         Notification.show(errorMessage, 3000, Notification.Position.MIDDLE);
+    }
+
+    public void hideGrid() {
+        grid.setVisible(false);
+        // Optionally, you can add a message indicating no transactions were found
+        Span noTransactionsMessage = new Span("No transactions found.");
+        noTransactionsMessage.getStyle().set("color", "red");
+        noTransactionsMessage.getStyle().set("font-weight", "bold");
+        add(noTransactionsMessage);
     }
 }

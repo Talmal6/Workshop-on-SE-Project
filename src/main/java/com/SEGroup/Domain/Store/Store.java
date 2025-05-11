@@ -462,5 +462,37 @@ public class Store {
         return Collections.unmodifiableMap(ratings);
     }
 
+    /**
+     * Place a bid on a live auction.
+     */
+    public boolean bidOnAuction(String productId, String bidderEmail, double amount) {
+        ShoppingProduct p = requireProduct(productId);
+        if (p.getAuction() == null)
+            throw new RuntimeException("No auction running");
+        return p.getAuction().submitBid(bidderEmail, amount);
+    }
+
+    /**
+     * Get the current snapshot of this product’s auction.
+     */
+    public Auction getAuctionInfo(String productId) {
+        ShoppingProduct p = requireProduct(productId);
+        return p.getAuction();
+    }
+
+    public void startAuction(String productId, double startingPrice, long durationMillis) {
+        ShoppingProduct p = requireProduct(productId);
+        if (!isOwnerOrHasManagerPermissions(founderEmail))
+            throw new RuntimeException("Not authorized");
+        p.startAuction(startingPrice, durationMillis);
+    }
+
+
+    private ShoppingProduct requireProduct(String productId) {
+        ShoppingProduct p = products.get(productId);
+        if (p == null) throw new IllegalArgumentException("Unknown product " + productId);
+        return p;
+    }
+
 
 }

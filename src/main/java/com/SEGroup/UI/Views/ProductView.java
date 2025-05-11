@@ -1,10 +1,12 @@
 package com.SEGroup.UI.Views;
 
+import com.SEGroup.DTO.AuctionDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.ProductPresenter;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -12,9 +14,14 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
+import org.springframework.web.servlet.View;
 
 import java.text.DecimalFormat;
+import java.time.Instant;
+import java.time.ZoneId;
 
 /**
  * View for displaying a single product's details.
@@ -22,18 +29,22 @@ import java.text.DecimalFormat;
 @Route(value = "product/:productId/:storeName", layout = MainLayout.class)
 @PageTitle("Product Details")
 public class ProductView extends VerticalLayout implements HasUrlParameter<String> {
+    private final View view;
     private ProductPresenter presenter;
     private final Div productDetails = new Div();
     private String productId;
     private String storeName;
+    private boolean isOwner;
+    private boolean isBidStarted;
     private final DecimalFormat ratingFormat = new DecimalFormat("0.0");
 
-    public ProductView() {
+    public ProductView(View view) {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
 
         add(productDetails);
+        this.view = view;
     }
 
     @Override
@@ -50,13 +61,76 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
             }
 
             this.presenter = new ProductPresenter(this, productId, storeName);
+            this.isOwner = presenter.isOwner();
+            presenter.loadAuctionInfo();
             presenter.loadProductDetails();
         } catch (Exception e) {
             showError("Error loading product: " + e.getMessage());
         }
     }
+    public void displayAuctionInfo(AuctionDTO auction) {
+        if (auction == null) {
+            return;
+        }
+        if (isOwner) {
+            Button startAuctionBtn = new Button("Start Auction", VaadinIcon.GAVEL.create());
+            startAuctionBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            startAuctionBtn.addClickListener(e -> openStartAuctionDialog());
+            addComponentAtIndex(0, startAuctionBtn);
+        }
+
+        // 1) convert the Date->Instant for formatting
+        Instant endInstant = auction.getEndTime().toInstant();
+        String endsAt = endInstant
+                .atZone(ZoneId.systemDefault())
+                .toLocalTime()
+                .toString();
+
+        // 2) optionally show “time remaining”
+        long millisLeft = auction.getTimeRemainingMillis();
+        long seconds = (millisLeft / 1000) % 60;
+        long minutes = (millisLeft / (1000 * 60)) % 60;
+        long hours   = millisLeft / (1000 * 60 * 60);
+        String remaining = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+
+        Span currentBid  = new Span("Current bid: $ " + auction.getHighestBid());
+        Span endsAtSpan  = new Span("Ends at: " + endsAt);
+        Span remainSpan  = new Span("Time left: " + remaining);
+
+        TextField bidField = new TextField("Your bid");
+        bidField.setWidth("150px");
+
+        Button bidBtn = new Button("Place Bid", VaadinIcon.GAVEL.create());
+        bidBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        bidBtn.addClickListener(e -> {
+            try {
+                double amt = Double.parseDouble(bidField.getValue());
+                presenter.placeBid(amt);
+            } catch (NumberFormatException ex) {
+                showError("Please enter a valid number");
+            }
+        });
+
+        HorizontalLayout auctionBar = new HorizontalLayout(
+                currentBid,
+                endsAtSpan,
+                remainSpan,
+                bidField,
+                bidBtn
+        );
+        auctionBar.getStyle()
+                .set("border", "1px solid var(--lumo-contrast-20pct)")
+                .set("padding", "1em")
+                .set("border-radius", "8px")
+                .set("margin-bottom", "1em");
+
+        // insert at top
+        addComponentAtIndex(0, auctionBar);
+    }
+
 
     public void displayProduct(ShoppingProductDTO product) {
+
         productDetails.removeAll();
 
         // Create navigation buttons
@@ -159,6 +233,61 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         addToCartBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addToCartBtn.addClickListener(e -> presenter.addToCart());
 
+//        presenter.loadAuctionInfo();
+//
+//        if (presenter.getAuction() != null) {
+//            AuctionDTO a = presenter.getAuction();
+//            // show current highest bid, time left, etc:
+//            Span current = new Span("Current bid: $" + a.getHighestBid());
+//            Span endsAt = new Span("Ends at: " + Instant.ofEpochMilli(a.getStartTime() + a.getDurationMillis())
+//                    .atZone(ZoneId.systemDefault())
+//                    .toLocalTime().toString());
+//            TextField bidField = new TextField("Your bid");
+//            Button bidBtn = new Button("Place Bid", ev -> {
+//                double amt = Double.parseDouble(bidField.getValue());
+//                presenter.placeBid(amt);
+//            });
+//
+//            VerticalLayout auctionBox = new VerticalLayout(current, endsAt, bidField, bidBtn);
+//            auctionBox.getStyle().set("border", "1px solid var(--lumo-contrast-20pct)")
+//                    .set("padding", "1em")
+//                    .set("border-radius", "8px");
+//            add(auctionBox);
+//        }
+
+//        Button startBidBtn = new Button("Start Bid", VaadinIcon.GAVEL.create());
+//        startBidBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+//        startBidBtn.setVisible(isOwner);
+//
+//        Button endBidBtn = new Button("End Bid", VaadinIcon.GAVEL.create());
+//        endBidBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+//
+//        startBidBtn.addClickListener(e -> {
+//            this.isBidStarted = true;
+//             startBidBtn.setVisible(false);
+//             endBidBtn.setVisible(isOwner);
+//        });
+//
+//        endBidBtn.addClickListener(e -> {
+//            this.isBidStarted = false;
+//            endBidBtn.setVisible(false);
+//            startBidBtn.setVisible(isOwner);
+//        });
+
+        TextField offer = new TextField("BID Offer Price");
+        Button bidBuyBtn = new Button("Enter", VaadinIcon.GAVEL.create());
+        bidBuyBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+
+        bidBuyBtn.addClickListener(e -> {
+            if(!offer.isEmpty()) {
+                presenter.bidBuy(offer.getValue());
+            }
+            else{
+                showError("Text is empty");
+            }
+        });
+
+
         // Organize content in layouts
         VerticalLayout productInfo = new VerticalLayout(
                 productName,
@@ -180,10 +309,13 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         VerticalLayout content = new VerticalLayout(
                 navigationBar,
                 productLayout,
-                addToCartBtn
+                addToCartBtn,
+                offer,
+                bidBuyBtn
         );
         content.setAlignSelf(FlexComponent.Alignment.START, navigationBar);
         content.setAlignSelf(FlexComponent.Alignment.START, addToCartBtn);
+
 
         productDetails.add(content);
     }
@@ -315,6 +447,36 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
             case "Shoes": return "#f1c40f";
             default: return "#34495e";
         }
+    }
+
+    private void openStartAuctionDialog() {
+        Dialog dlg = new Dialog();
+        dlg.setHeaderTitle("Start Auction for " + presenter.getProductName());
+
+        NumberField startPrice = new NumberField("Starting Price");
+        startPrice.setMin(0);
+        startPrice.setRequiredIndicatorVisible(true);
+
+        NumberField duration = new NumberField("Duration (minutes)");
+        duration.setMin(1);
+        duration.setRequiredIndicatorVisible(true);
+
+        Button cancel = new Button("Cancel", e -> dlg.close());
+        Button ok = new Button("Start", e -> {
+            try {
+                double sp = startPrice.getValue();
+                long durMs = (long)(duration.getValue() * 60_000);
+                presenter.startAuction(sp, durMs);
+                dlg.close();
+            } catch (Exception ex) {
+                showError("Invalid values");
+            }
+        });
+        ok.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        dlg.add(new VerticalLayout(startPrice, duration));
+        dlg.getFooter().add(cancel, ok);
+        dlg.open();
     }
 
     public void showSuccess(String message) {

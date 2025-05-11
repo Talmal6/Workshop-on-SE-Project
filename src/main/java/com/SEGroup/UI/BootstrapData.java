@@ -177,6 +177,14 @@ class BootstrapData {
         System.out.println("Adding Demo Store products...");
         String p1 = stores.addProductToStore("owner@demo.com", demoStore, "TECH-001",
                 "Smartphone X Pro", "Flagship smartphone with 6.7-inch AMOLED display, 108MP camera system, 5G connectivity, and all-day battery life. Includes 1-year warranty and premium accessories.", 999.99, 10, "phone-url");
+               // 🔨 start a quick demo auction on that first product:
+             // ownerEmail, storeName, productId, startingPrice, durationMillis
+        stores.startAuction(
+                demoStore,       // ← use the variable, not the string literal
+                p1,
+                100.0,
+                5 * 60_000L
+        );
         String p2 = stores.addProductToStore("owner@demo.com", demoStore, "TECH-002",
                 "Laptop Pro Max", "High-performance laptop featuring the latest processor, 32GB RAM, 1TB SSD, and dedicated graphics. Perfect for professionals, designers, and gamers.", 1499.99, 5, "laptop-url");
         String p3 = stores.addProductToStore("owner@demo.com", demoStore, "HOME-001",

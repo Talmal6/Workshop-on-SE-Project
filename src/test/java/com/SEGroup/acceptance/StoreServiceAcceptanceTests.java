@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
@@ -51,6 +53,8 @@ public class StoreServiceAcceptanceTests {
     public void setUp() throws Exception {
         storeRepository = new StoreRepository();
         productCatalog = new InMemoryProductCatalog();
+        NotificationEndpoint endpoint = new NotificationEndpoint();
+        NotificationCenter nc = new NotificationCenter(authenticationService, endpoint);
         Security security = new Security();
 
         // Create the key
@@ -79,7 +83,13 @@ public class StoreServiceAcceptanceTests {
         }
 
         // Create the services
-        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
+        storeService = new StoreService(
+                storeRepository,
+                productCatalog,
+                authenticationService,
+                userRepository,
+                nc
+        );
         userService = new UserService(
                 new GuestService(new GuestRepository(), authenticationService),
                 userRepository,

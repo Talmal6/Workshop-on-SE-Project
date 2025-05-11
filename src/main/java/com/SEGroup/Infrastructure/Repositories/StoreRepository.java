@@ -1,21 +1,19 @@
 package com.SEGroup.Infrastructure.Repositories;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import com.SEGroup.DTO.AuctionDTO;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IStoreRepository;
+import com.SEGroup.Domain.Store.Auction;
 import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Mapper.AuctionMapper;
 import com.SEGroup.Mapper.StoreMapper;
-import com.SEGroup.Service.Result;
 import org.springframework.stereotype.Repository;
 
 
@@ -532,5 +530,49 @@ public class StoreRepository implements IStoreRepository {
         Store store = findByName(storeName);
         return store.getRatings();
     }
+
+    @Override
+    public AuctionDTO getAuction(String storeName, String productId) {
+        Store store = findByName(storeName);
+        Auction a = store.getProduct(productId).getAuction();
+        return a == null || a.isEnded()
+                ? null
+                : AuctionMapper.toDTO(storeName, productId, a);
+    }
+
+// in StoreRepository
+    @Override
+    public void startAuction(String storeName, String productId, double startingPrice, long durationMillis) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) throw new RuntimeException("Product not found");
+        Date end = new Date(System.currentTimeMillis() + durationMillis);
+        product.setAuction(new Auction(startingPrice, end));
+    }
+
+    @Override
+    public boolean bidOnAuction(String bidderEmail, String storeName, String productId, double amount) {
+        Store s = findByName(storeName);
+        return s.bidOnAuction(productId, bidderEmail, amount);
+    }
+
+    @Override
+    public Auction getAuctionInfo(String storeName, String productId) {
+        Store s = findByName(storeName);
+        return s.getAuctionInfo(productId);
+    }
+
+    @Override
+    public List<String> getBidUsers(String storeName, String productId) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store: " + productId);
+        }
+        // assume ShoppingProduct has getBids(): List<Bid>, and Bid has getUserEmail()
+        return product.getBids().stream()
+                .map(bid -> bid.getBidderEmail()).toList();
+    }
+
 
 }

@@ -1,8 +1,11 @@
 package com.SEGroup.UI;
 
 import com.SEGroup.Domain.*;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Service.*;
 import com.SEGroup.Infrastructure.PasswordEncoder;
+import com.SEGroup.Infrastructure.NotificationCenter.*;
+
 import com.SEGroup.Infrastructure.Security;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -28,7 +31,7 @@ public class ServiceLocator {
     private static IProductCatalog productCatalog;
     private static IPaymentGateway paymentGateway;
     private static IShippingService shipping;
-
+    private static NotificationCenter notificationCenter;
     // Services
     private static GuestService guestService;
     private static UserService userService;
@@ -69,11 +72,15 @@ public class ServiceLocator {
         security.setKey(key);
 
         authService = new SecurityAdapter(security, passwordEncoder);
+
+        NotificationEndpoint endpoint = new NotificationEndpoint();
+
         guestService = new GuestService(guestRepository, authService);
         userService = new UserService(guestService, userRepository, authService, passwordEncoder);
+        notificationCenter = new NotificationCenter(authService, endpoint);
 
         ServiceLocator.shipping = shipping;
-        storeService = new StoreService(storeRepository, productCatalog, authService, userRepository);
+        storeService = new StoreService(storeRepository, productCatalog, authService, userRepository,notificationCenter);
         transactionService = new TransactionService(
                 authService,
                 paymentGateway,

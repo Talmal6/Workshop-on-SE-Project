@@ -67,6 +67,10 @@ public class ShoppingProduct {
         return Collections.unmodifiableList(bids);
     }
 
+
+    public void setAuction(Auction auction){
+        this.auction=auction;
+    }
     // Setters
     public void setName(String name) {
         this.name = name;
@@ -98,9 +102,10 @@ public class ShoppingProduct {
         * @param startingPrice The starting price of the auction.
         * @param endTime     The end time of the auction.
      */
-    public void startAuction(double startingPrice, Date endTime) {
-        this.auction = new Auction(startingPrice, endTime);
+    public void startAuction(double startingPrice, long durationMillis) {
+        this.auction = new Auction(startingPrice, new Date(System.currentTimeMillis() + durationMillis));
     }
+
 
     public Auction getAuction() {
         return auction;
@@ -146,4 +151,10 @@ public class ShoppingProduct {
     public String getImageUrl() {
         return imageUrl;
     }
+
+    public boolean hasAuction() {
+        return auction != null;
+    }
+
+
 }

@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
@@ -20,9 +21,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Service.Result;
@@ -41,7 +39,7 @@ public class ProductSearchAndUpdatingAcceptanceTests {
     InMemoryProductCatalog productCatalog;
     IAuthenticationService authenticationService;
     IUserRepository userRepository;
-
+    com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter nc;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -63,7 +61,7 @@ public class ProductSearchAndUpdatingAcceptanceTests {
         PasswordEncoder passwordEncoder = new PasswordEncoder();
         authenticationService = new SecurityAdapter(security, passwordEncoder);
         userRepository = new UserRepository(passwordEncoder);
-        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,nc);
 
         // Add passwordEncoder parameter here
         su = new UserService(

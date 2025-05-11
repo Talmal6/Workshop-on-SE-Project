@@ -3,20 +3,20 @@ package com.SEGroup.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import com.SEGroup.DTO.CatalogProductDTO;
-import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.DTO.StoreCardDto;
-import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Domain.Store.Auction;
 import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Mapper.AuctionMapper;
 import org.springframework.stereotype.Service;
-
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import javax.naming.AuthenticationException;
 
 /**
@@ -31,7 +31,7 @@ public class StoreService {
     private final IProductCatalog productCatalog;
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
-
+    private final NotificationCenter notificationCenter;
     /**
      * Constructs a new StoreService instance with the provided dependencies.
      *
@@ -43,11 +43,12 @@ public class StoreService {
     public StoreService(IStoreRepository storeRepository,
                         IProductCatalog productCatalog,
                         IAuthenticationService authenticationService,
-                        IUserRepository userRepository) {
+                        IUserRepository userRepository,NotificationCenter notificationCenter) {
         this.storeRepository = storeRepository;
         this.productCatalog = productCatalog;
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
+        this.notificationCenter    = notificationCenter;
     }
 
 
@@ -533,6 +534,22 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+    public Result<List<String>> getBidUsers(String sessionKey,
+                                            String storeName,
+                                            String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            if(isOwner(authenticationService.getUserBySession(sessionKey), storeName)) {
+                List<String> users = storeRepository.getBidUsers(storeName, productId);
+                return Result.success(users);
+            }
+        } catch (Exception e) {
+            LoggerWrapper.error("Error fetching bid users: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+        return null;
+    }
     //3.11
     public Result<Void> sendAuctionOffer(String sessionKey,
                                          String storeName,
@@ -746,6 +763,86 @@ public class StoreService {
         authenticationService.checkSessionKey(sessionKey);
         Map<String,Store.Rating> ratings = storeRepository.findRatingsByStore(storeName);
         return Result.success(ratings);
+    }
+
+    public Result<Void> startAuction(String sessionKey,
+                                     String storeName,
+                                     String productId,
+                                     double startingPrice,
+                                     long durationMillis) {
+        try {
+            // 1) Authenticate
+            authenticationService.checkSessionKey(sessionKey);
+
+            // 2) Kick‐off the auction in the domain
+            storeRepository.startAuction(storeName, productId, startingPrice, durationMillis);
+
+            // 3) Build a user‐facing message
+            String operator = authenticationService.getUserBySession(sessionKey);
+            long mins = TimeUnit.MILLISECONDS.toMinutes(durationMillis);
+            String msg = String.format(
+                    "🔨 Auction started on %s/%s at $%.2f, ends in %d min",
+                    storeName, productId, startingPrice, mins);
+
+            // 4) Gather store owners & managers
+            List<String> recipients = new ArrayList<>(storeRepository.getAllOwners(storeName, operator));
+            recipients.addAll(storeRepository.getAllManagers(storeName, operator));
+
+            // 5) Fire off system notifications
+            for (String userId : recipients) {
+                notificationCenter.sendSystemNotification(sessionKey, userId, msg);
+            }
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Boolean> placeBidOnAuction(String sessionKey,
+                                             String storeName,
+                                             String productId,
+                                             double amount) {
+        try {
+            // 1) Authenticate
+            authenticationService.checkSessionKey(sessionKey);
+            String who = authenticationService.getUserBySession(sessionKey);
+
+            // 2) Attempt the bid
+            boolean ok = storeRepository.bidOnAuction(who, storeName, productId, amount);
+            if (!ok) {
+                return Result.failure("Bid too low or auction closed");
+            }
+
+            // 3) Notify the store owners
+            String msg = String.format("💰 %s placed a bid of $%.2f on %s/%s",
+                    who, amount, storeName, productId);
+            for (String ownerEmail : storeRepository.getAllOwners(storeName, who)) {
+                // sendUserNotification includes a senderId
+                notificationCenter.sendUserNotification(sessionKey, ownerEmail, msg, who);
+            }
+
+            return Result.success(true);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    /**
+     * Expose the current state of an auction so your presenter can render it.
+     */
+    public Result<AuctionDTO> getAuction(String sessionKey,
+                                         String storeName,
+                                         String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            var a = storeRepository.getAuctionInfo(storeName, productId);
+            if (a == null || a.isEnded()) {
+                return Result.failure("No active auction");
+            }
+            return Result.success(AuctionMapper.toDTO(storeName, productId, a));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
     }
 
 }

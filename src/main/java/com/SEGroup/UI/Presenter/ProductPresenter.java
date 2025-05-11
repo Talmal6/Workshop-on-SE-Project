@@ -1,5 +1,6 @@
 package com.SEGroup.UI.Presenter;
 
+import com.SEGroup.DTO.AuctionDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
@@ -18,6 +19,8 @@ public class ProductPresenter {
     private final StoreService storeService;
     private final UserService userService;
     private ShoppingProductDTO product;
+    private boolean isBidStarted;
+    private AuctionDTO auction;
 
     public ProductPresenter(ProductView view, String productId, String storeName) {
         this.view = view;
@@ -25,6 +28,39 @@ public class ProductPresenter {
         this.storeName = storeName;
         this.storeService = ServiceLocator.getStoreService();
         this.userService = ServiceLocator.getUserService();
+        this.isBidStarted = false;
+    }
+
+
+    public AuctionDTO getAuction() {
+        return auction;
+    }
+    public void loadAuctionInfo() {
+        Result<AuctionDTO> r = storeService.getAuction(
+                SecurityContextHolder.token(), storeName, productId);
+        if (r.isSuccess()) {
+            auction = r.getData();
+            view.displayAuctionInfo(auction);
+        }
+    }
+
+    // In ProductPresenter.java
+    public void placeBid(double amount) {
+        Result<Boolean> r = storeService.placeBidOnAuction(
+                SecurityContextHolder.token(),
+                storeName,
+                productId,
+                amount
+        );
+        if (r.isSuccess()) {
+            if (Boolean.TRUE.equals(r.getData())) {
+                view.showSuccess("Bid placed!");
+            } else {
+                view.showError("Your bid was too low or the auction is closed.");
+            }
+        } else {
+            view.showError("Failed to place bid: " + r.getErrorMessage());
+        }
     }
 
     /**
@@ -110,6 +146,39 @@ public class ProductPresenter {
             e.printStackTrace();
             view.showError("Error adding to cart: " + e.getMessage());
         }
+    }
+
+
+    public void startAuction(double startingPrice, long durationMillis) {
+        String token = SecurityContextHolder.token();
+        Result<Void> r = storeService.startAuction(token, storeName, productId, startingPrice, durationMillis);
+        if (r.isSuccess()) {
+            view.showSuccess("Auction started!");
+            loadAuctionInfo();         // refresh the auction bar below
+        } else {
+            view.showError("Failed to start auction: " + r.getErrorMessage());
+        }
+    }
+
+    public void bidBuy(String amount1){
+        if(isBidStarted) {
+            double amount = Double.parseDouble((amount1.trim()));
+            Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount);
+            if (res.isSuccess()) {
+                this.view.showSuccess("Buying well done..Good Luck");
+            } else {
+                this.view.showError("Problem caught: " + res.getErrorMessage());
+            }
+        }
+    }
+    public String getProductName() {
+        return product != null
+                ? product.getName()
+                : "";
+    }
+
+    public boolean isOwner(){
+        return SecurityContextHolder.isStoreOwner();
     }
     public String getProductId() {
         return productId;

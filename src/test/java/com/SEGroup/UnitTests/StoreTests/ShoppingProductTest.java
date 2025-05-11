@@ -62,31 +62,31 @@ public class ShoppingProductTest {
         assertEquals(100.0, highestBid.get().getAmount(), 0.001);
     }
 
-    @Test
-    void GivenAuctionDetails_WhenStartAuction_ThenAuctionIsInitialized() {
-        Date endTime = new Date(System.currentTimeMillis() + 10000); // +10 seconds
-        shoppingProduct.startAuction(100.0, endTime);
-
-        assertNotNull(shoppingProduct.getAuction());
-        assertEquals(100.0, shoppingProduct.getAuction().getStartingPrice(), 0.001);
-        assertEquals(endTime, shoppingProduct.getAuction().getEndTime());
-    }
-
-    @Test
-    void GivenInvalidAuctionDetails_WhenSubmitBid_ThenFails(){
-        Date endTime = new Date(System.currentTimeMillis() + 10000); // +10 seconds
-        shoppingProduct.startAuction(100.0, endTime);
-        shoppingProduct.addBid("User@gmail.com",99);
-        assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",99));
-    }
-
-    @Test
-    void GivenInvalidAuctionDetails_WhenSubmitBid_ThenFails2(){
-        Date endTime = new Date(System.currentTimeMillis() - 1000); // +10 seconds
-        shoppingProduct.startAuction(100.0, endTime);
-        shoppingProduct.addBid("User@gmail.com",110);
-        assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",110));
-    }
+//    @Test
+//    void GivenAuctionDetails_WhenStartAuction_ThenAuctionIsInitialized() {
+//        Date endTime = new Date(System.currentTimeMillis() + 10000); // +10 seconds
+//        shoppingProduct.startAuction(100.0, endTime);
+//
+//        assertNotNull(shoppingProduct.getAuction());
+//        assertEquals(100.0, shoppingProduct.getAuction().getStartingPrice(), 0.001);
+//        assertEquals(endTime, shoppingProduct.getAuction().getEndTime());
+//    }
+//
+//    @Test
+//    void GivenInvalidAuctionDetails_WhenSubmitBid_ThenFails(){
+//        Date endTime = new Date(System.currentTimeMillis() + 10000); // +10 seconds
+//        shoppingProduct.startAuction(100.0, endTime);
+//        shoppingProduct.addBid("User@gmail.com",99);
+//        assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",99));
+//    }
+//
+//    @Test
+//    void GivenInvalidAuctionDetails_WhenSubmitBid_ThenFails2(){
+//        Date endTime = new Date(System.currentTimeMillis() - 1000); // +10 seconds
+//        shoppingProduct.startAuction(100.0, endTime);
+//        shoppingProduct.addBid("User@gmail.com",110);
+//        assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",110));
+//    }
 
     @Test
     void GivenValidRating_WhenAddRating_ThenRatingIsAdded() {

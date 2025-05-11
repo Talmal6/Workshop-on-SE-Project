@@ -81,6 +81,9 @@ public class MainLayout extends AppLayout {
 
     @Autowired
     public MainLayout(NotificationCenter nc,NotificationEndpoint notificationEndpoint) {
+
+
+
         this.nc = nc;
         this.notificationEndpoint = notificationEndpoint;
         instance = this;
@@ -242,6 +245,19 @@ public class MainLayout extends AppLayout {
 
         // Subscribe to notification events
         subscribeToNotifications();
+
+    }
+
+    public static String getFullErrorMessage(Exception ex){
+        StringBuilder sb = new StringBuilder();
+        List<StackTraceElement> stackTrace = List.of(ex.getStackTrace());
+        sb.append(ex.getMessage()).append("\n");
+        sb.append("stackTrace:\n");
+        for (StackTraceElement element : stackTrace) {
+            sb.append("\t at ").append(element.toString()).append("\n");
+        }
+        sb.append("Caused by: ").append(ex.getCause()).append("\n");
+        return sb.toString();
     }
 
 
@@ -479,7 +495,8 @@ public class MainLayout extends AppLayout {
 
                 // 5) Base Catalog tab only for admins or store-owners (global or per-store)
                 baseCatalogTab.setVisible(isAdmin || isGlobalOwner || ownsStore);
-                tabs.getTabAt(7).setVisible(isAdmin);
+                //todo: when isadmin will work properly we shell change to: tabs.getTabAt(7).setVisible(isadmin);
+                tabs.getTabAt(7).setVisible(true);
                 // Notifications always once logged in
                 notificationBtn.setVisible(true);
 

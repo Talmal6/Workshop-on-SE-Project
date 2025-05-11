@@ -58,7 +58,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
     private final Button addProductBtn     = new Button("Add Product", VaadinIcon.PLUS.create());
     public  final Button ownersBtn         = new Button("Manage Owners", VaadinIcon.USERS.create());
     public  final Button rolesBtn          = new Button("Manage Permissions", VaadinIcon.KEY.create());
-    public  final Button showReviews          = new Button("Show Reviews", VaadinIcon.KEY.create());
+    public  final Button showReviewsBtn    = new Button("Show Reviews", VaadinIcon.KEY.create());
     private final HorizontalLayout adminButtons =
             new HorizontalLayout(manageStoreBtn, addProductBtn, ownersBtn, rolesBtn);
     // Search and filter components
@@ -140,7 +140,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         // … after creating storeIcon, storeInfo, starIcon …
 
         // 1) Build a little title‐and‐buttons bar:
-        HorizontalLayout titleBar = new HorizontalLayout(storeNameHeader, ownersBtn, rolesBtn);
+        HorizontalLayout titleBar = new HorizontalLayout(storeNameHeader, ownersBtn, rolesBtn, showReviewsBtn);
         titleBar.setAlignItems(FlexComponent.Alignment.CENTER);
         titleBar.setSpacing(true);
 
@@ -167,9 +167,9 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
                 UI.getCurrent().navigate("store/" + storeName + "/roles")
         );
 
-        showReviews.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        showReviews.addClickListener(e ->
-                UI.getCurrent().navigate("store/" + storeName + "/review")
+        showReviewsBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        showReviewsBtn.addClickListener(e ->
+                UI.getCurrent().navigate("store/" + storeName + "/roles")
         );
 
         // 4) Leave the adminButtons container for legacy use, but *don’t* add it here:
@@ -649,6 +649,15 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
                 UI.getCurrent().navigate("store/" + storeName + "/roles")
         );
         header.add(managePermissions);
+    }
+
+    public void showReviewButton() {
+        Button reviews = new Button("Show Reviews", VaadinIcon.KEY.create());
+        reviews.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        reviews.addClickListener(e ->
+                UI.getCurrent().navigate("store/"+storeName+"/reviews")
+        );
+        header.add(reviews);
     }
 
 
