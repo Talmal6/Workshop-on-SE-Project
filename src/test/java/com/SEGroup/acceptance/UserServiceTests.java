@@ -212,7 +212,7 @@ class UserServiceTests {
         void guestAddToCart() {
             //this test fails both with userservice and guestservice guestLogin!
             String guestJwt = sut.guestLogin().getData();
-            Result r = sut.addToGuestCart(guestJwt, "P1", "S1");
+            Result<String> r = sut.addToGuestCart(guestJwt, "P1", "S1");
             Result<String> res = sut.addToGuestCart(guestJwt, "P1", "S1");
             assertTrue(res.isSuccess());
         }

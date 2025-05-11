@@ -118,4 +118,17 @@ public interface IUserRepository {
      * @return The username of the user.
      */
     String getUserName(String email);
+
+    /**
+     * Sets a user as an admin.
+     *
+     * @param email The email of the user to set as admin.
+     */
+    void setAsAdmin(String email);
+
+
+    //Admin operations
+    void giveAdminPermission(String email, String perm);
+    void checkIfUserIsAdmin(String email);
+    void revokeAdminPermission(String email, String perm);
 }

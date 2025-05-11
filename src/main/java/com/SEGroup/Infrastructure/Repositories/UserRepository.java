@@ -1,6 +1,7 @@
 package com.SEGroup.Infrastructure.Repositories;
 
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
@@ -9,6 +10,7 @@ import com.SEGroup.DTO.BasketDTO;
 
 
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -21,7 +23,27 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserRepository implements IUserRepository {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
+    private final Map<String, HashSet<ManagerPermission>> sysManagers = new ConcurrentHashMap<>();
     
+
+    /**
+     * Constructor to create a new UserRepository instance.
+     */
+    public UserRepository() {
+        createAdmin();
+    }
+
+
+    private void createAdmin() {
+        // create hard coded Admin with all permissions
+        User admin = new User("Admin", "Admin", "Admin");
+        HashSet<ManagerPermission> permissions = new HashSet<>();
+        for (ManagerPermission permission : ManagerPermission.values()) {
+            permissions.add(permission);
+        }
+        sysManagers.put("Admin", permissions);
+        users.put("Admin", admin);
+    }
 
     /**
      * Retrieves a user by their email address.
@@ -204,6 +226,9 @@ public class UserRepository implements IUserRepository {
     }
 
 
+    /*
+     *  * Retrieves the username of a user by their email address.
+     */
     @Override
     public String getUserName(String email) {
         User u = users.get(email);
@@ -211,7 +236,54 @@ public class UserRepository implements IUserRepository {
         return u.getUserName();
     }
 
+    /* set user as admin
+     * @param email The email address of the user to set as admin.
+     * @throws IllegalArgumentException if the user does not exist.
+     */
 
+    @Override
+    public void setAsAdmin(String email) {
+        User u = users.get(email);
+        if (u == null) throw new IllegalArgumentException("User not found: " + email);
+        
+    }
+
+
+    @Override
+    public void giveAdminPermission(String email, String perm) {
+                
+        User u = users.get(email);
+        checkIfUserIsAdmin(email);
+        try {
+            ManagerPermission permission = ManagerPermission.valueOf(perm);
+            sysManagers.get(email).add(permission);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid permission: " + perm);
+        }
+
+    }
+
+    @Override
+    public void checkIfUserIsAdmin(String email) {
+        User u = users.get(email);
+        if (u == null) throw new IllegalArgumentException("User not found: " + email);
+        if (!sysManagers.containsKey(email)) { throw new IllegalArgumentException("User is not a system admin: " + email); }
+    }
+
+    @Override
+    public void revokeAdminPermission(String email, String perm) {
+        User u = users.get(email);
+        checkIfUserIsAdmin(email);
+        try {
+            ManagerPermission permission = ManagerPermission.valueOf(perm);
+            sysManagers.get(email).remove(permission);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid permission: " + perm);
+        }
+    }
+
+
+    
 
 }
 
