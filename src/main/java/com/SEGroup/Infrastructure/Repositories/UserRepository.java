@@ -10,6 +10,7 @@ import com.SEGroup.DTO.BasketDTO;
 
 
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserRepository implements IUserRepository {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
-    private final Map<String, HashSet<ManagerPermission>> sysManagers = new ConcurrentHashMap<>();
+    private final Set<String> admins = ConcurrentHashMap.newKeySet();
     
 
     /**
@@ -37,11 +38,6 @@ public class UserRepository implements IUserRepository {
     private void createAdmin() {
         // create hard coded Admin with all permissions
         User admin = new User("Admin", "Admin", "Admin");
-        HashSet<ManagerPermission> permissions = new HashSet<>();
-        for (ManagerPermission permission : ManagerPermission.values()) {
-            permissions.add(permission);
-        }
-        sysManagers.put("Admin", permissions);
         users.put("Admin", admin);
     }
 
@@ -242,45 +238,25 @@ public class UserRepository implements IUserRepository {
      */
 
     @Override
-    public void setAsAdmin(String email) {
+    public void setAsAdmin(String assigneeEmail, String email) {
         User u = users.get(email);
         if (u == null) throw new IllegalArgumentException("User not found: " + email);
-        
+        if (admins.contains(email)) throw new IllegalArgumentException("User is already an admin: " + email);
+        if (!admins.contains(assigneeEmail)) throw new IllegalArgumentException("Assignee is not an admin: " + assigneeEmail);
+        admins.add(email);
     }
 
 
-    @Override
-    public void giveAdminPermission(String email, String perm) {
-                
-        User u = users.get(email);
-        checkIfUserIsAdmin(email);
-        try {
-            ManagerPermission permission = ManagerPermission.valueOf(perm);
-            sysManagers.get(email).add(permission);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid permission: " + perm);
-        }
 
-    }
 
     @Override
     public void checkIfUserIsAdmin(String email) {
         User u = users.get(email);
         if (u == null) throw new IllegalArgumentException("User not found: " + email);
-        if (!sysManagers.containsKey(email)) { throw new IllegalArgumentException("User is not a system admin: " + email); }
+        if (!admins.contains(email)) throw new IllegalArgumentException("User is not an admin: " + email);
     }
 
-    @Override
-    public void revokeAdminPermission(String email, String perm) {
-        User u = users.get(email);
-        checkIfUserIsAdmin(email);
-        try {
-            ManagerPermission permission = ManagerPermission.valueOf(perm);
-            sysManagers.get(email).remove(permission);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid permission: " + perm);
-        }
-    }
+
 
 
     

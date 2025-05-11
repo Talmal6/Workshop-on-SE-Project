@@ -124,11 +124,10 @@ public interface IUserRepository {
      *
      * @param email The email of the user to set as admin.
      */
-    void setAsAdmin(String email);
+    
+    void setAsAdmin(String assignee ,String email);
 
 
-    //Admin operations
-    void giveAdminPermission(String email, String perm);
+
     void checkIfUserIsAdmin(String email);
-    void revokeAdminPermission(String email, String perm);
 }
