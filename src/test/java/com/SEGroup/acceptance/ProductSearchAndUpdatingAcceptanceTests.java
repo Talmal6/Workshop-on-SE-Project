@@ -15,6 +15,7 @@ import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Service.SecurityAdapter;
 import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.UserService;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +58,7 @@ public class ProductSearchAndUpdatingAcceptanceTests {
 
         //
         userRepository = new UserRepository();
-        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,new NotificationCenter(authenticationService));
         su = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
         VALID_SESSION = regLoginAndGetSession("owner", OWNER_EMAIL, "password");
         // Basic authentication stubs

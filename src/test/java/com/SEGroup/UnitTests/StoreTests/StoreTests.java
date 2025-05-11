@@ -67,7 +67,7 @@ public class StoreTests {
     @Test
     @DisplayName("Given owner, when addProductToStore, then product is present in store")
     public void Given_Owner_When_AddProduct_Then_ProductPresent() {
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5);
+        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
         Collection<ShoppingProduct> products = store.getAllProducts();
         assertEquals(1, products.size());
         ShoppingProduct prod = products.iterator().next();
@@ -78,15 +78,14 @@ public class StoreTests {
     @Test
     @DisplayName("Given non-owner, when addProductToStore, then authorization exception thrown")
     public void Given_NonOwner_When_AddProduct_Then_Exception() {
-        assertThrows(RuntimeException.class, () ->
-                store.addProductToStore("notOwner@test.com", storeName, "CID", "Name", "Desc", 10.0, 5)
-        );
+        assertThrows(RuntimeException.class,
+                () -> store.addProductToStore("notOwner@test.com", storeName, "CID", "Name", "Desc", 10.0, 5, false));
     }
 
     @Test
     @DisplayName("Given store with product, when removeProduct, then product is removed")
     public void Given_StoreWithProduct_When_RemoveProduct_Then_ProductRemoved() {
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5);
+        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
         ShoppingProduct prod = store.getAllProducts().iterator().next();
         store.removeProduct(prod.getProductId());
         assertTrue(store.getAllProducts().isEmpty());
@@ -97,7 +96,7 @@ public class StoreTests {
     @DisplayName("Given store with no bids, when submitBidToShoppingItem invalid params, then returns false")
     public void Given_StoreWithNoProduct_When_SubmitBidInvalid_Then_False() {
         assertFalse(store.submitBidToShoppingItem("Unknown", 10.0, "bidder@test.com"));
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5);
+        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
         ShoppingProduct prod = store.getAllProducts().iterator().next();
         assertFalse(store.submitBidToShoppingItem(prod.getProductId(), -1.0, ""));
     }
@@ -105,7 +104,7 @@ public class StoreTests {
     @Test
     @DisplayName("Given store with product, when submitBidToShoppingItem valid, then returns true")
     public void Given_StoreWithProduct_When_SubmitBidValid_Then_True() {
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5);
+        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
         ShoppingProduct prod = store.getAllProducts().iterator().next();
         assertTrue(store.submitBidToShoppingItem(prod.getProductId(), 15.0, "bidder@test.com"));
     }
@@ -113,7 +112,7 @@ public class StoreTests {
     @Test
     @DisplayName("Given store and no auction, when submitAuctionOffer, then returns false")
     public void Given_Store_When_SubmitAuctionWithoutAuction_Then_False() {
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5);
+        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
         ShoppingProduct prod = store.getAllProducts().iterator().next();
         assertFalse(store.submitAuctionOffer(prod.getProductId(), 20.0, "bidder@test.com"));
     }
@@ -134,7 +133,7 @@ public class StoreTests {
     @Test
     @DisplayName("Given founder, when appointOwner valid, then new owner is recognized")
     public void Given_Founder_When_AppointOwner_Then_NewOwnerRecognized() {
-        assertTrue(store.appointOwner(founderEmail, "owner2@test.com"));
+        assertTrue(store.appointOwner(founderEmail, "owner2@test.com", false));
         List<String> owners = store.getAllOwners();
         assertTrue(owners.contains(founderEmail));
         assertTrue(owners.contains("owner2@test.com"));
@@ -143,13 +142,14 @@ public class StoreTests {
     @Test
     @DisplayName("Given non-founder, when appointOwner, then IllegalArgumentException")
     public void Given_NonFounder_When_AppointOwner_Then_Exception() {
-        assertThrows(IllegalArgumentException.class, () -> store.appointOwner("notFounder@test.com", "owner2@test.com"));
+        assertThrows(IllegalArgumentException.class,
+                () -> store.appointOwner("notFounder@test.com", "owner2@test.com", false));
     }
 
     @Test
     @DisplayName("Given store with owners, when removeOwner valid, then owner removed")
     public void Given_StoreWithOwners_When_RemoveOwner_Then_Removed() {
-        store.appointOwner(founderEmail, "owner2@test.com");
+        store.appointOwner(founderEmail, "owner2@test.com", false);
         assertTrue(store.removeOwner(founderEmail, "owner2@test.com"));
         assertFalse(store.getAllOwners().contains("owner2@test.com"));
     }
@@ -157,7 +157,7 @@ public class StoreTests {
     @Test
     @DisplayName("Given founder, when resignOwnership for non-founder owner, then returns true")
     public void Given_Founder_When_ResignOwnership_Then_ReturnsTrue() {
-        store.appointOwner(founderEmail, "owner2@test.com");
+        store.appointOwner(founderEmail, "owner2@test.com", false);
         assertTrue(store.resignOwnership("owner2@test.com"));
         assertFalse(store.getAllOwners().contains("owner2@test.com"));
     }
@@ -197,14 +197,15 @@ public class StoreTests {
     @DisplayName("Given founder, when appointManager and updateManagerPermissions, then manager permissions are updated correctly")
     public void Given_Founder_When_AppointAndUpdateManager_Then_PermissionsUpdated() {
         // Initial appointment with MANAGE_PRODUCTS
-        assertTrue(store.appointManager(founderEmail, "mgr@test.com", Set.of(ManagerPermission.MANAGE_PRODUCTS)));
+        assertTrue(store.appointManager(founderEmail, "mgr@test.com", Set.of(ManagerPermission.MANAGE_PRODUCTS), false));
         assertTrue(store.hasManagerPermission("mgr@test.com", ManagerPermission.MANAGE_PRODUCTS));
         List<String> perms = store.getManagerPermissions("mgr@test.com");
         assertEquals(1, perms.size());
         assertTrue(perms.contains(ManagerPermission.MANAGE_PRODUCTS.name()));
 
         // Update permissions to MANAGE_POLICIES
-        assertTrue(store.updateManagerPermissions(founderEmail, "mgr@test.com", Set.of(ManagerPermission.MANAGE_POLICIES)));
+        assertTrue(store.updateManagerPermissions(founderEmail, "mgr@test.com",
+                Set.of(ManagerPermission.MANAGE_POLICIES)));
         List<String> updatedPerms = store.getManagerPermissions("mgr@test.com");
         assertEquals(1, updatedPerms.size());
         assertTrue(updatedPerms.contains(ManagerPermission.MANAGE_POLICIES.name()));
@@ -218,7 +219,8 @@ public class StoreTests {
         String productName = "DiscountedProduct";
         double originalPrice = 100.0;
 
-        String productId = store.addProductToStore(founderEmail, storeName, catalogID, productName, "Desc", originalPrice, 1);
+        String productId = store.addProductToStore(founderEmail, storeName, catalogID, productName, "Desc",
+                originalPrice, 1, false);
 
         DiscountScope scope = new DiscountScope(DiscountScope.ScopeType.PRODUCT, productId);
         store.addDiscount(new SimpleDiscount(10.0, scope));
@@ -234,7 +236,5 @@ public class StoreTests {
         // Assert
         assertEquals(90.0, finalPrice, 0.001, "Expected 10% discount on 100.0 = 90.0");
     }
-
-
 
 }

@@ -13,6 +13,7 @@ import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.UserRepository;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -59,7 +60,7 @@ public class StoreServiceAcceptanceTests {
         //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
         (( SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
         userRepository = new UserRepository();
-        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,new NotificationCenter(authenticationService));
         userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
         VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS); // Register and login to get a valid session
 

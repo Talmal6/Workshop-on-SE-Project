@@ -20,7 +20,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import javax.crypto.SecretKey;
 import java.util.*;
 import java.util.function.Predicate;
@@ -40,6 +40,7 @@ public class DiscountAcceptanceTest {
     InMemoryProductCatalog productCatalog;
     IUserRepository userRepository;
     UserService userService;
+    NotificationCenter notificationService;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -50,9 +51,12 @@ public class DiscountAcceptanceTest {
         security.setKey(key);
         authenticationService = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
         ((SecurityAdapter) authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+        notificationService = new NotificationCenter(authenticationService);
         userRepository = new UserRepository();
-        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
-        userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,
+                notificationService);
+        userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository,
+                authenticationService);
         VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS);
     }
 
@@ -65,8 +69,10 @@ public class DiscountAcceptanceTest {
     public void purchase_WithProductLevelDiscount_ShouldApplyDiscountCorrectly() throws Exception {
         // Create store and add product
         storeService.createStore(VALID_SESSION, STORE_NAME);
-        storeService.addProductToCatalog(CATALOG_ID, "Shoes", "Nike", "Comfortable running shoes", Collections.singletonList("Footwear"));
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "Shoes", "Nike running", 200.0, 1).getData();
+        storeService.addProductToCatalog(CATALOG_ID, "Shoes", "Nike", "Comfortable running shoes",
+                Collections.singletonList("Footwear"));
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "Shoes", "Nike running", 200.0, 1).getData();
 
         // Add 10% discount on this product
         Store store = storeRepository.findByName(STORE_NAME);
@@ -88,10 +94,13 @@ public class DiscountAcceptanceTest {
         storeService.addProductToCatalog("cat1", "Tomato", "FreshCo", "Fresh tomatoes", List.of("Vegetables"));
         storeService.addProductToCatalog("cat2", "Cucumber", "FreshCo", "Fresh cucumbers", List.of("Vegetables"));
 
-        String tomatoId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Tomato", "Fresh", 100.0, 2).getData();
-        String cucumberId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Cucumber", "Fresh", 50.0, 2).getData();
+        String tomatoId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Tomato", "Fresh", 100.0, 2)
+                .getData();
+        String cucumberId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Cucumber", "Fresh", 50.0, 2).getData();
 
-        // Prepare conditional discount: if total purchase > 200, 10% discount on tomatoes
+        // Prepare conditional discount: if total purchase > 200, 10% discount on
+        // tomatoes
         Store store = storeRepository.findByName(STORE_NAME);
         DiscountScope tomatoScope = new DiscountScope(DiscountScope.ScopeType.PRODUCT, tomatoId);
         Discount discountOnTomato = new SimpleDiscount(10.0, tomatoScope);
@@ -108,7 +117,7 @@ public class DiscountAcceptanceTest {
 
         // Act: use Basket to represent user's purchase
         Basket basket = new Basket(STORE_NAME);
-        basket.add(tomatoId, 2);   // 2 x 100 = 200
+        basket.add(tomatoId, 2); // 2 x 100 = 200
         basket.add(cucumberId, 2); // 2 x 50 = 100
 
         double finalPrice = store.calculateFinalPriceAfterDiscount(basket.snapshot(), productCatalog);
@@ -125,8 +134,10 @@ public class DiscountAcceptanceTest {
         productCatalog.addCatalogProduct("c2", "Pasta B", "Barilla", "Spaghetti", List.of("pasta"));
         productCatalog.addCatalogProduct("c3", "Milk", "Tnuva", "1L", List.of("dairy"));
 
-        String p1 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c1", "Pasta A", "desc", 20.0, 10).getData();
-        String p2 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c2", "Pasta B", "desc", 25.0, 10).getData();
+        String p1 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c1", "Pasta A", "desc", 20.0, 10)
+                .getData();
+        String p2 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c2", "Pasta B", "desc", 25.0, 10)
+                .getData();
         String p3 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c3", "Milk", "desc", 10.0, 10).getData();
 
         Basket userBasket = new Basket(STORE_NAME);
@@ -152,7 +163,6 @@ public class DiscountAcceptanceTest {
             return count >= 3;
         };
 
-
         Predicate<StoreSearchEntry[]> combined = new AndCondition(List.of(over100, atLeast3Pastas));
 
         Discount dairyDiscount = new SimpleDiscount(5, new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy"));
@@ -165,7 +175,5 @@ public class DiscountAcceptanceTest {
 
         assertEquals(112.5, finalPrice, 0.001);
     }
-
-
 
 }

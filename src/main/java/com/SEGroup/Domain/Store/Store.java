@@ -50,6 +50,7 @@ public class Store {
     //Owners and managers
     private final Map<String, String> ownersAppointer = new java.util.concurrent.ConcurrentHashMap<>(); // email → appointedBy
     private final Map<String, ManagerData> managers = new java.util.concurrent.ConcurrentHashMap<>(); // email → metadata
+    
 
     public Store(String name, String founderEmail) {
         //field
@@ -115,10 +116,10 @@ public class Store {
      * @param quantity     The quantity of the product.
      * @return The ID of the added product.
      */
-    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity){
+    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity,boolean isAdmin){
         if(quantity == 0)
             throw new IllegalArgumentException("quantity cannot be 0 ");
-        if (isOwnerOrHasManagerPermissions(email)) {
+        if (isOwnerOrHasManagerPermissions(email) || isAdmin) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
             ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity);
             products.put(productId, product);
@@ -146,6 +147,15 @@ public class Store {
     public void addToBalance(double amount){
         this.balance += amount;
     }
+
+    public LIst<String> getAllWorkers() {
+        List<String> allWorkers = new ArrayList<>();
+        allWorkers.add(founderEmail);
+        allWorkers.addAll(ownersAppointer.keySet());
+        allWorkers.addAll(managers.keySet());
+        return allWorkers;
+    }
+    
     /*
      * Submits a bid to a shopping item.
         *
@@ -215,9 +225,9 @@ public class Store {
         * @param newOwnerEmail  The email of the new owner.
         * @return true if the appointment was successful, false otherwise.
      */
-    public boolean appointOwner(String appointerEmail, String newOwnerEmail) {
+    public boolean appointOwner(String appointerEmail, String newOwnerEmail,boolean isAdmin) {
         // Only Owner can appoint owner
-        if (!isOwner(appointerEmail))
+        if (!isOwner(appointerEmail) && !isAdmin)
             throw new IllegalArgumentException("appointer email is not owner of this store");
 
         // Can't reappoint
@@ -295,8 +305,8 @@ public class Store {
         * @param permissions   The permissions granted to the manager.
         * @return true if the appointment was successful, false otherwise.
      */
-    public boolean appointManager(String ownerEmail, String managerEmail, Set<ManagerPermission> permissions) {
-        if (!isOwner(ownerEmail) || managers.containsKey(managerEmail))
+    public boolean appointManager(String ownerEmail, String managerEmail, Set<ManagerPermission> permissions, boolean isAdmin) {
+        if ((!isOwner(ownerEmail) && !isAdmin) || managers.containsKey(managerEmail) )
             throw new IllegalArgumentException("manager email is not owner of this store");
         managers.put(managerEmail, new ManagerData(ownerEmail, permissions));
         return true;

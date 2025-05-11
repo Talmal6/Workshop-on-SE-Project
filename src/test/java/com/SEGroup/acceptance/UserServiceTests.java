@@ -35,46 +35,46 @@ import static org.mockito.Mockito.*;
 
 /**
  * Full acceptance‑style test‑suite for **UserService**. Covers:
- *  • Registration / login / logout
- *  • Guest sessions & carts
- *  • Subscriber cart operations
- *  • Purchase‑cart happy & error paths
- *  • Account deletion
+ * • Registration / login / logout
+ * • Guest sessions & carts
+ * • Subscriber cart operations
+ * • Purchase‑cart happy & error paths
+ * • Account deletion
  */
 class UserServiceTests {
 
-
     /* ───────────── mocks ───────────── */
     private IAuthenticationService auth;
-    private IUserRepository        users;
-    private IGuestRepository       guests;
+    private IUserRepository users;
+    private IGuestRepository guests;
 
     /* real services wired with mocks */
     private GuestService guestSvc;
-    private UserService  sut;
+    private UserService sut;
 
     /* fixed sample data */
-    private final String email  = "owner@shop.com";
-    private final String pw     = "P@ssw0rd";
-    private final String hashPw = "enc(P@ssw0rd)";   // what our PasswordEncoder stub returns
-    private String jwt    = "jwt-owner";
+    private final String email = "owner@shop.com";
+    private final String pw = "P@ssw0rd";
+    private final String hashPw = "enc(P@ssw0rd)"; // what our PasswordEncoder stub returns
+    private String jwt = "jwt-owner";
 
     /* ───────── generic stubbing ───────── */
     @BeforeEach
     void setUp() throws Exception {
 
         Security security = new Security();
-        //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+        // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
+        // create a key
         SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         security.setKey(key);
-        auth   = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
-        (( SecurityAdapter)auth).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+        auth = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
+        ((SecurityAdapter) auth).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
 
-        users  = new UserRepository();
+        users = new UserRepository();
         guests = new GuestRepository();
 
         guestSvc = new GuestService(guests, auth);
-        sut      = new UserService(guestSvc, users, auth);
+        sut = new UserService(guestSvc, users, auth);
         jwt = regLoginAndGetSession("owner", email, pw); // register & login to get a session key
     }
 
@@ -82,37 +82,41 @@ class UserServiceTests {
         // Register a new user
         Result<Void> regResult = sut.register(userName, email, password);
         // Authenticate the user and get a session key
-        return  auth.authenticate(email);
+        return auth.authenticate(email);
     }
 
     /* ───────── Registration & Login ───────── */
-    @Nested @DisplayName("UC‑3  Subscriber registration & login")
+    @Nested
+    @DisplayName("UC‑3  Subscriber registration & login")
     class RegistrationAndLogin {
 
         @BeforeEach
         void setUp() throws Exception {
 
             Security security = new Security();
-            //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
+            // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
+            // create a key
             SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
             security.setKey(key);
-            auth   = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
-            (( SecurityAdapter)auth).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+            auth = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
+            ((SecurityAdapter) auth).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
 
-            users  = new UserRepository();
+            users = new UserRepository();
             guests = new GuestRepository();
 
             guestSvc = new GuestService(guests, auth);
-            sut      = new UserService(guestSvc, users, auth);
+            sut = new UserService(guestSvc, users, auth);
         }
 
-        @Test @DisplayName("Fresh e‑mail → register succeeds")
+        @Test
+        @DisplayName("Fresh e‑mail → register succeeds")
         void registerSuccess() {
             Result<Void> r = sut.register("owner", email, pw);
             assertTrue(r.isSuccess());
         }
 
-        @Test @DisplayName("Duplicate e‑mail → register fails")
+        @Test
+        @DisplayName("Duplicate e‑mail → register fails")
         void registerDuplicate() {
 
             Result<Void> r1 = sut.register("owner", email, pw);
@@ -120,8 +124,6 @@ class UserServiceTests {
             Result<Void> r2 = sut.register("owner", email, pw);
             assertTrue(r2.isFailure());
         }
-
-
 
         @Test
         @DisplayName("Correct credentials → login returns JWT")
@@ -134,8 +136,8 @@ class UserServiceTests {
             // wrong password fails
         }
 
-
-        @Test @DisplayName("Wrong password → login fails")
+        @Test
+        @DisplayName("Wrong password → login fails")
         void loginWrongPassword() throws AuthenticationException {
             Result<Void> r = sut.register("owner", email, pw);
             assertTrue(r.isSuccess());
@@ -144,7 +146,8 @@ class UserServiceTests {
             // wrong password fails
         }
 
-        @Test @DisplayName("Unknown e-mail → login fails")
+        @Test
+        @DisplayName("Unknown e-mail → login fails")
         void loginUnknownEmail() {
             Result<String> r = sut.login(email, pw);
             assertTrue(r.isFailure());
@@ -152,18 +155,20 @@ class UserServiceTests {
     }
 
     /* ───────── Logout ───────── */
-    @Nested @DisplayName("UC‑3  Logout")
+    @Nested
+    @DisplayName("UC‑3  Logout")
     class Logout {
-        @Test @DisplayName("Valid session key → invalidated")
-        void logoutHappyPath() throws Exception{
+        @Test
+        @DisplayName("Valid session key → invalidated")
+        void logoutHappyPath() throws Exception {
             regLoginAndGetSession("owner", email, pw); // register & login to get a session key
             Result<Void> r = sut.logout(jwt);
             assertTrue(r.isSuccess());
 
         }
 
-
-        @Test @DisplayName("Expired session key → logout reports failure")
+        @Test
+        @DisplayName("Expired session key → logout reports failure")
         void logoutExpiredSession() throws Exception {
             // register new user
             Result<Void> r1 = sut.register("zaziBazazi", "bazazi@gmail.com", "zaziBazazi");
@@ -178,39 +183,43 @@ class UserServiceTests {
     }
 
     /* ───────── Guest entrance & cart ───────── */
-    @Nested @DisplayName("UC‑2  Guest entrance & cart")
+    @Nested
+    @DisplayName("UC‑2  Guest entrance & cart")
     class GuestFlows {
-        private final String guestId  = "g‑123";
+        private final String guestId = "g‑123";
         private String guestJwt;
 
-
-        @BeforeEach void stubGuest() throws Exception {
-            //initiate store
+        @BeforeEach
+        void stubGuest() throws Exception {
+            // initiate store
             guestJwt = sut.guestLogin().getData();
 
             StoreRepository store = new StoreRepository();
             store.createStore("S1", email);
-            //initiate product catalog
+            // initiate product catalog
             InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-            store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10);
+            store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false);
         }
 
-        @Test @DisplayName("Guest login → id token")
+        @Test
+        @DisplayName("Guest login → id token")
         void guestLogin() {
-            Result<String> r =sut.guestLogin();
+            Result<String> r = sut.guestLogin();
             assertTrue(r.isSuccess());
         }
 
-        @Test @DisplayName("2 guest logins → 2 different ids")
+        @Test
+        @DisplayName("2 guest logins → 2 different ids")
         void guestLoginTwice() {
             Result<String> r1 = sut.guestLogin();
             Result<String> r2 = sut.guestLogin();
             assertNotEquals(r1.getData(), r2.getData());
         }
 
-        @Test @DisplayName("Guest add‑to‑cart updates basket")
+        @Test
+        @DisplayName("Guest add‑to‑cart updates basket")
         void guestAddToCart() {
-            //this test fails both with userservice and guestservice guestLogin!
+            // this test fails both with userservice and guestservice guestLogin!
             String guestJwt = sut.guestLogin().getData();
             Result<String> r = sut.addToGuestCart(guestJwt, "P1", "S1");
             Result<String> res = sut.addToGuestCart(guestJwt, "P1", "S1");
@@ -219,14 +228,17 @@ class UserServiceTests {
     }
 
     /* ───────── Subscriber cart operations ───────── */
-    @Nested class SubscriberCart {
+    @Nested
+    class SubscriberCart {
 
-        @Test @DisplayName("Add item → basket created")
+        @Test
+        @DisplayName("Add item → basket created")
         void addItem() {
             assertTrue(sut.addToUserCart(jwt, email, "P42", "S7").isSuccess());
         }
 
-        @Test @DisplayName("Modify quantity persists value")
+        @Test
+        @DisplayName("Modify quantity persists value")
         void modify_quantity_success() {
             sut.addToUserCart(jwt, email, "P42", "S7");
             assertTrue(sut.modifyProductQuantityInCartItem(jwt, email, "P42", "S7", 5).isSuccess());
@@ -234,7 +246,8 @@ class UserServiceTests {
             assertEquals(5, cart.get(0).prod2qty().get("P42"));
         }
 
-        @Test @DisplayName("Remove item sets qty=0")
+        @Test
+        @DisplayName("Remove item sets qty=0")
         void remove_item_success() {
             sut.addToUserCart(jwt, email, "P42", "S7");
             assertTrue(sut.removeFromUserCart(jwt, email, "P42", "S7").isSuccess());
@@ -242,7 +255,8 @@ class UserServiceTests {
             assertEquals(0, cart.get(0).prod2qty().get("P42"));
         }
 
-        @Test @DisplayName("Repository clear wipes basket")
+        @Test
+        @DisplayName("Repository clear wipes basket")
         void clearCart() {
             sut.addToUserCart(jwt, email, "P42", "S7");
             users.clearUserCart(email);
@@ -252,39 +266,89 @@ class UserServiceTests {
     }
 
     /* ───────── Purchase shopping cart ───────── */
-    @Nested @DisplayName("UC‑3  Purchase cart")
+    @Nested
+    @DisplayName("UC‑3  Purchase cart")
     class PurchaseCart {
-        @Test @DisplayName("Existing user → purchase succeeds")
+        @Test
+        @DisplayName("Existing user → purchase succeeds")
         void purchaseSuccess() {
-           //already tested in the transactional test
-            //Result<Void> r = sut.purchaseShoppingCart(jwt, email);
-            //assertTrue(r.isSuccess());
+            // already tested in the transactional test
+            // Result<Void> r = sut.purchaseShoppingCart(jwt, email);
+            // assertTrue(r.isSuccess());
         }
 
-        @Test @DisplayName("Unknown user → purchase fails")
+        @Test
+        @DisplayName("Unknown user → purchase fails")
         void purchaseUnknownUser() {
-            //already tested in the transactional test
+            // already tested in the transactional test
         }
     }
 
     /* ───────── Account deletion ───────── */
-    @Nested @DisplayName("UC‑3  Delete user")
+    @Nested
+    @DisplayName("UC‑3  Delete user")
     class DeleteUser {
-        @Test @DisplayName("User exists → deletion succeeds")
+        @Test
+        @DisplayName("User exists → deletion succeeds")
         void deleteSuccess() {
-           Result <Void> r = sut.deleteUser(email);
+            String adminAuth = sut.login("Admin", "Admin").getData();
+            Result<Void> r = sut.deleteUser(adminAuth,email);
             assertTrue(r.isSuccess());
             User user = users.findUserByEmail(email);
             assertNull(user); // user should be deleted
         }
 
-
-        @Test @DisplayName("User missing → deletion fails")
+        @Test
+        @DisplayName("User missing → deletion fails")
         void deleteFailsWhenMissing() {
-            Result<Void> r1 = sut.deleteUser(email);
-            Result<Void> r = sut.deleteUser(email);
+            Result<Void> r1 = sut.deleteUser(jwt, email);
+            Result<Void> r = sut.deleteUser(jwt, email);
             assertTrue(r.isFailure());
         }
     }
+
+    // /* ───────── Admin operations ───────── */
+    @Test
+    @DisplayName("Add admin then add him again")
+    void WhenAdminAlreadyExists_ThenAddAdminFails() {
+        // A hard codede admin User
+        String adminEmail = "Admin@Admin.Admin";
+        String authKey = sut.login("Admin", "Admin").getData();
+        // Create a new user
+        String newUserEmail = "new@new.new";
+        Result<Void> r = sut.register("Admin", newUserEmail, "Admin");
+        assertTrue(r.isSuccess());
+        // Attempt to add the user as an admin
+        Result<Void> r2 = sut.setAsAdmin(authKey, newUserEmail);
+        assertTrue(r2.isSuccess());
+        // Attempt to add the same user as an admin again
+        Result<Void> r3 = sut.setAsAdmin(authKey, newUserEmail);
+        assertTrue(r3.isFailure());
+    }
+
+    @Test
+    @DisplayName("Add admin then remove him")
+    void WhenAdminAlreadyExists_ThenRemoveAdmin() {
+        // A hard codede admin User
+        String adminEmail = "Admin@Admin.Admin";
+        String authKey = sut.login("Admin", "Admin").getData();
+        // Create a new user
+        String newUserEmail = "new@new.new";
+        Result<Void> r = sut.register("Admin", newUserEmail, "Admin");
+        assertTrue(r.isSuccess());
+        // Attempt to add the user as an admin
+        Result<Void> r2 = sut.setAsAdmin(authKey, newUserEmail);
+        assertTrue(r2.isSuccess());
+        // Attempt to remove the user as an admin
+        Result<Void> r3 = sut.removeAdmin(authKey, newUserEmail);
+        // checn if the removed admin can do admin operations
+        String newUserAuthKey = sut.login(newUserEmail, "Admin").getData();
+        Result<Void> r4 = sut.setAsAdmin(newUserAuthKey, newUserEmail);
+        assertTrue(r4.isFailure());
+    }
+
+
+
+
 
 }

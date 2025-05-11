@@ -79,6 +79,7 @@ public class TransactionService {
     public Result<Void> purchaseShoppingCart(String sessionKey, String userEmail, String paymentDetails) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            
             LoggerWrapper.info("Initiating purchase for user: " + userEmail);  // Log the start of the purchase
 
             List<BasketDTO> cart = userRepository.getUserCart(userEmail);

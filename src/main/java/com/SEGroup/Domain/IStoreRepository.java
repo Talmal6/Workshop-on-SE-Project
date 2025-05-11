@@ -41,7 +41,7 @@ public interface IStoreRepository {
      * @param name The name of the store.
      * @param founderEmail The email address of the founder.
      */
-    void closeStore(String name, String founderEmail);
+    List<String> closeStore(String name, String founderEmail);
 
     /**
      * Reopens a store by its name and the founder's email.
@@ -65,7 +65,7 @@ public interface IStoreRepository {
      * @param quantity The quantity of the product.
      * @return The ID of the added product.
      */
-    String addProductToStore(String email, String storeName, String catalogID, String product_name, String description, double price, int quantity);
+    String addProductToStore(String email, String storeName, String catalogID, String product_name, String description, double price, int quantity, boolean isAdmin);
 
     /**
      * Updates the details of a shopping product.
@@ -120,7 +120,7 @@ public interface IStoreRepository {
      * @param operatorEmail The email of the operator performing the operation.
      * @param newOwnerEmail The email of the new owner to appoint.
      */
-    void appointOwner(String storeName, String operatorEmail, String newOwnerEmail);
+    void appointOwner(String storeName, String operatorEmail, String newOwnerEmail, boolean isAdmin);
 
     /**
      * Removes an owner from a store.
@@ -147,7 +147,7 @@ public interface IStoreRepository {
      * @param managerEmail The email of the manager to appoint.
      * @param permissions The list of permissions for the manager.
      */
-    void appointManager(String storeName, String operatorEmail, String managerEmail, List<String> permissions);
+    void appointManager(String storeName, String operatorEmail, String managerEmail, List<String> permissions, boolean isAdmin);
 
     /**
      * Updates the permissions of a manager in a store.

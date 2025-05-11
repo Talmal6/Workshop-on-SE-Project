@@ -6,6 +6,7 @@ import com.SEGroup.DTO.TransactionDTO;
 
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -66,7 +67,7 @@ public class TransactionServiceAcceptanceTests {
         //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
         (( SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
         userRepository = new UserRepository();
-        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository, new NotificationCenter(authenticationService));
         userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
         SESSION_KEY = regLoginAndGetSession(USER, USER_EMAIL, "password123"); // Register and login to get a valid session
         SELLER_TOKEN = regLoginAndGetSession(SELLER, SELLER_EMAIL, "password123"); // Register and login to get a valid session

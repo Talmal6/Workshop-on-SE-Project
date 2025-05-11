@@ -4,6 +4,7 @@ import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.UserSuspensionDTO;
 
 import java.util.List;
 import java.util.Set;
@@ -27,7 +28,7 @@ public interface IUserRepository {
      * Adds a new user to the repository.
      *
      * @param username The username of the new user.
-     * @param email The email of the new user.
+     * @param email    The email of the new user.
      * @param password The password of the new user.
      */
     void addUser(String username, String email, String password);
@@ -43,8 +44,8 @@ public interface IUserRepository {
      * Adds a product to the user's shopping cart.
      *
      * @param findByUsername The user who is adding the product to the cart.
-     * @param storeID The ID of the store where the product is located.
-     * @param productID The ID of the product being added to the cart.
+     * @param storeID        The ID of the store where the product is located.
+     * @param productID      The ID of the product being added to the cart.
      */
     public void addToCart(User findByUsername, int storeID, int productID);
 
@@ -59,7 +60,7 @@ public interface IUserRepository {
      * Appoints a user as an owner of a store.
      *
      * @param storeName The name of the store.
-     * @param Email The email of the user to appoint as owner.
+     * @param Email     The email of the user to appoint as owner.
      */
     void appointOwner(String storeName, String Email);
 
@@ -67,7 +68,7 @@ public interface IUserRepository {
      * Removes a user's ownership of a store.
      *
      * @param storeName The name of the store.
-     * @param Email The email of the user to remove as owner.
+     * @param Email     The email of the user to remove as owner.
      */
     void removeOwner(String storeName, String Email);
 
@@ -75,7 +76,7 @@ public interface IUserRepository {
      * The user resigns ownership of a store.
      *
      * @param storeName The name of the store.
-     * @param Email The email of the user resigning ownership.
+     * @param Email     The email of the user resigning ownership.
      */
     void resignOwnership(String storeName, String Email);
 
@@ -83,14 +84,15 @@ public interface IUserRepository {
      * Appoints a user as a manager of a store.
      *
      * @param storeName The name of the store.
-     * @param Email The email of the user to appoint as manager.
+     * @param Email     The email of the user to appoint as manager.
      */
     void appointManager(String storeName, String Email);
 
     /**
-     * Deletes all roles (owners and managers) for a list of users associated with a specific store.
+     * Deletes all roles (owners and managers) for a list of users associated with a
+     * specific store.
      *
-     * @param Emails A list of email addresses whose roles are to be deleted.
+     * @param Emails    A list of email addresses whose roles are to be deleted.
      * @param storeName The name of the store from which roles will be deleted.
      */
     void deleteRoles(List<String> Emails, String storeName);
@@ -110,7 +112,6 @@ public interface IUserRepository {
      */
     void clearUserCart(String email);
 
-
     /**
      * Retrieves the username of a user by their email.
      *
@@ -124,10 +125,19 @@ public interface IUserRepository {
      *
      * @param email The email of the user to set as admin.
      */
-    
-    void setAsAdmin(String assignee ,String email);
 
+    void setAsAdmin(String assignee, String email);
 
+    void removeAdmin(String assignee, String email);
 
-    void checkIfUserIsAdmin(String email);
+    boolean userIsAdmin(String email);
+
+    void suspendUser(String email, float suspensionTime, String reason);
+
+    void unsuspendUser(String email);
+
+    void checkUserSuspension(String email) throws Exception;
+
+    List<UserSuspensionDTO> getAllSuspendedUsers();
+
 }

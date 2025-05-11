@@ -16,6 +16,8 @@ import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Mapper.StoreMapper;
 
+
+
 //implement iStore
 /**
  The StoreRepository class is responsible for managing the stores in the system.
@@ -24,6 +26,7 @@ import com.SEGroup.Mapper.StoreMapper;
 public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
     private StoreMapper storeMapper = new StoreMapper();
+    
 
     /**
      Retrieves all stores in the system.
@@ -65,14 +68,14 @@ public class StoreRepository implements IStoreRepository {
      @param storeName The name of the store to close.
      @param founderEmail The email of the store's founder. */
     @Override
-    public void closeStore(String storeName, String founderEmail) {
+    public List<String> closeStore(String storeName, String founderEmail) {
         Store store = findByName(storeName);
 
         if (!store.getfounderEmail().equals(founderEmail)) {
             throw new RuntimeException("Only the founder can close the store");
         }
-
         store.close();
+        return store.getAllWorkers();
     }
     /**
      Reopens a closed store.
@@ -125,10 +128,10 @@ public class StoreRepository implements IStoreRepository {
      @return A string indicating success or failure. */
     @Override
     public String addProductToStore(String email, String storeName, String catalogID, String product_name,String description, double price,
-                                  int quantity) {
+                                  int quantity, boolean isAdmin) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
-            return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity);
+            return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity, isAdmin);
         }
         return null;
 
@@ -179,9 +182,9 @@ public class StoreRepository implements IStoreRepository {
      @param appointerEmail The email of the current owner appointing the new owner.
      @param newOwnerEmail The email of the new owner. */
     @Override
-    public void appointOwner(String storeName, String appointerEmail, String newOwnerEmail) {
+    public void appointOwner(String storeName, String appointerEmail, String newOwnerEmail, boolean isAdmin) {
         Store store = findByName(storeName);
-        store.appointOwner(appointerEmail, newOwnerEmail);
+        store.appointOwner(appointerEmail, newOwnerEmail, isAdmin);
     }
 
     /**
@@ -215,14 +218,14 @@ public class StoreRepository implements IStoreRepository {
      @param managerEmail The email of the manager to appoint.
      @param permissions The list of permissions for the manager. */
     @Override
-    public void appointManager(String storeName, String ownerEmail, String managerEmail, List<String> permissions) {
+    public void appointManager(String storeName, String ownerEmail, String managerEmail, List<String> permissions, boolean isAdmin) {
         Store store = findByName(storeName);
         Set<ManagerPermission> permissionSet = new HashSet<>();
         for (String perm : permissions) {
             permissionSet.add(ManagerPermission.valueOf(perm));
         }
 
-        store.appointManager(ownerEmail, managerEmail, permissionSet);
+        store.appointManager(ownerEmail, managerEmail, permissionSet, isAdmin);
     }
 
     /**
@@ -412,6 +415,7 @@ public class StoreRepository implements IStoreRepository {
         }
         return dtos;
     }
+
 
     @Override
     public Map<BasketDTO, Double> removeItemsFromStores(List<BasketDTO> basketDTOList) {
