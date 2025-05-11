@@ -98,8 +98,8 @@ public class PurchaseHistoryView extends VerticalLayout {
 
     public void showItems(List<TransactionDTO> transactions) {
         if (transactions == null || transactions.size() == 0){
-            grid.setVisible(false);
-            //add new textview showing that there's no
+           grid.setVisible(false);
+           //add new textview showing that there's no
             TextField noTractions = new TextField("There is no transactions yet, start shopping to see your transactions here");
             add(noTractions);
         }

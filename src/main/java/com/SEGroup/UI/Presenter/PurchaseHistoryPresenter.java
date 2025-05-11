@@ -51,6 +51,7 @@ public class PurchaseHistoryPresenter {
             view.showItems(result.getData());
         } else {
             view.showError(result.getErrorMessage());
+            view.hideGrid();
         }
     }
 }
