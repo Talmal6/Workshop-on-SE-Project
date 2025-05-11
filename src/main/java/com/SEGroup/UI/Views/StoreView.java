@@ -58,6 +58,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
     private final Button addProductBtn     = new Button("Add Product", VaadinIcon.PLUS.create());
     public  final Button ownersBtn         = new Button("Manage Owners", VaadinIcon.USERS.create());
     public  final Button rolesBtn          = new Button("Manage Permissions", VaadinIcon.KEY.create());
+    public  final Button showReviews          = new Button("Show Reviews", VaadinIcon.KEY.create());
     private final HorizontalLayout adminButtons =
             new HorizontalLayout(manageStoreBtn, addProductBtn, ownersBtn, rolesBtn);
     // Search and filter components
@@ -164,6 +165,11 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         rolesBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         rolesBtn.addClickListener(e ->
                 UI.getCurrent().navigate("store/" + storeName + "/roles")
+        );
+
+        showReviews.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        showReviews.addClickListener(e ->
+                UI.getCurrent().navigate("store/" + storeName + "/review")
         );
 
         // 4) Leave the adminButtons container for legacy use, but *don’t* add it here:
