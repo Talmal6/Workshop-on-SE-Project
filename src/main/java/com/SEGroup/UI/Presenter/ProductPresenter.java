@@ -19,7 +19,6 @@ public class ProductPresenter {
     private final StoreService storeService;
     private final UserService userService;
     private ShoppingProductDTO product;
-    private boolean isBidStarted;
     private AuctionDTO auction;
 
     public ProductPresenter(ProductView view, String productId, String storeName) {
@@ -28,7 +27,6 @@ public class ProductPresenter {
         this.storeName = storeName;
         this.storeService = ServiceLocator.getStoreService();
         this.userService = ServiceLocator.getUserService();
-        this.isBidStarted = false;
     }
 
 
@@ -161,14 +159,12 @@ public class ProductPresenter {
     }
 
     public void bidBuy(String amount1){
-        if(isBidStarted) {
-            double amount = Double.parseDouble((amount1.trim()));
-            Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount);
-            if (res.isSuccess()) {
-                this.view.showSuccess("Buying well done..Good Luck");
-            } else {
-                this.view.showError("Problem caught: " + res.getErrorMessage());
-            }
+        double amount = Double.parseDouble((amount1.trim()));
+        Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount);
+        if (res.isSuccess()) {
+            this.view.showSuccess("Request is sent..Good Luck");
+        } else {
+            this.view.showError("Problem caught: " + res.getErrorMessage());
         }
     }
     public String getProductName() {
@@ -177,8 +173,14 @@ public class ProductPresenter {
                 : "";
     }
 
-    public boolean isOwner(){
-        return SecurityContextHolder.isStoreOwner();
+    public boolean isOwner() {
+        String me = SecurityContextHolder.email();
+        try {
+            return storeService.isOwner(me, storeName);
+        } catch (Exception e) {
+            // if the user isn’t in the owners list (or any error), treat as not owner
+            return false;
+        }
     }
     public String getProductId() {
         return productId;

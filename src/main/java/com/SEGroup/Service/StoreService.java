@@ -1064,21 +1064,41 @@ public class StoreService {
      * @param productId The ID of the product
      * @return A Result containing the list of bidder emails
      */
-    public Result<List<String>> getBidUsers(String sessionKey,
-                                            String storeName,
-                                            String productId) {
+    public Result<List<BidRequestDTO>> getBidRequests(String sessionKey,
+                                                      String storeName,
+                                                      String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            if (isOwner(authenticationService.getUserBySession(sessionKey), storeName)) {
-                List<String> users = storeRepository.getBidUsers(storeName, productId);
-                return Result.success(users);
+            String me = authenticationService.getUserBySession(sessionKey);
+            if (!isOwner(me, storeName)) {
+                return Result.failure("User is not an owner of the store");
             }
-            return Result.failure("User is not an owner of the store");
+            // assume your repository can give you a Map<email,amount>
+            Map<String, Double> bids = storeRepository.getBidRequests(storeName, productId);
+            List<BidRequestDTO> dtoList = bids.entrySet().stream()
+                    .map(e -> new BidRequestDTO(e.getKey(), e.getValue()))
+                    .toList();
+            return Result.success(dtoList);
         } catch (Exception e) {
-            LoggerWrapper.error("Error fetching bid users: " + e.getMessage(), e);
+            LoggerWrapper.error("Error fetching bid requests: " + e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
     }
+//    public Result<List<String>> getBidUsers(String sessionKey,
+//                                            String storeName,
+//                                            String productId) {
+//        try {
+//            authenticationService.checkSessionKey(sessionKey);
+//            if (isOwner(authenticationService.getUserBySession(sessionKey), storeName)) {
+//                List<String> users = storeRepository.getBidUsers(storeName, productId);
+//                return Result.success(users);
+//            }
+//            return Result.failure("User is not an owner of the store");
+//        } catch (Exception e) {
+//            LoggerWrapper.error("Error fetching bid users: " + e.getMessage(), e);
+//            return Result.failure(e.getMessage());
+//        }
+//    }
 
     /**
      * Sends an auction offer.

@@ -252,6 +252,12 @@ public interface IStoreRepository {
                            String productId);
 
 
-    List<String> getBidUsers(String storeName, String productId);
+    /**
+     * Return the current bid‐requests on a given product.
+     * @param storeName the store
+     * @param productId the product
+     * @return mapping from bidder email → their bid amount
+     */
+    Map<String,Double> getBidRequests(String storeName, String productId);
 
     AuctionDTO    getAuction(String storeName, String productId);}

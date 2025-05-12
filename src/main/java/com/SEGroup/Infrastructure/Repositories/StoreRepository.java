@@ -562,16 +562,32 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public List<String> getBidUsers(String storeName, String productId) {
+    public Map<String, Double> getBidRequests(String storeName, String productId) {
+        // 1) find the store
         Store store = findByName(storeName);
+        // 2) find the product inside it
         ShoppingProduct product = store.getProduct(productId);
         if (product == null) {
             throw new RuntimeException("Product not found in store: " + productId);
         }
-        // assume ShoppingProduct has getBids(): List<Bid>, and Bid has getUserEmail()
+        // 3) collect each Bid (assumed to have getBidderEmail() and getAmount())
         return product.getBids().stream()
-                .map(bid -> bid.getBidderEmail()).toList();
+                .collect(Collectors.toMap(
+                        bid -> bid.getBidderEmail(),
+                        bid -> bid.getAmount()
+                ));
     }
+//    @Override
+//    public List<String> getBidRequests(String storeName, String productId) {
+//        Store store = findByName(storeName);
+//        ShoppingProduct product = store.getProduct(productId);
+//        if (product == null) {
+//            throw new RuntimeException("Product not found in store: " + productId);
+//        }
+//        // assume ShoppingProduct has getBids(): List<Bid>, and Bid has getUserEmail()
+//        return product.getBids().stream()
+//                .map(bid -> bid.getBidderEmail()).toList();
+//    }
 
 
 }
