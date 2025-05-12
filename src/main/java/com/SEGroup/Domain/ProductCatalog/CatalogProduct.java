@@ -44,4 +44,5 @@ public class CatalogProduct {
     public List<String> getCategories() {
         return categories;
     }
+
 }

@@ -58,11 +58,12 @@ public class UserRepository implements IUserRepository {
      */
     @Override
     public void addUser(String username, String email, String rawPassword) {
-
         if (users.containsKey(email))
             throw new IllegalArgumentException("User already exists: " + email);
-        String hash=encoder.encrypt(rawPassword);
-        users.put(email, new User(email, username, hash));
+
+        String passwordHash = encoder.encrypt(rawPassword);
+        User u = new User(email, username, passwordHash);
+        users.put(email, u);
     }
 
 
@@ -217,35 +218,37 @@ public class UserRepository implements IUserRepository {
         }
     }
 
+    /**
+     * Gets a list of all user email addresses in the system.
+     * UI needs this to populate the combo-box in SuspensionView.
+     *
+     * @return List of all email addresses
+     */
     @Override
     public List<String> getAllEmails() {
         // keys() is a view of the map – copy to avoid concurrent-mod exceptions
         return List.copyOf(users.keySet());
     }
 
-
+    /**
+     * Retrieves the username of a user by their email.
+     *
+     * @param email The email of the user.
+     * @return The username of the user.
+     * @throws IllegalArgumentException if the user does not exist
+     */
     @Override
-    public void suspend(String email, int days) {
-        requireUser(email);
-        susp.put(email, new UserService.SuspensionDTO(
-                email,
-                LocalDate.now().toString(),
-                days == 0 ? "PERMANENT" : LocalDate.now().plusDays(days).toString()
-        ));
+    public String getUserName(String email) {
+        User user = requireUser(email);
+        return user.getUserName();
     }
 
-
-    @Override
-    public void unsuspend(String email) { susp.remove(email); }
-
-    @Override
-    public List<UserService.SuspensionDTO> getAllSuspensions() {
-        return new ArrayList<>(susp.values());
-    }
-
-    @Override
-    public boolean isSuspended(String email) { return susp.containsKey(email); }
-
+    /**
+     * Gets all global roles for a user.
+     *
+     * @param email The email of the user
+     * @return Set of roles the user has
+     */
     @Override
     public Set<Role> getGlobalRoles(String email) {
         User u = requireUser(email);
@@ -257,10 +260,50 @@ public class UserRepository implements IUserRepository {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Suspends a user for a specified number of days.
+     *
+     * @param email The email of the user to suspend
+     * @param days Number of days to suspend (0 for permanent suspension)
+     */
     @Override
-    public String getUserName(String email) {
-        User user = requireUser(email);      // זורק IllegalArgumentException אם לא קיים
-        return user.getUsername();           // או getName() – תלוי בשם המתודה במחלקת User
+    public void suspend(String email, int days) {
+        requireUser(email);
+        susp.put(email, new UserService.SuspensionDTO(
+                email,
+                LocalDate.now().toString(),
+                days == 0 ? "PERMANENT" : LocalDate.now().plusDays(days).toString()
+        ));
+    }
+
+    /**
+     * Removes a user's suspension.
+     *
+     * @param email The email of the user to unsuspend
+     */
+    @Override
+    public void unsuspend(String email) {
+        susp.remove(email);
+    }
+
+    /**
+     * Gets all current user suspensions.
+     *
+     * @return List of suspension DTOs
+     */
+    @Override
+    public List<UserService.SuspensionDTO> getAllSuspensions() {
+        return new ArrayList<>(susp.values());
+    }
+
+    /**
+     * Checks if a user is currently suspended.
+     *
+     * @param email The email of the user to check
+     * @return true if the user is suspended, false otherwise
+     */
+    @Override
+    public boolean isSuspended(String email) {
+        return susp.containsKey(email);
     }
 }
-

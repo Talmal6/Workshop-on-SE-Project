@@ -70,9 +70,9 @@ public class StoreEndpoint {
     @Nonnull
     public String addProductToStore(String sessionKey, String storeName,
                                     String catalogID, String productName,
-                                    String description, double price, int quantity, String imageURL) {
+                                    String description, double price, int quantity) {
         return unwrap(storeService.addProductToStore(
-                sessionKey, storeName, catalogID, productName, description, price, quantity,imageURL));
+                sessionKey, storeName, catalogID, productName, description, price, quantity));
     }
 
     public void updateShoppingProduct(String sessionKey, String storeName,

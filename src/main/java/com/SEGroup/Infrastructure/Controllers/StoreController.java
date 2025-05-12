@@ -33,7 +33,7 @@ public class StoreController {
             @RequestParam List<String> categories
     ) {
         Result<String> r = storeService.addProductToCatalog(
-            catalogID, name, brand, description, categories
+                catalogID, name, brand, description, categories
         );
         if (r.isSuccess()) {
             return ResponseEntity
@@ -123,11 +123,20 @@ public class StoreController {
             @RequestParam String description,
             @RequestParam double price,
             @RequestParam int quantity,
-            @RequestParam String imageUrl
+            @RequestParam(required = false) String imageUrl
     ) {
-        Result<String> r = storeService.addProductToStore(
-            sessionKey, storeName, catalogID, productName, description, price, quantity,
-                imageUrl );
+        Result<String> r;
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            // Use the version with image URL
+            r = storeService.addProductToStore(
+                    sessionKey, storeName, catalogID, productName, description, price, quantity, imageUrl);
+        } else {
+            // Use the version without image URL for backward compatibility
+            r = storeService.addProductToStore(
+                    sessionKey, storeName, catalogID, productName, description, price, quantity);
+        }
+
         if (r.isSuccess()) {
             return ResponseEntity.ok(r.getData());
         } else {
@@ -145,7 +154,7 @@ public class StoreController {
             @RequestParam(required = false) Double price
     ) {
         Result<Void> r = storeService.updateShoppingProduct(
-            sessionKey, storeName, productID, description, price
+                sessionKey, storeName, productID, description, price
         );
         return r.isSuccess()
                 ? ResponseEntity.ok().build()
@@ -303,7 +312,7 @@ public class StoreController {
             @RequestParam List<String> categories
     ) {
         Result<List<ShoppingProductDTO>> r = storeService.searchProducts(
-            query, searchFilters, storeName, categories
+                query, searchFilters, storeName, categories
         );
         return r.isSuccess()
                 ? ResponseEntity.ok(r.getData())
@@ -318,7 +327,7 @@ public class StoreController {
             @RequestParam double bidAmount
     ) {
         Result<Void> r = storeService.submitBidToShoppingItem(
-            sessionKey, storeName, productID, bidAmount
+                sessionKey, storeName, productID, bidAmount
         );
         return r.isSuccess()
                 ? ResponseEntity.ok().build()
@@ -333,7 +342,7 @@ public class StoreController {
             @RequestParam double bidAmount
     ) {
         Result<Void> r = storeService.sendAuctionOffer(
-            sessionKey, storeName, productID, bidAmount
+                sessionKey, storeName, productID, bidAmount
         );
         return r.isSuccess()
                 ? ResponseEntity.ok().build()
@@ -361,11 +370,10 @@ public class StoreController {
             @PathVariable String productID
     ) {
         Result<ShoppingProductDTO> r = storeService.getProductFromStore(
-            sessionKey, storeName, productID
+                sessionKey, storeName, productID
         );
         return r.isSuccess()
                 ? ResponseEntity.ok(r.getData())
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
-
 }

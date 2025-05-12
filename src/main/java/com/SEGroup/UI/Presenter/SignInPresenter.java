@@ -27,29 +27,43 @@ public class SignInPresenter {
 
         if (result.isSuccess()) {
             // Get token from successful login
-            String token = result.getData();
-
-            // Open session with the JWT token and email
-            SecurityContextHolder.openSession(token, email);
+            final String token = result.getData();
 
             // Get user's name if available - use the token we just received
-            String userName;
+            String userNameValue; // Temporary variable to hold the value
             try {
                 Result<String> userNameResult = userService.getUserName(token, email);
                 if (userNameResult.isSuccess() && userNameResult.getData() != null) {
-                    userName = userNameResult.getData();
+                    userNameValue = userNameResult.getData();
                 } else {
-                    userName = email;
+                    userNameValue = email;
                 }
             } catch (Exception e) {
                 System.out.println("Couldn't get username: " + e.getMessage());
-                userName = email;
+                userNameValue = email;
             }
 
-            // If MainLayout instance exists, update the username and refresh header
-            if (MainLayout.getInstance() != null) {
-                MainLayout.getInstance().setUserName(userName);
-                MainLayout.getInstance().switchToSignedInMode(userName);
+            // Now assign to final variable for use in lambda
+            final String userName = userNameValue;
+
+            // IMPORTANT: Store username along with token and email in SecurityContextHolder
+            SecurityContextHolder.openSession(token, email);
+
+            // Final variable for lambda
+            final String finalEmail = email;
+
+            // Update MainLayout directly through UI access to ensure it happens on UI thread
+            UI ui = UI.getCurrent();
+            if (ui != null) {
+                ui.access(() -> {
+                    if (MainLayout.getInstance() != null) {
+                        MainLayout layout = MainLayout.getInstance();
+                        layout.setUserName(userName);
+                        layout.setUserEmail(finalEmail);
+                        layout.setSessionKey(token);
+                        layout.refreshHeader(); // Force header refresh
+                    }
+                });
             }
 
             // Show success message and navigate to catalog

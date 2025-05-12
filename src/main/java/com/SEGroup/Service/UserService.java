@@ -321,6 +321,7 @@ public class UserService {
         }
     }
 
+    // FIXED: Keep only one version of getUserCart that returns BasketDTO
     public Result<List<BasketDTO>> getUserCart(String sessionKey, String email) {
         try {
             authenticationService.checkSessionKey(sessionKey);

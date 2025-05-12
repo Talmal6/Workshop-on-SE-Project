@@ -21,8 +21,20 @@ public class UserController {
         this.userService = userService;
     }
 
+    @PostMapping("/guest-login")
+    public ResponseEntity<String> guestLogin() {
+        Result<String> result = userService.guestLogin();
+        if (result.isSuccess()) {
+            // 200 OK + token in body
+            return ResponseEntity.ok(result.getData());
+        } else {
+            // 500 Internal Server Error + error message
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(result.getErrorMessage());
+        }
+    }
 
-    @PostMapping("/signup")
+    @PostMapping({"/signup", "/register"})
     public ResponseEntity<Void> register(@RequestParam String username,
                                          @RequestParam String email,
                                          @RequestParam String password) {
@@ -36,7 +48,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/signin")
+    @PostMapping({"/signin", "/login"})
     public ResponseEntity<String> login(@RequestParam String email,
                                         @RequestParam String password) {
         Result<String> result = userService.login(email, password);

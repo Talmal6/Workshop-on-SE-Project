@@ -9,7 +9,7 @@ import com.SEGroup.Infrastructure.NotificationCenter.*;
 import com.SEGroup.Infrastructure.Security;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-
+import static org.mockito.Mockito.*;
 import javax.crypto.SecretKey;
 
 public class ServiceLocator {
@@ -28,7 +28,7 @@ public class ServiceLocator {
     private static IGuestRepository guestRepository;
     private static ITransactionRepository transactionRepository;
     private static IStoreRepository storeRepository;
-    private static IProductCatalog productCatalog;
+    public static IProductCatalog productCatalog;
     private static IPaymentGateway paymentGateway;
     private static IShippingService shipping;
     private static NotificationCenter notificationCenter;
@@ -37,6 +37,8 @@ public class ServiceLocator {
     private static UserService userService;
     private static StoreService storeService;
     private static TransactionService transactionService;
+    private static IShippingService shippingService;
+
     public static void initialize(IGuestRepository guests,
                                   IUserRepository users,
                                   ITransactionRepository transactions,
@@ -80,7 +82,8 @@ public class ServiceLocator {
         notificationCenter = new NotificationCenter(authService, endpoint);
 
         ServiceLocator.shipping = shipping;
-        storeService = new StoreService(storeRepository, productCatalog, authService, userRepository,notificationCenter);
+        shippingService = shipping; // Assign the passed shipping service to the static field
+        storeService = new StoreService(storeRepository, productCatalog, authService, userRepository, notificationCenter);
         transactionService = new TransactionService(
                 authService,
                 paymentGateway,
@@ -90,6 +93,7 @@ public class ServiceLocator {
                 shipping
         );
     }
+
     public static IAuthenticationService getAuthenticationService() {
         return authService;
     }

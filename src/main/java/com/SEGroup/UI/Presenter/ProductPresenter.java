@@ -71,10 +71,10 @@ public class ProductPresenter {
     public void loadProductDetails() {
         try {
             System.out.println("Loading product details for: " + productId + " in store: " + storeName);
-            ShoppingProductDTO product = storeService.getProduct(storeName, productId);
+            Result<ShoppingProductDTO> productResult = storeService.getProduct(storeName, productId);
 
-            if (product != null) {
-                this.product = product;
+            if (productResult.isSuccess() && productResult.getData() != null) {
+                this.product = productResult.getData();
                 view.displayProduct(product);
                 System.out.println("Successfully loaded product: " + product.getName());
             } else {
@@ -96,7 +96,7 @@ public class ProductPresenter {
                         System.out.println("Product not found with fallback either");
                     }
                 } else {
-                    view.showError("Error loading product: " + allResult.getErrorMessage());
+                    view.showError("Error loading product: " + (productResult.isSuccess() ? "No data found" : productResult.getErrorMessage()));
                 }
             }
         } catch (Exception e) {

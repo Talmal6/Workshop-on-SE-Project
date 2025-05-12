@@ -135,9 +135,10 @@ public class CartPresenter {
 
                     // Fetch actual product details from store
                     System.out.println("Fetching product: " + productId + " from store: " + storeName);
-                    ShoppingProductDTO product = storeService.getProduct(storeName, productId);
+                    Result<ShoppingProductDTO> productResult = storeService.getProduct(storeName, productId);
 
-                    if (product != null) {
+                    if (productResult.isSuccess() && productResult.getData() != null) {
+                        ShoppingProductDTO product = productResult.getData();
                         // Create CartView.ShoppingCartProduct with 4 parameters to match the class definition
                         CartView.ShoppingCartProduct cartProduct = new CartView.ShoppingCartProduct(
                                 productId,

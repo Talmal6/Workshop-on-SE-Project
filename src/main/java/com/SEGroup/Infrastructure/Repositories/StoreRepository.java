@@ -475,7 +475,6 @@ public class StoreRepository implements IStoreRepository {
     public ShoppingProductDTO getProduct(String storeName, String productID) {
         Store store = findByName(storeName);
         ShoppingProduct product = store.getProduct(productID);
-
         return convertProductToDTO(findByName(storeName).getProduct(productID));
     }
     @Override

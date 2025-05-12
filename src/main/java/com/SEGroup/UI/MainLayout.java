@@ -38,10 +38,13 @@ public class MainLayout extends AppLayout {
     private Button signInBtn;
     private Button signUpBtn;
     private Span greeting;
+    private String userEmail;
     private String userName;
     static MainLayout instance;
+    private String sessionKey;
     private Tab baseCatalogTab;
-
+    public static Button searchBtn;
+    public static TextField search;
 
     // Permission management buttons
     private Button manageStoreBtn;
@@ -56,7 +59,6 @@ public class MainLayout extends AppLayout {
     private Tabs tabs;
 
     private final Button logout = new Button("Logout");
-    private TextField search;
 
     @Override
     protected void afterNavigation() {
@@ -80,10 +82,7 @@ public class MainLayout extends AppLayout {
 
 
     @Autowired
-    public MainLayout(NotificationCenter nc,NotificationEndpoint notificationEndpoint) {
-
-
-
+    public MainLayout(NotificationCenter nc, NotificationEndpoint notificationEndpoint) {
         this.nc = nc;
         this.notificationEndpoint = notificationEndpoint;
         instance = this;
@@ -113,7 +112,7 @@ public class MainLayout extends AppLayout {
         // Add key press listener for Enter key
         search.addKeyPressListener(Key.ENTER, e -> performSearch());
 
-        Button searchBtn = new Button(VaadinIcon.SEARCH.create());
+        searchBtn = new Button(VaadinIcon.SEARCH.create());
         searchBtn.getStyle()
                 .set("border-radius", "50%")
                 .set("background-color", "#3f3f46")
@@ -226,8 +225,8 @@ public class MainLayout extends AppLayout {
                 baseCatalogTab,
                 nav("All Stores", AllStoresView.class, VaadinIcon.STORAGE),
                 nav("Notifications", NotificationView.class, VaadinIcon.BELL),
-                nav("purchase history", PurchaseHistoryView.class, VaadinIcon.ARCHIVE),
-                nav("Admin panel", AdminView.class, VaadinIcon.USER)
+                nav("Purchase History", PurchaseHistoryView.class, VaadinIcon.ARCHIVE),
+                nav("Admin Panel", AdminView.class, VaadinIcon.USER)
         );
 
         tabs.getTabAt(6).setVisible(false);
@@ -246,6 +245,8 @@ public class MainLayout extends AppLayout {
         // Subscribe to notification events
         subscribeToNotifications();
 
+        // Initialize with guest login
+        sessionKey = ServiceLocator.getUserService().guestLogin().getData();
     }
 
     public static String getFullErrorMessage(Exception ex){
@@ -259,7 +260,6 @@ public class MainLayout extends AppLayout {
         sb.append("Caused by: ").append(ex.getCause()).append("\n");
         return sb.toString();
     }
-
 
     private Button createNotificationButton() {
         Button button = new Button(new Icon(VaadinIcon.BELL), e -> UI.getCurrent().navigate("notifications"));
@@ -331,7 +331,6 @@ public class MainLayout extends AppLayout {
         return instance;
     }
 
-
     @Override
     protected void onAttach(AttachEvent event) {
         super.onAttach(event);
@@ -345,9 +344,6 @@ public class MainLayout extends AppLayout {
                     .subscribe(n -> ui.access(() -> handleNewNotification(n.getMessage())));
         }
     }
-
-
-
 
     private Component createSpacer() {
         Div spacer = new Div();
@@ -416,17 +412,22 @@ public class MainLayout extends AppLayout {
     }
 
     public void switchToSignedInMode() {
-        //show notifications
+        // Show notifications
         Notification notification = Notification.show("Welcome " + this.userName, 3000, Notification.Position.MIDDLE);
         notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
-        //hide sign up and sign in buttons
-        if (this.userName == null) {
+        // Hide sign up and sign in buttons
+        if (this.userName == null && this.userEmail != null) {
+            // Fall back to email if username is null
+            this.userName = this.userEmail;
+        } else if (this.userName == null && this.userEmail == null) {
             return;
         }
+
         signInBtn.setVisible(false);
         signUpBtn.setVisible(false);
-        //change hello guest to hello user
+
+        // Change hello guest to hello user
         greeting.setText("Hello " + this.userName);
         greeting.getStyle()
                 .set("color", "#1976d2")
@@ -439,12 +440,20 @@ public class MainLayout extends AppLayout {
         checkRolesAndUpdateUI();
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setSessionKey(String sessionKey) {
+        this.sessionKey = sessionKey;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getSessionKey() {
+        return sessionKey;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
     }
 
     // Add this method to check roles and update UI accordingly
@@ -507,6 +516,7 @@ public class MainLayout extends AppLayout {
         } else {
             // hide everything when logged out
             tabs.getTabAt(6).setVisible(false);
+            tabs.getTabAt(7).setVisible(false);
             manageStoreBtn  .setVisible(false);
             addProductBtn   .setVisible(false);
             ownersBtn       .setVisible(false);
@@ -524,5 +534,9 @@ public class MainLayout extends AppLayout {
         // Show a toast notification
         Notification toast = Notification.show(message, 3000, Notification.Position.TOP_END);
         toast.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

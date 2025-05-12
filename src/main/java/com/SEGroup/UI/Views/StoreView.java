@@ -5,6 +5,7 @@ import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.User.Role;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.StorePresenter;
+import com.SEGroup.UI.Presenter.RatingStorePresenter;
 import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.vaadin.flow.component.Component;
@@ -34,6 +35,8 @@ import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +51,9 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
     private String storeName;
     private StoreDTO storeData;
     private final DecimalFormat ratingFormat = new DecimalFormat("0.0");
+
+    // Rating view from the main branch
+    public RatingView ratingView;
 
     // Store header components
     private final H2 storeNameHeader = new H2();
@@ -70,6 +76,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
     private HorizontalLayout header = new HorizontalLayout();
 
     private List<ShoppingProductDTO> allStoreProducts = new ArrayList<>();
+    private final Div catalogContainer = new Div();
 
     public StoreView() {
         setSizeFull();
@@ -95,6 +102,12 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         // Store header
         HorizontalLayout storeHeader = createStoreHeader();
         add(storeHeader);
+
+        // Add rating view from the main branch
+        add(new Span("Your rating:"));
+        ratingView = new RatingView();
+        add(ratingView);
+        ratingView.addClickListener(evt -> new RatingStorePresenter(this, storeName));
 
         // Search and filter bar
         HorizontalLayout searchAndFilterBar = createSearchAndFilterBar();
@@ -137,7 +150,6 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         starIcon.setSize("16px");
         starIcon.getStyle().set("margin-right", "4px");
         storeRating.add(starIcon);
-        // … after creating storeIcon, storeInfo, starIcon …
 
         // 1) Build a little title‐and‐buttons bar:
         HorizontalLayout titleBar = new HorizontalLayout(storeNameHeader, ownersBtn, rolesBtn, showReviewsBtn);
@@ -169,11 +181,11 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
 
         showReviewsBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         showReviewsBtn.addClickListener(e ->
-                UI.getCurrent().navigate("store/" + storeName + "/roles")
+                UI.getCurrent().navigate("store/" + storeName + "/reviews")
         );
 
-        // 4) Leave the adminButtons container for legacy use, but *don’t* add it here:
-        adminButtons.setVisible(false); // you’ll still use its children in displayStore()
+        // 4) Leave the adminButtons container for legacy use, but *don't* add it here:
+        adminButtons.setVisible(false); // you'll still use its children in displayStore()
 
         // 5) Finally, only add icon + storeInfo to the outer header
         header.add(storeIcon, storeInfo);
@@ -187,9 +199,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
                 .set("border-radius", "8px");
 
         return header;
-
     }
-
 
     private HorizontalLayout createSearchAndFilterBar() {
         // Search field
@@ -256,13 +266,11 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
                 .setAutoWidth(true)
                 .setFlexGrow(1);
 
-
         productsGrid.addColumn(ShoppingProductDTO::getDescription)
                 .setHeader("Description")
                 .setSortable(true)
                 .setAutoWidth(true)
                 .setFlexGrow(1);
-
 
         productsGrid.addColumn(dto -> {
                     var cats = dto.getCategories();
@@ -395,7 +403,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
 
         // Create layout
         VerticalLayout dialogLayout = new VerticalLayout(
-                catalogIdField, nameField, descriptionField, priceField, quantityField);
+                catalogIdField, nameField, descriptionField, priceField, quantityField, ImageField);
         dialogLayout.setPadding(true);
         dialogLayout.setSpacing(true);
 
@@ -523,6 +531,11 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         productsGrid.setItems(currentItems);
     }
 
+    // URL encoder helper from the main branch
+    private static String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
     private void sortProductsByPrice(boolean ascending) {
         List<ShoppingProductDTO> currentItems = new ArrayList<>();
         productsGrid.getListDataView().getItems().forEach(currentItems::add);
@@ -625,9 +638,14 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
             showInfo("No products available in this store");
         }
     }
+
+    public String getStoreName() {
+        return storeName;
+    }
+
     /**
      * Called by the presenter when the current user is a store-owner.
-     * This will add a “Manage Owners” button into the header.
+     * This will add a "Manage Owners" button into the header.
      */
     public void showManagingOwnersButton() {
         Button manageOwners = new Button("Manage Owners", VaadinIcon.USERS.create());
@@ -640,7 +658,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
 
     /**
      * Called by the presenter when the current user is a store-owner.
-     * This will add a “Manage Permissions” button into the header.
+     * This will add a "Manage Permissions" button into the header.
      */
     public void showManagingRolesButton() {
         Button managePermissions = new Button("Manage Permissions", VaadinIcon.KEY.create());

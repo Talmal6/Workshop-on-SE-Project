@@ -19,7 +19,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class StoreRepositoryTests {
+public class
+StoreRepositoryTests {
     private StoreRepository repo;
     private final String founderEmail = "founder@test.com";
     private final String storeName = "TestStore";

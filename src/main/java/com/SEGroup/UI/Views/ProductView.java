@@ -68,6 +68,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
             showError("Error loading product: " + e.getMessage());
         }
     }
+
     public void displayAuctionInfo(AuctionDTO auction) {
         if (auction == null) {
             return;
@@ -86,7 +87,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 .toLocalTime()
                 .toString();
 
-        // 2) optionally show “time remaining”
+        // 2) optionally show "time remaining"
         long millisLeft = auction.getTimeRemainingMillis();
         long seconds = (millisLeft / 1000) % 60;
         long minutes = (millisLeft / (1000 * 60)) % 60;
@@ -128,9 +129,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         addComponentAtIndex(0, auctionBar);
     }
 
-
     public void displayProduct(ShoppingProductDTO product) {
-
         productDetails.removeAll();
 
         // Create navigation buttons
@@ -233,47 +232,6 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         addToCartBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addToCartBtn.addClickListener(e -> presenter.addToCart());
 
-//        presenter.loadAuctionInfo();
-//
-//        if (presenter.getAuction() != null) {
-//            AuctionDTO a = presenter.getAuction();
-//            // show current highest bid, time left, etc:
-//            Span current = new Span("Current bid: $" + a.getHighestBid());
-//            Span endsAt = new Span("Ends at: " + Instant.ofEpochMilli(a.getStartTime() + a.getDurationMillis())
-//                    .atZone(ZoneId.systemDefault())
-//                    .toLocalTime().toString());
-//            TextField bidField = new TextField("Your bid");
-//            Button bidBtn = new Button("Place Bid", ev -> {
-//                double amt = Double.parseDouble(bidField.getValue());
-//                presenter.placeBid(amt);
-//            });
-//
-//            VerticalLayout auctionBox = new VerticalLayout(current, endsAt, bidField, bidBtn);
-//            auctionBox.getStyle().set("border", "1px solid var(--lumo-contrast-20pct)")
-//                    .set("padding", "1em")
-//                    .set("border-radius", "8px");
-//            add(auctionBox);
-//        }
-
-//        Button startBidBtn = new Button("Start Bid", VaadinIcon.GAVEL.create());
-//        startBidBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
-//        startBidBtn.setVisible(isOwner);
-//
-//        Button endBidBtn = new Button("End Bid", VaadinIcon.GAVEL.create());
-//        endBidBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
-//
-//        startBidBtn.addClickListener(e -> {
-//            this.isBidStarted = true;
-//             startBidBtn.setVisible(false);
-//             endBidBtn.setVisible(isOwner);
-//        });
-//
-//        endBidBtn.addClickListener(e -> {
-//            this.isBidStarted = false;
-//            endBidBtn.setVisible(false);
-//            startBidBtn.setVisible(isOwner);
-//        });
-
         TextField offer = new TextField("BID Offer Price");
         Button bidBuyBtn = new Button("Enter", VaadinIcon.GAVEL.create());
         bidBuyBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
@@ -286,7 +244,6 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 showError("Text is empty");
             }
         });
-
 
         // Organize content in layouts
         VerticalLayout productInfo = new VerticalLayout(
@@ -315,7 +272,6 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         );
         content.setAlignSelf(FlexComponent.Alignment.START, navigationBar);
         content.setAlignSelf(FlexComponent.Alignment.START, addToCartBtn);
-
 
         productDetails.add(content);
     }

@@ -16,10 +16,7 @@ import java.util.Set;
  * as well as managing user roles and shopping carts.
  */
 public interface IUserRepository {
-
-
     /**
-     *
      * Retrieves a user by their email.
      *
      * @param email The email of the user.
@@ -50,14 +47,14 @@ public interface IUserRepository {
      * @param storeID The ID of the store where the product is located.
      * @param productID The ID of the product being added to the cart.
      */
-    public void addToCart(User findByUsername, int storeID, int productID);
+    void addToCart(User findByUsername, int storeID, int productID);
 
     /**
      * Checks if a user exists in the repository by their email.
      *
      * @param email The email to check for existence.
      */
-    public void checkIfExist(String email);
+    void checkIfExist(String email);
 
     /**
      * Appoints a user as an owner of a store.
@@ -114,44 +111,57 @@ public interface IUserRepository {
      */
     void clearUserCart(String email);
 
-    /**  ----►  UI needs this to populate the combo-box in SuspensionView */
-    List<String> getAllEmails();          // stub for now
-
-
+    /**
+     * Gets a list of all user email addresses in the system.
+     * UI needs this to populate the combo-box in SuspensionView.
+     *
+     * @return List of all email addresses
+     */
+    List<String> getAllEmails();
 
     /**
-     * Retrieves a user by their email.
+     * Retrieves the username of a user by their email.
      *
      * @param email The email of the user.
-     * @return The user object corresponding to the provided email.
+     * @return The username of the user.
      */
-
-
-    /**
-     * Adds a new user to the repository.
-     *
-     * @param username The username of the new user.
-     * @param email The email of the new user.
-     * @param password The password of the new user.
-     */
-
-
-    /**
-     * Deletes a user from the repository by their email.
-     *
-     * @param email The email of the user to delete.
-     */
-
-
-
     String getUserName(String email);
 
-
+    /**
+     * Gets all global roles for a user.
+     *
+     * @param email The email of the user
+     * @return Set of roles the user has
+     */
     Set<Role> getGlobalRoles(String email);
 
+    /**
+     * Suspends a user for a specified number of days.
+     *
+     * @param email The email of the user to suspend
+     * @param days Number of days to suspend (0 for permanent suspension)
+     */
     void suspend(String email, int days);
-    void unsuspend(String email);
-    List<UserService.SuspensionDTO> getAllSuspensions();
-    boolean isSuspended(String email);
 
+    /**
+     * Removes a user's suspension.
+     *
+     * @param email The email of the user to unsuspend
+     */
+    void unsuspend(String email);
+
+    /**
+     * Gets all current user suspensions.
+     *
+     * @return List of suspension DTOs
+     */
+    List<UserService.SuspensionDTO> getAllSuspensions();
+
+    /**
+     * Checks if a user is currently suspended.
+     *
+     * @param email The email of the user to check
+     * @return true if the user is suspended, false otherwise
+     */
+    boolean isSuspended(String email);
 }

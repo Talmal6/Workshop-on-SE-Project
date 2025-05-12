@@ -1,10 +1,12 @@
 package com.SEGroup.UI.Presenter;
 
 import com.SEGroup.DTO.StoreCardDto;
+import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.AllStoresView;
+import com.vaadin.flow.component.UI;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +30,9 @@ public class AllStoresPresenter {
             List<StoreCardDto> stores;
 
             if (myStoresOnly && SecurityContextHolder.isLoggedIn()) {
-                stores = storeService.listStoresOwnedBy(SecurityContextHolder.email());
+                String email = SecurityContextHolder.email();
+                System.out.println("Loading stores owned by: " + email);
+                stores = storeService.listStoresOwnedBy(email);
                 if (stores.isEmpty()) {
                     view.showInfo("You don't own any stores yet");
                 }
@@ -38,6 +42,7 @@ public class AllStoresPresenter {
 
             view.displayStores(stores);
         } catch (Exception e) {
+            e.printStackTrace();
             view.showError("Failed to load stores: " + e.getMessage());
             view.displayStores(List.of());
         }
@@ -82,10 +87,41 @@ public class AllStoresPresenter {
                 return;
             }
 
-            storeService.createStore(SecurityContextHolder.token(), storeName);
-            view.showSuccess("Store created successfully");
-            loadStores(true); // Reload with my stores filter
+            // Get session token
+            String token = SecurityContextHolder.token();
+
+            System.out.println("Creating store with name: " + storeName);
+            System.out.println("User token: " + token);
+
+            // Use the simple version of createStore which only needs token and storeName
+            // The StoreService will extract the email from the token and handle parameter order
+            Result<Void> result = storeService.createStore(token, storeName);
+
+            if (result.isSuccess()) {
+                view.showSuccess("Store created successfully");
+
+                // Use a background thread to avoid UI freezing
+                new Thread(() -> {
+                    try {
+                        // Give the backend a moment to process the store creation
+                        Thread.sleep(1000);
+
+                        // Then access the UI thread to update the view
+                        UI ui = UI.getCurrent();
+                        if (ui != null) {
+                            ui.access(() -> {
+                                System.out.println("Reloading stores after creation");
+                                // Show user's stores to highlight the new store
+                                loadStores(true);
+                            });
+                        }
+                    } catch (InterruptedException ignored) {}
+                }).start();
+            } else {
+                view.showError("Failed to create store: " + result.getErrorMessage());
+            }
         } catch (Exception e) {
+            e.printStackTrace();
             view.showError("Failed to create store: " + e.getMessage());
         }
     }

@@ -286,9 +286,6 @@ public class CatalogView extends VerticalLayout implements HasUrlParameter<Strin
         return chipLayout;
     }
 
-    // Then modify the configureGrid method in CatalogView.java to add this category column:
-
-
     public void displayProducts(List<ShoppingProductDTO> products) {
         this.currentProducts = products;
 
@@ -304,7 +301,6 @@ public class CatalogView extends VerticalLayout implements HasUrlParameter<Strin
         // Update filter options based on the products
         updateFilterOptions(products);
     }
-
 
     private Component createProductActions(ShoppingProductDTO product) {
         Button viewButton = new Button(new Icon(VaadinIcon.EYE));
@@ -349,6 +345,7 @@ public class CatalogView extends VerticalLayout implements HasUrlParameter<Strin
 
         return sortBar;
     }
+
     // Add to CatalogView.java after displayProducts method
     private void updateAdminButtons() {
         boolean isAdmin = SecurityContextHolder.isAdmin();
@@ -361,6 +358,7 @@ public class CatalogView extends VerticalLayout implements HasUrlParameter<Strin
         System.out.println("Updating admin buttons visibility: " + showAdminTools);
         // Add code to show/hide your admin buttons here
     }
+
     private void createAdvancedFilterDialog() {
         advancedFilterDialog = new Dialog();
         advancedFilterDialog.setHeaderTitle("Advanced Filters");
@@ -631,7 +629,6 @@ public class CatalogView extends VerticalLayout implements HasUrlParameter<Strin
         }
         return filter;
     }
-
 
     private void updateFilterOptions(List<ShoppingProductDTO> products) {
         // Update store filter options
