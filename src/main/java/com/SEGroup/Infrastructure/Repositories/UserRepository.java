@@ -4,24 +4,38 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
+import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.Service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * UserRepository is responsible for managing user accounts in the system.
  * It provides methods to add, find, delete users, and manage their shopping carts.
  */
+@Repository
 public class UserRepository implements IUserRepository {
 
-    private final Map<String, User> users = new ConcurrentHashMap<>();
-    
+    private final ConcurrentMap<String, User> users = new ConcurrentHashMap<>();
+
+    private final PasswordEncoder encoder;  // ← our BCrypt wrapper
+
+    private final Map<String, UserService.SuspensionDTO> susp = new ConcurrentHashMap<>();
+
+
+    @Autowired
+    public UserRepository(PasswordEncoder encoder) {
+        this.encoder = encoder;
+    }
 
     /**
      * Retrieves a user by their email address.
@@ -40,17 +54,18 @@ public class UserRepository implements IUserRepository {
      *
      * @param username     The username of the user.
      * @param email        The email address of the user.
-     * @param passwordHash The hashed password of the user.
      * @throws IllegalArgumentException if the user already exists.
      */
     @Override
-    public void addUser(String username, String email, String passwordHash) {
+    public void addUser(String username, String email, String rawPassword) {
         if (users.containsKey(email))
             throw new IllegalArgumentException("User already exists: " + email);
 
-        User u = new User(email,username, passwordHash);
+        String passwordHash = encoder.encrypt(rawPassword);
+        User u = new User(email, username, passwordHash);
         users.put(email, u);
     }
+
 
     /**
      * Deletes a user from the repository.
@@ -203,15 +218,92 @@ public class UserRepository implements IUserRepository {
         }
     }
 
-
+    /**
+     * Gets a list of all user email addresses in the system.
+     * UI needs this to populate the combo-box in SuspensionView.
+     *
+     * @return List of all email addresses
+     */
     @Override
-    public String getUserName(String email) {
-        User u = users.get(email);
-        if (u == null) throw new IllegalArgumentException("User not found: " + email);
-        return u.getUserName();
+    public List<String> getAllEmails() {
+        // keys() is a view of the map – copy to avoid concurrent-mod exceptions
+        return List.copyOf(users.keySet());
     }
 
+    /**
+     * Retrieves the username of a user by their email.
+     *
+     * @param email The email of the user.
+     * @return The username of the user.
+     * @throws IllegalArgumentException if the user does not exist
+     */
+    @Override
+    public String getUserName(String email) {
+        User user = requireUser(email);
+        return user.getUserName();
+    }
 
+    /**
+     * Gets all global roles for a user.
+     *
+     * @param email The email of the user
+     * @return Set of roles the user has
+     */
+    @Override
+    public Set<Role> getGlobalRoles(String email) {
+        User u = requireUser(email);
+        // union of all role sets (store-specific + system)
+        return u.snapshotRoles()
+                .values()
+                .stream()
+                .flatMap(EnumSet::stream)
+                .collect(Collectors.toSet());
+    }
 
+    /**
+     * Suspends a user for a specified number of days.
+     *
+     * @param email The email of the user to suspend
+     * @param days Number of days to suspend (0 for permanent suspension)
+     */
+    @Override
+    public void suspend(String email, int days) {
+        requireUser(email);
+        susp.put(email, new UserService.SuspensionDTO(
+                email,
+                LocalDate.now().toString(),
+                days == 0 ? "PERMANENT" : LocalDate.now().plusDays(days).toString()
+        ));
+    }
+
+    /**
+     * Removes a user's suspension.
+     *
+     * @param email The email of the user to unsuspend
+     */
+    @Override
+    public void unsuspend(String email) {
+        susp.remove(email);
+    }
+
+    /**
+     * Gets all current user suspensions.
+     *
+     * @return List of suspension DTOs
+     */
+    @Override
+    public List<UserService.SuspensionDTO> getAllSuspensions() {
+        return new ArrayList<>(susp.values());
+    }
+
+    /**
+     * Checks if a user is currently suspended.
+     *
+     * @param email The email of the user to check
+     * @return true if the user is suspended, false otherwise
+     */
+    @Override
+    public boolean isSuspended(String email) {
+        return susp.containsKey(email);
+    }
 }
-

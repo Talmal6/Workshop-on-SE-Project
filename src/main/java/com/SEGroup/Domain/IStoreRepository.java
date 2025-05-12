@@ -3,9 +3,13 @@ package com.SEGroup.Domain;
 import java.util.List;
 import java.util.Map;
 
+import com.SEGroup.DTO.AuctionDTO;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.Domain.Store.Auction;
+import com.SEGroup.Domain.Store.Store;
+
 /**
  * Interface representing a repository for managing stores.
  * It provides methods to create, retrieve, update, and delete stores and their products.
@@ -65,7 +69,7 @@ public interface IStoreRepository {
      * @param quantity The quantity of the product.
      * @return The ID of the added product.
      */
-    String addProductToStore(String email, String storeName, String catalogID, String product_name, String description, double price, int quantity);
+    String addProductToStore(String email, String storeName, String catalogID, String product_name, String description, double price, int quantity, String imageURL);
 
     /**
      * Updates the details of a shopping product.
@@ -197,6 +201,11 @@ public interface IStoreRepository {
     void addToBalance(String userBySession, String storeName, double amount);
 
     /**
+     * Get ratings of some store
+     * @param storeName The name of the store to update.
+     */
+    Map<String, Store.Rating> findRatingsByStore(String storeName);
+    /**
      * Removes items from stores based on a list of basket items.
      *
      * @param basketDTOList The list of items to remove from the stores.
@@ -222,4 +231,27 @@ public interface IStoreRepository {
     void submitBidToShoppingItem(String Email,String storeName,String productId,double bidAmount);
     void sendAuctionOffer(String Email,String storeName,String productId,double bidAmount);
     Integer getProductQuantity(String storeName, String productId);
-}
+    List<StoreDTO> getStoresOwnedBy(String ownerEmail);
+
+    void updateStoreDescription(String storeName, String operatorEmail, String description);
+    void startAuction(String storeName, String productId, double startingPrice, long durationMillis);
+
+
+    /**
+     * Place a bid on an auction.
+     */
+    boolean bidOnAuction(String bidderEmail,
+                         String storeName,
+                         String productId,
+                         double amount);
+
+    /**
+     * Fetch the auction entity for UI display.
+     */
+    Auction getAuctionInfo(String storeName,
+                           String productId);
+
+
+    List<String> getBidUsers(String storeName, String productId);
+
+    AuctionDTO    getAuction(String storeName, String productId);}

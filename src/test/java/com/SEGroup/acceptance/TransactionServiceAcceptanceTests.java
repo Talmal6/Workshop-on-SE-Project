@@ -64,10 +64,10 @@ public class TransactionServiceAcceptanceTests {
         security.setKey(key);
         authenticationService = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
         //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
-        (( SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
-        userRepository = new UserRepository();
+        userRepository = new UserRepository(new com.SEGroup.Infrastructure.PasswordEncoder());
+
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository);
-        userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
+        userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService, new com.SEGroup.Infrastructure.PasswordEncoder());
         SESSION_KEY = regLoginAndGetSession(USER, USER_EMAIL, "password123"); // Register and login to get a valid session
         SELLER_TOKEN = regLoginAndGetSession(SELLER, SELLER_EMAIL, "password123"); // Register and login to get a valid session
         shippingService = mock(IShippingService.class);
@@ -75,18 +75,18 @@ public class TransactionServiceAcceptanceTests {
         paymentGateway        = mock(IPaymentGateway.class);
         transactionRepository = new TransactionRepository();
         transactionService = new TransactionService(
-            authenticationService,
-            paymentGateway,
-            transactionRepository,
-            storeRepository,
-            userRepository,
-            shippingService
+                authenticationService,
+                paymentGateway,
+                transactionRepository,
+                storeRepository,
+                userRepository,
+                shippingService
         );
         storeService.createStore(
                 SELLER_TOKEN, STORE_ID
         );
         productCatalog.addCatalogProduct(
-            CATALOG_ID, PRODUCT_ID, "Brand A", "Description of Product 1", List.of("Category A")
+                CATALOG_ID, "Brand A", List.of("Category A")
         );
 
         Result<String> addProduct = storeService.addProductToStore(
@@ -151,16 +151,16 @@ public class TransactionServiceAcceptanceTests {
                 SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
         doThrow(new RuntimeException("card declined") // Simulating payment failure
         ).when(paymentGateway).processPayment(
-            anyString(), anyDouble());
+                anyString(), anyDouble());
 
         Result<Void> result = transactionService.purchaseShoppingCart(
-            SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN
+                SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN
         );
 
         assertFalse(result.isSuccess(), "Expected failure when payment throws");
         assertTrue(
-            result.getErrorMessage().contains("Payment failed: card declined"),
-            "Should report the payment failure message"
+                result.getErrorMessage().contains("Payment failed: card declined"),
+                "Should report the payment failure message"
         );
     }
 

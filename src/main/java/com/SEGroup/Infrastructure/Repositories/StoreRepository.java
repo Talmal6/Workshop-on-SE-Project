@@ -1,26 +1,29 @@
 package com.SEGroup.Infrastructure.Repositories;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import com.SEGroup.DTO.AuctionDTO;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IStoreRepository;
+import com.SEGroup.Domain.Store.Auction;
 import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Mapper.AuctionMapper;
 import com.SEGroup.Mapper.StoreMapper;
+import org.springframework.stereotype.Repository;
+
+
 
 //implement iStore
 /**
  The StoreRepository class is responsible for managing the stores in the system.
  It provides methods to create, update, and retrieve store information, as well as
  manage store products, owners, and managers. */
+@Repository
 public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
     private StoreMapper storeMapper = new StoreMapper();
@@ -125,10 +128,10 @@ public class StoreRepository implements IStoreRepository {
      @return A string indicating success or failure. */
     @Override
     public String addProductToStore(String email, String storeName, String catalogID, String product_name,String description, double price,
-                                  int quantity) {
+                                  int quantity, String imageURL) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
-            return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity);
+            return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity, imageURL);
         }
         return null;
 
@@ -400,7 +403,8 @@ public class StoreRepository implements IStoreRepository {
                 product.getDescription(),
                 product.getPrice(),
                 product.getQuantity(),
-                product.averageRating()
+                product.averageRating(),
+                product.getImageUrl()
         );
     }
 
@@ -493,5 +497,81 @@ public class StoreRepository implements IStoreRepository {
         }
         return product.getQuantity();
     }
+
+    @Override
+    public List<StoreDTO> getStoresOwnedBy(String ownerEmail) {
+        return stores.stream()                      // iterate over the list
+                .filter(s -> s.isOwner(ownerEmail)) // or s.getAllOwners().contains(ownerEmail)
+                .map(storeMapper::toDTO)       // convert to DTO
+                .toList();                     // Java 16 +  (Collectors.toList() for older)
+    }
+    public void createStoreIfNotExists(String storeName, String founderEmail) {
+        if (!isStoreExist(storeName)) {
+            createStore(storeName, founderEmail);
+        }
+    }
+
+    @Override
+    public void updateStoreDescription(String storeName, String operatorEmail, String description) {
+        // Use findByName instead of stores.get(storeName)
+        Store store = findByName(storeName);
+
+        if (!store.isOwner(operatorEmail)) {
+            throw new IllegalArgumentException("User is not authorized to update store description");
+        }
+
+        store.setDescription(description);
+    }
+
+
+    @Override
+    public Map<String,Store.Rating> findRatingsByStore(String storeName) {
+        Store store = findByName(storeName);
+        return store.getRatings();
+    }
+
+    @Override
+    public AuctionDTO getAuction(String storeName, String productId) {
+        Store store = findByName(storeName);
+        Auction a = store.getProduct(productId).getAuction();
+        return a == null || a.isEnded()
+                ? null
+                : AuctionMapper.toDTO(storeName, productId, a);
+    }
+
+// in StoreRepository
+    @Override
+    public void startAuction(String storeName, String productId, double startingPrice, long durationMillis) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) throw new RuntimeException("Product not found");
+        Date end = new Date(System.currentTimeMillis() + durationMillis);
+        product.setAuction(new Auction(startingPrice, end));
+    }
+
+    @Override
+    public boolean bidOnAuction(String bidderEmail, String storeName, String productId, double amount) {
+        Store s = findByName(storeName);
+        return s.bidOnAuction(productId, bidderEmail, amount);
+    }
+
+    @Override
+    public Auction getAuctionInfo(String storeName, String productId) {
+        Store s = findByName(storeName);
+        return s.getAuctionInfo(productId);
+    }
+
+    @Override
+    public List<String> getBidUsers(String storeName, String productId) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store: " + productId);
+        }
+        // assume ShoppingProduct has getBids(): List<Bid>, and Bid has getUserEmail()
+        return product.getBids().stream()
+                .map(bid -> bid.getBidderEmail()).toList();
+    }
+
 
 }

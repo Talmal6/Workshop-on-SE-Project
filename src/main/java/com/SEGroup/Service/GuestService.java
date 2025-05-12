@@ -3,11 +3,13 @@ package com.SEGroup.Service;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
+import org.springframework.stereotype.Service;
 
 /**
  * Service class for managing guest sessions and shopping carts.
  * Provides methods to create a guest session and retrieve a shopping cart.
  */
+@Service
 public class GuestService {
 
     private final IGuestRepository guests;
@@ -33,8 +35,8 @@ public class GuestService {
     public Result<String> createGuestSession() {
         String guestId = guests.create().id();
         LoggerWrapper.info("Created a new guest session with ID: " + guestId);  // Logging the creation of a guest session
-        String token  = auth.authenticate(guestId);  // Authenticating the guest session
-        
+        String token = auth.authenticate(guestId);  // Authenticating the guest session
+
         return Result.success(token);
     }
 
@@ -55,7 +57,6 @@ public class GuestService {
             throw new IllegalArgumentException("token does not belong to a guest");
         }
 
-        ;
         ShoppingCart cart = guests.cartOf(subject);
 
         LoggerWrapper.info("Retrieved shopping cart for guest with ID: " + subject);  // Logging the successful retrieval of the shopping cart

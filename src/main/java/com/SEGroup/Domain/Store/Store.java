@@ -26,6 +26,8 @@ public class Store {
     private double balance;
     private int numOfitems;
     private final AtomicInteger inStoreProductId = new AtomicInteger(-1);
+    private String description=""; //default ;
+
 
     //products and reviews
     private Map<String, ShoppingProduct> products = new java.util.concurrent.ConcurrentHashMap<>();
@@ -42,6 +44,14 @@ public class Store {
         final int score;
         final String review ;
         Rating (int s , String r ){score =s;review =r; }
+
+
+        public int getScore(){
+            return score;
+        }
+        public String getReview(){
+            return review;
+        }
     }
     // Disocunt and policy fields
     private PurchasePolicy purchasePolicy;
@@ -88,16 +98,16 @@ public class Store {
 
     /*
      * Sets the store to inactive.
-        * This method should be called when the store is closed.
-        *
+     * This method should be called when the store is closed.
+     *
      */
     public void close() {
         this.isActive = false;
     }
     /*
      * Sets the store to active.
-        * This method should be called when the store is opened.
-        *
+     * This method should be called when the store is opened.
+     *
      */
     public void open(){
         this.isActive = true;
@@ -115,12 +125,12 @@ public class Store {
      * @param quantity     The quantity of the product.
      * @return The ID of the added product.
      */
-    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity){
+    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity, String imageURL){
         if(quantity == 0)
             throw new IllegalArgumentException("quantity cannot be 0 ");
         if (isOwnerOrHasManagerPermissions(email)) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
-            ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity);
+            ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity, imageURL);
             products.put(productId, product);
             return productId;
         }
@@ -148,11 +158,11 @@ public class Store {
     }
     /*
      * Submits a bid to a shopping item.
-        *
-        * @param itemName   The name of the item.
-        * @param bidAmount  The amount of the bid.
-        * @param bidderEmail The email of the bidder.
-        * @return true if the bid was successfully submitted, false otherwise.
+     *
+     * @param itemName   The name of the item.
+     * @param bidAmount  The amount of the bid.
+     * @param bidderEmail The email of the bidder.
+     * @return true if the bid was successfully submitted, false otherwise.
      */
     public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail) {
         ShoppingProduct product = products.get(itemName);
@@ -171,11 +181,11 @@ public class Store {
 
     /*
      * Submits an auction offer for a product.
-        *
-        * @param productId   The ID of the product.
-        * @param offerAmount The amount of the offer.
-        * @param bidderEmail The email of the bidder.
-        * @return true if the offer was successfully submitted, false otherwise.
+     *
+     * @param productId   The ID of the product.
+     * @param offerAmount The amount of the offer.
+     * @param bidderEmail The email of the bidder.
+     * @return true if the offer was successfully submitted, false otherwise.
      */
     public boolean submitAuctionOffer(String productId, double offerAmount, String bidderEmail) {
         ShoppingProduct product = products.get(productId);
@@ -188,18 +198,18 @@ public class Store {
     }
     /*
      * checks if a given email is the owner of the store
-        *
-        * @param email The email to check.
-        * @return true if the email is the owner, false otherwise.
+     *
+     * @param email The email to check.
+     * @return true if the email is the owner, false otherwise.
      */
     public boolean isOwner(String email) {
         return founderEmail.equals(email) || ownersAppointer.containsKey(email);
     }
     /*
      * checks if a given email is the owner or has manager permissions
-        *
-        * @param email The email to check.
-        * @return true if the email is the owner or has manager permissions, false otherwise.
+     *
+     * @param email The email to check.
+     * @return true if the email is the owner or has manager permissions, false otherwise.
      */
     public boolean isOwnerOrHasManagerPermissions(String email){
         if (!isOwner(email) && !hasManagerPermission(email, ManagerPermission.MANAGE_PRODUCTS)) {
@@ -210,10 +220,10 @@ public class Store {
     //Management 4.3
     /*
      * Appoints a new owner for the store.
-        *
-        * @param appointerEmail The email of the appointer.
-        * @param newOwnerEmail  The email of the new owner.
-        * @return true if the appointment was successful, false otherwise.
+     *
+     * @param appointerEmail The email of the appointer.
+     * @param newOwnerEmail  The email of the new owner.
+     * @return true if the appointment was successful, false otherwise.
      */
     public boolean appointOwner(String appointerEmail, String newOwnerEmail) {
         // Only Owner can appoint owner
@@ -230,10 +240,10 @@ public class Store {
     //4.4 part A
     /*
      * Removes an owner from the store.
-        *
-        * @param removerEmail   The email of the remover.
-        * @param ownerToRemove  The email of the owner to remove.
-        * @return true if the removal was successful, false otherwise.
+     *
+     * @param removerEmail   The email of the remover.
+     * @param ownerToRemove  The email of the owner to remove.
+     * @return true if the removal was successful, false otherwise.
      */
     public boolean removeOwner(String removerEmail, String ownerToRemove) {
         if (!ownersAppointer.containsKey(ownerToRemove))
@@ -250,10 +260,10 @@ public class Store {
     //4.4 part B
     /*
      * Removes an owner from the store.
-        *
-        * @param removerEmail   The email of the remover.
-        * @param ownerToRemove  The email of the owner to remove.
-        * @return true if the removal was successful, false otherwise.
+     *
+     * @param removerEmail   The email of the remover.
+     * @param ownerToRemove  The email of the owner to remove.
+     * @return true if the removal was successful, false otherwise.
      */
     private void removeAppointedCascade(String email) {
         List<String> toRemove = new ArrayList<>();
@@ -271,9 +281,9 @@ public class Store {
     //4.5
     /*
      * Resigns the ownership of the store.
-        *
-        * @param ownerEmail The email of the owner resigning.
-        * @return true if the resignation was successful, false otherwise.
+     *
+     * @param ownerEmail The email of the owner resigning.
+     * @return true if the resignation was successful, false otherwise.
      */
     public boolean resignOwnership(String ownerEmail) {
         if (founderEmail.equals(ownerEmail)) {
@@ -289,11 +299,11 @@ public class Store {
     //4.6
     /*
      * Appoints a new manager for the store.
-        *
-        * @param ownerEmail    The email of the owner appointing the manager.
-        * @param managerEmail  The email of the new manager.
-        * @param permissions   The permissions granted to the manager.
-        * @return true if the appointment was successful, false otherwise.
+     *
+     * @param ownerEmail    The email of the owner appointing the manager.
+     * @param managerEmail  The email of the new manager.
+     * @param permissions   The permissions granted to the manager.
+     * @return true if the appointment was successful, false otherwise.
      */
     public boolean appointManager(String ownerEmail, String managerEmail, Set<ManagerPermission> permissions) {
         if (!isOwner(ownerEmail) || managers.containsKey(managerEmail))
@@ -304,11 +314,11 @@ public class Store {
     //4.7
     /*
      * Changes the permissions of a manager.
-        *
-        * @param ownerEmail    The email of the owner changing the permissions.
-        * @param managerEmail  The email of the manager.
-        * @param newPermissions The new permissions to be granted to the manager.
-        * @return true if the permissions were successfully changed, false otherwise.
+     *
+     * @param ownerEmail    The email of the owner changing the permissions.
+     * @param managerEmail  The email of the manager.
+     * @param newPermissions The new permissions to be granted to the manager.
+     * @return true if the permissions were successfully changed, false otherwise.
      */
     public boolean updateManagerPermissions(String ownerEmail, String managerEmail, Set<ManagerPermission> newPermissions) {
         ManagerData manager = managers.get(managerEmail);
@@ -320,8 +330,8 @@ public class Store {
     //4.11 Part A
     /*
      * Retrieves all owners of the store.
-        *
-        * @return A list of emails of all owners.
+     *
+     * @return A list of emails of all owners.
      */
     public List<String> getAllOwners() {
         Set<String> owners = new HashSet<>(ownersAppointer.keySet());
@@ -334,8 +344,8 @@ public class Store {
     //4.11 Part B
     /*
      * Retrieves all managers of the store.
-        *
-        * @return A list of emails of all managers.
+     *
+     * @return A list of emails of all managers.
      */
     public List<String> getAllManagers() {
         return Collections.unmodifiableList(new ArrayList<>(managers.keySet()));
@@ -343,10 +353,10 @@ public class Store {
     //4.11 Part C
     /*
      * Checks if a manager has a specific permission.
-        *
-        * @param managerEmail The email of the manager.
-        * @param permission   The permission to check.
-        * @return true if the manager has the permission, false otherwise.
+     *
+     * @param managerEmail The email of the manager.
+     * @param permission   The permission to check.
+     * @return true if the manager has the permission, false otherwise.
      */
     public boolean hasManagerPermission(String managerEmail, ManagerPermission permission) {
         ManagerData manager = managers.get(managerEmail);
@@ -359,9 +369,9 @@ public class Store {
     //4.11 Part D
     /*
      * Retrieves the permissions of a manager.
-        *
-        * @param managerEmail The email of the manager.
-        * @return A list of permissions granted to the manager.
+     *
+     * @param managerEmail The email of the manager.
+     * @return A list of permissions granted to the manager.
      */
     public List<String> getManagerPermissions(String managerEmail) {
         ManagerData manager = managers.get(managerEmail);
@@ -377,10 +387,10 @@ public class Store {
 
     /*
      * rates the store.
-        *
-        * @param raterEmail The email of the rater.
-        * @param score      The score given to the store (1-5).
-        * @param review     The review text.
+     *
+     * @param raterEmail The email of the rater.
+     * @param score      The score given to the store (1-5).
+     * @param review     The review text.
      */
     public void rateStore(String raterEmail , int score , String review ) {
         if (score < 1 || score > 5) {
@@ -393,8 +403,8 @@ public class Store {
     //rateStore
     /*
      * Retrieves the rating of the store.
-        *
-        * @return The average rating of the store.
+     *
+     * @return The average rating of the store.
      */
     public double averageRating() {
         if (ratings.isEmpty()) return 0.0;
@@ -406,9 +416,9 @@ public class Store {
 
     /*
      * checks if a user has rated the store.
-        *
-        * @param email The email of the user.
-        * @return true if the user has rated the store, false otherwise.
+     *
+     * @param email The email of the user.
+     * @return true if the user has rated the store, false otherwise.
      */
     public boolean hasRated(String email) {
         return ratings.containsKey(email);
@@ -432,6 +442,59 @@ public class Store {
                 ", balance=" + balance +
                 ", products=" + products.keySet() +
                 '}';
+    }
+
+    /**
+     * Gets the store description.
+     *
+     * @return The store description.
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the store description.
+     *
+     * @param description The new description for the store.
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Map<String,Rating> getRatings() {
+        return Collections.unmodifiableMap(ratings);
+    }
+
+    /**
+     * Place a bid on a live auction.
+     */
+    public boolean bidOnAuction(String productId, String bidderEmail, double amount) {
+        ShoppingProduct p = requireProduct(productId);
+        if (p.getAuction() == null)
+            throw new RuntimeException("No auction running");
+        return p.getAuction().submitBid(bidderEmail, amount);
+    }
+
+    /**
+     * Get the current snapshot of this product's auction.
+     */
+    public Auction getAuctionInfo(String productId) {
+        ShoppingProduct p = requireProduct(productId);
+        return p.getAuction();
+    }
+
+    public void startAuction(String productId, double startingPrice, long durationMillis) {
+        ShoppingProduct p = requireProduct(productId);
+        if (!isOwnerOrHasManagerPermissions(founderEmail))
+            throw new RuntimeException("Not authorized");
+        p.startAuction(startingPrice, durationMillis);
+    }
+
+    private ShoppingProduct requireProduct(String productId) {
+        ShoppingProduct p = products.get(productId);
+        if (p == null) throw new IllegalArgumentException("Unknown product " + productId);
+        return p;
     }
 
     public void addDiscount(Discount discount) {
@@ -469,7 +532,4 @@ public class Store {
 
         return totalPrice - totalDiscount;
     }
-
-
-
 }

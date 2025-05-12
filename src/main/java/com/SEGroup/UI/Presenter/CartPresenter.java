@@ -1,13 +1,12 @@
 package com.SEGroup.UI.Presenter;
 
+import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.Domain.User.Basket;
-import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Service.Result;
-import com.SEGroup.Service.UserService;
 import com.SEGroup.Service.StoreService;
 import com.SEGroup.Service.TransactionService;
-import com.SEGroup.UI.MainLayout;
+import com.SEGroup.Service.UserService;
+import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.CartView;
 import com.SEGroup.UI.Views.CheckoutDialog;
@@ -18,137 +17,312 @@ import java.util.List;
 import java.util.Map;
 
 public class CartPresenter {
-
     private final CartView view;
     private final UserService userService;
     private final StoreService storeService;
     private final TransactionService transactionService;
-    private MainLayout mainLayout;
+    private List<CartView.ShoppingCartProduct> currentCartProducts = new ArrayList<>();
+    private double cartTotal = 0.0;
 
     public CartPresenter(CartView view) {
         this.view = view;
         this.userService = ServiceLocator.getUserService();
         this.storeService = ServiceLocator.getStoreService();
         this.transactionService = ServiceLocator.getTransactionService();
-        this.mainLayout = MainLayout.getInstance();
-        addSomeItems();
     }
 
-    /** Load current user cart and refresh the view. */
+    /**
+     * Loads the cart data from the service layer.
+     * Works for both guest and authenticated users.
+     */
     public void loadCart() {
-        Result<ShoppingCart> result  = userService.getUserCart(mainLayout.getSessionKey(), mainLayout.getUserEmail());
-        if (result.isFailure()) {
-            view.showError(result.getErrorMessage());
-            return;
+        try {
+            String token = SecurityContextHolder.token();
+            boolean isLoggedIn = SecurityContextHolder.isLoggedIn();
+
+            System.out.println("Loading cart for " + (isLoggedIn ? "authenticated user" : "guest user"));
+            System.out.println("Token: " + (token != null ? token.substring(0, Math.min(token.length(), 10)) + "..." : "null"));
+
+            // Handle guest users or missing tokens
+            if (token == null || token.isEmpty()) {
+                System.out.println("No token found, creating guest session");
+                Result<String> guestResult = userService.guestLogin();
+                if (guestResult.isSuccess()) {
+                    token = guestResult.getData();
+                    System.out.println("Created guest token: " + token.substring(0, Math.min(token.length(), 10)) + "...");
+                    SecurityContextHolder.storeGuestToken(token);
+                } else {
+                    view.showError("Failed to create guest session: " + guestResult.getErrorMessage());
+                    view.displayCart(new ArrayList<>(), new ArrayList<>());
+                    return;
+                }
+            }
+
+            // Get user cart - pass email as null for guests
+            String email = isLoggedIn ? SecurityContextHolder.email() : null;
+            Result<List<BasketDTO>> result = userService.getUserCart(token, email);
+
+            if (result.isSuccess()) {
+                List<BasketDTO> baskets = result.getData();
+                List<CartView.ShoppingCartProduct> products = fetchProductDetails(baskets);
+                currentCartProducts = products;
+
+                // Calculate cart total
+                calculateCartTotal(baskets, products);
+
+                view.displayCart(baskets, products);
+                System.out.println("Successfully loaded cart with " + products.size() + " products");
+            } else {
+                System.out.println("Error loading cart: " + result.getErrorMessage());
+                view.showError("Error loading cart: " + result.getErrorMessage());
+                view.displayCart(new ArrayList<>(), new ArrayList<>());
+                cartTotal = 0.0;
+            }
+        } catch (Exception e) {
+            System.err.println("Cart loading error: " + e.getMessage());
+            e.printStackTrace();
+            view.showError("Cart loading error: " + e.getMessage());
+            view.displayCart(new ArrayList<>(), new ArrayList<>());
+            cartTotal = 0.0;
         }
-        ShoppingCart cart = result.getData();
-        view.showItems(getAllCartItems(cart));
     }
 
-    private List<CartItemDTO> getAllCartItems(ShoppingCart cart) {
-        Map<String, Basket> entries = cart.snapShot();
-        List<CartItemDTO> items = new ArrayList<>();
-        for (String storeName : entries.keySet()) {
-            Basket basket = entries.get(storeName);
-            Map<String, Integer> products = basket.snapshot();
-            for (String productId : products.keySet()) {
-                int qty = products.get(productId);
-                Result<ShoppingProductDTO> productResult = storeService.getProduct(mainLayout.getSessionKey(), storeName, productId);
-                if (productResult.isFailure()) {
-                    view.showError(productResult.getErrorMessage());
-                    continue;
+    /**
+     * Calculates the total price of all items in the cart.
+     */
+    private void calculateCartTotal(List<BasketDTO> baskets, List<CartView.ShoppingCartProduct> products) {
+        cartTotal = 0.0;
+
+        for (CartView.ShoppingCartProduct product : products) {
+            // Find the basket containing this product
+            for (BasketDTO basket : baskets) {
+                if (basket.storeId().equals(product.getStoreName()) &&
+                        basket.prod2qty().containsKey(product.getId())) {
+
+                    int quantity = basket.prod2qty().get(product.getId());
+                    cartTotal += product.getPrice() * quantity;
                 }
-                ShoppingProductDTO product = productResult.getData();
-                items.add(new CartItemDTO(product.getName(), storeName, productId, qty, product.getPrice()));
             }
         }
-        return items;
     }
 
-    /** User changed quantity through the UI. */
-    public void onQuantityChange(String productId, int newQty, String storeName) {
-        userService.modifyProductQuantityInCartItem(mainLayout.getSessionKey(), mainLayout.getUserEmail(), productId, storeName, newQty);
-        loadCart();
+    /**
+     * Returns the current cart total price.
+     */
+    public double getCartTotal() {
+        return cartTotal;
     }
 
-    /** Handles the checkout process with credit card details. */
+    /**
+     * Fetches product details for all products in the baskets.
+     */
+    private List<CartView.ShoppingCartProduct> fetchProductDetails(List<BasketDTO> baskets) {
+        List<CartView.ShoppingCartProduct> products = new ArrayList<>();
+
+        try {
+            for (BasketDTO basket : baskets) {
+                String storeName = basket.storeId();
+                System.out.println("Processing basket for store: " + storeName);
+
+                for (Map.Entry<String, Integer> entry : basket.prod2qty().entrySet()) {
+                    String productId = entry.getKey();
+                    int quantity = entry.getValue();
+
+                    // Skip products with quantity 0
+                    if (quantity <= 0) {
+                        continue;
+                    }
+
+                    // Fetch actual product details from store
+                    System.out.println("Fetching product: " + productId + " from store: " + storeName);
+                    Result<ShoppingProductDTO> productResult = storeService.getProduct(storeName, productId);
+
+                    if (productResult.isSuccess() && productResult.getData() != null) {
+                        ShoppingProductDTO product = productResult.getData();
+                        // Create CartView.ShoppingCartProduct with 4 parameters to match the class definition
+                        CartView.ShoppingCartProduct cartProduct = new CartView.ShoppingCartProduct(
+                                productId,
+                                product.getName(),
+                                storeName,
+                                product.getPrice()
+                        );
+                        products.add(cartProduct);
+                        System.out.println("Added product to cart: " + product.getName());
+                    } else {
+                        // Fallback if product details not available - using 4 parameters
+                        System.out.println("Product details not available, using fallback");
+                        products.add(new CartView.ShoppingCartProduct(
+                                productId,
+                                "Product " + productId,
+                                storeName,
+                                0.0
+                        ));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Log error but don't fail completely
+            System.err.println("Error fetching product details: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return products;
+    }
+
+    /**
+     * Changes the quantity of an item in the cart.
+     */
+    public void changeQuantity(String productId, String storeName, int quantity) {
+        try {
+            String token = SecurityContextHolder.token();
+            if (token == null || token.isEmpty()) {
+                view.showError("No active session found");
+                return;
+            }
+
+            // If quantity is 0, remove the item
+            if (quantity <= 0) {
+                removeItem(productId, storeName);
+                return;
+            }
+
+            Result<String> result = userService.changeCartQuantity(token, productId, storeName, quantity);
+
+            if (result.isSuccess()) {
+                loadCart(); // Reload the cart to show updated quantities
+                view.showSuccess("Cart updated");
+            } else {
+                view.showError("Failed to update quantity: " + result.getErrorMessage());
+            }
+        } catch (Exception e) {
+            view.showError("Error updating quantity: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Removes an item from the cart.
+     */
+    public void removeItem(String productId, String storeName) {
+        try {
+            String token = SecurityContextHolder.token();
+            if (token == null || token.isEmpty()) {
+                view.showError("No active session found");
+                return;
+            }
+
+            Result<String> result = userService.removeFromCart(token, productId, storeName);
+
+            if (result.isSuccess()) {
+                loadCart(); // Reload the cart
+                view.showSuccess("Item removed from cart");
+            } else {
+                view.showError("Failed to remove item: " + result.getErrorMessage());
+            }
+        } catch (Exception e) {
+            view.showError("Error removing item: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Clears the entire cart.
+     */
+    public void clearCart() {
+        try {
+            // We need to manually clear each item since there might not be a direct clearCart method
+            String token = SecurityContextHolder.token();
+            if (token == null || token.isEmpty()) {
+                view.showError("No active session found");
+                return;
+            }
+
+            // Make a copy of the current products to avoid concurrent modification
+            List<CartView.ShoppingCartProduct> productsCopy = new ArrayList<>(currentCartProducts);
+
+            for (CartView.ShoppingCartProduct product : productsCopy) {
+                userService.removeFromCart(token, product.getId(), product.getStoreName());
+            }
+
+            loadCart(); // Reload cart after clearing
+            view.showSuccess("Cart cleared");
+        } catch (Exception e) {
+            view.showError("Error clearing cart: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Proceeds to checkout.
+     */
+    public void checkout() {
+        try {
+            if (!SecurityContextHolder.isLoggedIn()) {
+                UI.getCurrent().navigate("signin");
+                view.showError("Please sign in to checkout");
+                return;
+            }
+
+            CheckoutDialog dialog = new CheckoutDialog(this);
+            dialog.open();
+        } catch (Exception e) {
+            view.showError("Error during checkout: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Processes the checkout with the provided credit card details.
+     *
+     * @param creditCardDetails The credit card and shipping details
+     * @return True if checkout was successful, false otherwise
+     */
     public boolean onCheckout(CheckoutDialog.CreditCardDetails creditCardDetails) {
-        // Format credit card details for payment processing
-        String paymentDetails = String.format("%s|%s|%s|%s",
-            creditCardDetails.getCardNumber().replaceAll("\\s+", ""),
-            creditCardDetails.getCardHolder(),
-            creditCardDetails.getExpiryDate(),
-            creditCardDetails.getCvv()
-        );
+        try {
+            String token = SecurityContextHolder.token();
+            String email = SecurityContextHolder.email();
 
-        // Process the purchase
-        Result<Void> result = transactionService.purchaseShoppingCart(
-            mainLayout.getSessionKey(),
-            mainLayout.getUserEmail(),
-            paymentDetails
-        );
+            if (token == null || email == null) {
+                view.showError("You must be logged in to complete checkout");
+                return false;
+            }
 
-        if (result.isSuccess()) {
-            view.showSuccess("Order placed successfully! Thank you for your purchase.");
-            // Navigate to catalog view
-            //reload the cart
-            UI.getCurrent().navigate("catalog");
-            return true;
-        } else {
-            view.showError(result.getErrorMessage());
+            // Create payment details string from credit card information
+            String paymentDetails = createPaymentDetailsString(creditCardDetails);
+
+            // Use the TransactionService for checkout rather than UserService
+            Result<Void> result = transactionService.purchaseShoppingCart(
+                    token,
+                    email,
+                    paymentDetails
+            );
+
+            if (result.isSuccess()) {
+                view.showSuccess("Order placed successfully!");
+                loadCart(); // Reload cart (should be empty after checkout)
+                return true;
+            } else {
+                view.showError("Checkout failed: " + result.getErrorMessage());
+                return false;
+            }
+
+        } catch (Exception e) {
+            view.showError("Error processing checkout: " + e.getMessage());
             return false;
         }
     }
 
-    private void recalcSubtotal(List<CartItemDTO> items) {
-        double subtotal = items.stream()
-                .mapToDouble(i -> i.price() * i.quantity())
-                .sum();
-        view.updateSubtotal(subtotal);
-        view.setCheckoutEnabled(subtotal > 0);
-    }
-
-    public record CartItemDTO(String productName, String storeName, String productId, int quantity, double price) {
-        public double getTotalPrice() {
-            return quantity * price;
-        }
-    }
-
-    private void addSomeItems() {
-        StoreService storeService = ServiceLocator.getStoreService();
-        String storeName = "Store1";
-        String storeOwner = "Owner1";
-        String storeEmail = "Owner@email.com";
-        userService.register(storeOwner, storeEmail, "password");
-        Result<String> result = userService.login(storeEmail, "password");
-        String ownerSessionKey = result.getData();
-        System.out.println("Owner session key: 2131" + result.getErrorMessage());
-        storeService.createStore(ownerSessionKey, storeName);
-        //add item to catalog
-        String catalogId = "Catalog1";
-        String productName = "Product1";
-        String brand = "Brand1";
-        String description = "Description1";
-        List<String> categories = new ArrayList<>();
-        categories.add("Category1");
-        ServiceLocator.productCatalog.addCatalogProduct(catalogId, productName, brand, description, categories);
-        String productID = storeService.addProductToStore(ownerSessionKey, storeName, catalogId, productName, description, 10.0, 100).getData();
-        //add item to cart
-        if (mainLayout.getUserEmail() == null || mainLayout.getUserEmail().isEmpty())
-            userService.addToGuestCart(mainLayout.getSessionKey(), productID, storeName);
-        else 
-            userService.addToUserCart(mainLayout.getSessionKey(), mainLayout.getUserEmail(), productID, storeName);
-        //add another item to cart
-        String productName2 = "Product2";
-        String brand2 = "aBrand2";
-        String description2 = "Description2";
-        List<String> categories2 = new ArrayList<>();
-        categories2.add("Category2");
-        ServiceLocator.productCatalog.addCatalogProduct(catalogId, productName2, brand2, description2, categories2);
-        String productID2 = storeService.addProductToStore(ownerSessionKey, storeName, catalogId, productName2, description2, 20.0, 200).getData();
-        if (mainLayout.getUserEmail() == null || mainLayout.getUserEmail().isEmpty())
-            userService.addToGuestCart(mainLayout.getSessionKey(), productID2, storeName);
-        else
-            userService.addToUserCart(mainLayout.getSessionKey(), mainLayout.getUserEmail(), productID2, storeName);
+    /**
+     * Creates a payment details string from credit card information.
+     *
+     * @param creditCardDetails The credit card details
+     * @return A formatted payment details string
+     */
+    private String createPaymentDetailsString(CheckoutDialog.CreditCardDetails creditCardDetails) {
+        // Format payment details as needed by the payment processor
+        return String.format("CARD:%s;NAME:%s;EXP:%s;ADDR:%s,%s,%s,%s",
+                creditCardDetails.getCardNumber(),
+                creditCardDetails.getCardHolder(),
+                creditCardDetails.getExpiryDate(),
+                creditCardDetails.getAddress(),
+                creditCardDetails.getCity(),
+                creditCardDetails.getZipCode(),
+                creditCardDetails.getCountry());
     }
 }

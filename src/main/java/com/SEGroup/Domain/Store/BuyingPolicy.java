@@ -17,12 +17,14 @@ public class BuyingPolicy {
         return minimumQuantity;
     }
 
+
     /**
      * Sets the minimum quantity required for purchase.
      *
      * @param minimumQuantity The minimum quantity to set.
      * @throws IllegalArgumentException if the minimum quantity is less than 1.
      */
+
     public void setMinimumQuantity(int minimumQuantity) {
         if (minimumQuantity < 1) {
             throw new IllegalArgumentException("Minimum quantity must be at least 1");
@@ -41,4 +43,6 @@ public class BuyingPolicy {
     public String toString() {
         return "BuyingPolicy{minimumQuantity=" + minimumQuantity + '}';
     }
+
+
 }

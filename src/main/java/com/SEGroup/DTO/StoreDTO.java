@@ -9,13 +9,14 @@ import java.util.List;
  */
 public class StoreDTO {
 
-    public int id;
-    public String name;
-    public String founderEmail;
-    public boolean isActive;
-    public double balance;
+    private int id;
+    private String name;
+    private String founderEmail;
+    private boolean isActive;
+    private double balance;
     private final double avgRating;
-    public List<ShoppingProductDTO> products;
+    private List<ShoppingProductDTO> products;
+    private String description;
 
     /**
      * Constructs a new StoreDTO with the specified details.
@@ -27,9 +28,10 @@ public class StoreDTO {
      * @param balance The balance of the store.
      * @param products The list of products available in the store.
      * @param avgRating The average rating of the store.
+     * @param description The description of the store.
      */
     public StoreDTO(int id, String name, String founderEmail, boolean isActive, double balance,
-                    List<ShoppingProductDTO> products, double avgRating) {
+                    List<ShoppingProductDTO> products, double avgRating, String description) {
         this.id = id;
         this.name = name;
         this.founderEmail = founderEmail;
@@ -37,6 +39,7 @@ public class StoreDTO {
         this.balance = balance;
         this.products = products;
         this.avgRating = avgRating;
+        this.description = description;
     }
 
     /**
@@ -58,12 +61,30 @@ public class StoreDTO {
     }
 
     /**
+     * Sets the ID of the store.
+     *
+     * @param id The ID to set.
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    /**
      * Retrieves the name of the store.
      *
      * @return The name of the store.
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Sets the name of the store.
+     *
+     * @param name The name to set.
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -76,12 +97,30 @@ public class StoreDTO {
     }
 
     /**
+     * Sets the founder's email address.
+     *
+     * @param founderEmail The email address to set.
+     */
+    public void setFounderEmail(String founderEmail) {
+        this.founderEmail = founderEmail;
+    }
+
+    /**
      * Retrieves the active status of the store.
      *
      * @return true if the store is active, false otherwise.
      */
     public boolean isActive() {
         return isActive;
+    }
+
+    /**
+     * Sets the active status of the store.
+     *
+     * @param active The active status to set.
+     */
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     /**
@@ -94,11 +133,47 @@ public class StoreDTO {
     }
 
     /**
+     * Sets the balance of the store.
+     *
+     * @param balance The balance to set.
+     */
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+
+    /**
      * Retrieves the list of products available in the store.
      *
      * @return A list of ShoppingProductDTO objects representing the products.
      */
     public List<ShoppingProductDTO> getProducts() {
         return products;
+    }
+
+    /**
+     * Sets the list of products available in the store.
+     *
+     * @param products The list of products to set.
+     */
+    public void setProducts(List<ShoppingProductDTO> products) {
+        this.products = products;
+    }
+
+    /**
+     * Gets the description of the store.
+     *
+     * @return The description of the store.
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the description of the store.
+     *
+     * @param description The description to set.
+     */
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

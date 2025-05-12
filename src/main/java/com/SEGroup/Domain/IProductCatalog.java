@@ -14,11 +14,10 @@ public interface IProductCatalog {
      *
      * @param catalogID   The unique identifier for the catalog product.
      * @param name        The name of the product.
-     * @param brand       The brand of the product.
-     * @param description A brief description of the product.
+
      * @param categories  A list of categories associated with the product.
      */
-    void addCatalogProduct(String catalogID, String name, String brand, String description, List<String> categories);
+    void addCatalogProduct(String catalogID, String name, List<String> categories);
 
     /**
      * Adds a store product entry to the catalog.
@@ -81,4 +80,23 @@ public interface IProductCatalog {
      *
      */
     void isProductExist(String catalogID) throws Exception;
+
+
+    /**
+     * Adds a product entry to the catalog with an image URL.
+     *
+     * @param catalogID The ID of the catalog product.
+     * @param storeName The name of the store.
+     * @param productID The ID of the product.
+     * @param price The price of the product.
+     * @param quantity The quantity of the product.
+     * @param rating The rating of the product.
+     * @param name The name of the product.
+     * @param imageUrl The image URL for the product.
+     */
+    void addStoreProductEntryWithImage(String catalogID, String storeName, String productID, double price,
+                                       int quantity, double rating, String name, String imageUrl);
+
+
+    CatalogProduct getCatalogProduct(String catalogId);
 }

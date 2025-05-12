@@ -7,7 +7,8 @@ import javax.naming.AuthenticationException;
 import java.util.*;
 import java.util.concurrent.*;
 
-@Component
+
+@Component("infrastructureNotificationCenter")
 public class NotificationCenter implements Runnable {
 
     private final List<Notification> queue = new ArrayList<>();

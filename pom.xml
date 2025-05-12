@@ -114,7 +114,9 @@
 				<version>3.11.0</version>
 				<configuration>
 					<release>17</release>
-				</configuration>
+                    <source>22</source>
+                    <target>22</target>
+                </configuration>
 			</plugin>
 		</plugins>
 	</build>
