@@ -162,7 +162,7 @@ public class StoreService {
                 productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId());
             }
             for (String worker : WorkersInStore) {
-                notificationService.sendNotification(worker, "Store " + storeName + " has been closed.");
+                notificationService.sendSystemNotification(worker, "Store " + storeName + " has been closed.");
             }
             LoggerWrapper.info("Store closed: " + storeName); // Log store closure
             return Result.success(null);

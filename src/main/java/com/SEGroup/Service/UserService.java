@@ -154,7 +154,7 @@ public class UserService {
     public Result<String> addToUserCart(String sessionKey, String email, String productID, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspended(authenticationService.getUserBySession(sessionKey));
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             User user = userRepository.findUserByEmail(email);
 
             user.addToCart(storeName, productID);
@@ -231,7 +231,7 @@ public class UserService {
     public Result<String> removeFromUserCart(String sessionKey, String email, String productID, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspended(authenticationService.getUserBySession(sessionKey));
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             User user = userRepository.findUserByEmail(email);
             user.removeFromCart(storeName, productID);
             LoggerWrapper.info("Removed product from user cart: " + email + ", Product ID: " + productID); // Log
@@ -264,7 +264,7 @@ public class UserService {
             int quantity) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspended(authenticationService.getUserBySession(sessionKey));
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             User user = userRepository.findUserByEmail(email);
             user.cart().changeQty(storeName, productID, quantity);
             LoggerWrapper.info("Modified product quantity in cart: " + email + ", Product ID: " + productID

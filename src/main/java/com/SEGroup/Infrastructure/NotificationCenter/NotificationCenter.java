@@ -48,11 +48,10 @@ public class NotificationCenter implements Runnable {
         enqueue(new NotificationWithSender(msg, receiverId, senderId));
     }
 
-    public void sendSystemNotification(String sessionKey, String receiverId,
+    public void sendSystemNotification( String receiverId,
                                        String msg)
             throws AuthenticationException {
 
-        auth.checkSessionKey(sessionKey);
         enqueue(new Notification(msg, receiverId));
     }
 

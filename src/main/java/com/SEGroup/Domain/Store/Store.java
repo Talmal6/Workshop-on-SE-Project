@@ -148,7 +148,7 @@ public class Store {
         this.balance += amount;
     }
 
-    public LIst<String> getAllWorkers() {
+    public List<String> getAllWorkers() {
         List<String> allWorkers = new ArrayList<>();
         allWorkers.add(founderEmail);
         allWorkers.addAll(ownersAppointer.keySet());

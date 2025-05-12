@@ -146,4 +146,6 @@ public class User {
     public String          getEmail()     { return email; }
     public List<String>    getHistory()   { return List.copyOf(purchaseHistory); }
     public String          getUserName()  { return username; }
+
+    
 }
