@@ -260,4 +260,6 @@ public interface IStoreRepository {
      */
     Map<String,Double> getBidRequests(String storeName, String productId);
 
+//    void respondToBid(String storeName, String productId, String bidderEmail);
+    void respondToBid(String storeName, String operatorEmail, String productId, String bidderEmail, boolean accepted);
     AuctionDTO    getAuction(String storeName, String productId);}

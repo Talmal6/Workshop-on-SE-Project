@@ -8,6 +8,7 @@ import com.SEGroup.Service.UserService;
 import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.ProductView;
+import com.vaadin.flow.component.notification.Notification;
 
 import java.util.List;
 import java.util.Optional;
@@ -162,7 +163,8 @@ public class ProductPresenter {
         double amount = Double.parseDouble((amount1.trim()));
         Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount);
         if (res.isSuccess()) {
-            this.view.showSuccess("Request is sent..Good Luck");
+
+            Notification.show("Request is sent..Good Luck", 3000, Notification.Position.MIDDLE);
         } else {
             this.view.showError("Problem caught: " + res.getErrorMessage());
         }

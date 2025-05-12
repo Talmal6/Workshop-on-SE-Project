@@ -8,10 +8,7 @@ import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IStoreRepository;
-import com.SEGroup.Domain.Store.Auction;
-import com.SEGroup.Domain.Store.ManagerPermission;
-import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Domain.Store.*;
 import com.SEGroup.Mapper.AuctionMapper;
 import com.SEGroup.Mapper.StoreMapper;
 import org.springframework.stereotype.Repository;
@@ -577,17 +574,44 @@ public class StoreRepository implements IStoreRepository {
                         bid -> bid.getAmount()
                 ));
     }
+
 //    @Override
-//    public List<String> getBidRequests(String storeName, String productId) {
+//    public void respondToBid(String storeName, String ownerEmail, String productId, String bidderEmail, boolean accepted) {
 //        Store store = findByName(storeName);
 //        ShoppingProduct product = store.getProduct(productId);
 //        if (product == null) {
 //            throw new RuntimeException("Product not found in store: " + productId);
 //        }
-//        // assume ShoppingProduct has getBids(): List<Bid>, and Bid has getUserEmail()
-//        return product.getBids().stream()
-//                .map(bid -> bid.getBidderEmail()).toList();
+//        // remove the bid request from the product’s bid list
+//        product.removeBid(bidderEmail);
 //    }
+
+    public void respondToBid(String storeName,
+                             String operatorEmail,
+                             String productId,
+                             String bidderEmail,
+                             boolean accepted) {
+        Store store = findByName(storeName);
+        if (!store.isOwner(operatorEmail)) {
+            throw new RuntimeException("User is not owner");
+        }
+
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found: " + productId);
+        }
+
+        // 3) locate the pending bid
+        Optional<Bid> maybeBid = product.getBids().stream()
+                .filter(b -> b.getBidderEmail().equals(bidderEmail))
+                .findFirst();
+        if (maybeBid.isEmpty()) {
+            throw new RuntimeException("No bid from " + bidderEmail);
+        }
+        Bid bid = maybeBid.get();
+
+        product.removeBid(bid);
+    }
 
 
 }

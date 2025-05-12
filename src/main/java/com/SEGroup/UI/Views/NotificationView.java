@@ -4,6 +4,7 @@ import com.SEGroup.Infrastructure.NotificationCenter.Notification;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationWithSender;
 import com.SEGroup.UI.MainLayout;
+import com.SEGroup.UI.Presenter.NotificationPresenter;
 import com.SEGroup.UI.SecurityContextHolder;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
@@ -44,6 +45,8 @@ public class NotificationView extends VerticalLayout {
     private final List<NotificationItem> notifications = new ArrayList<>();
     private final Span emptyMessage = new Span("You have no notifications");
     private final NotificationEndpoint notificationEndpoint;
+
+    private final NotificationPresenter notificationPresenter = new NotificationPresenter(this);
     private Registration broadcasterRegistration;
     private ScheduledExecutorService refreshExecutor;
 

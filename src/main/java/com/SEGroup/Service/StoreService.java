@@ -15,7 +15,9 @@ import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Auction;
 import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Infrastructure.NotificationCenter.Notification;
 import com.SEGroup.Mapper.AuctionMapper;
+import com.SEGroup.UI.Presenter.NotificationPresenter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
@@ -1148,4 +1150,87 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+    public Result<Notification> respondToBid(String sessionKey,
+                                     String storeName,
+                                     String productId,
+                                     String bidderEmail,
+                                     boolean accepted) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String operator = authenticationService.getUserBySession(sessionKey);
+
+            if (!isOwner(operator, storeName)) {
+                return Result.failure("User is not an owner of the store");
+            }
+            storeRepository.respondToBid(storeName, operator ,productId, bidderEmail, accepted);
+
+            // 4) send back a user notification
+            String msg = accepted
+                    ? String.format("🎉 Your bid of $%.2f on %s/%s was accepted.",
+                    /* you’ll need to look up the actual amount, see note below */ 0.0,
+                    storeName, productId)
+                    : String.format("😞 Your bid of $%.2f on %s/%s was rejected.",
+                    0.0,
+                    storeName, productId);
+            // replace 0.0 above with the actual bid amount if you pass it back from the repo
+
+            notificationCenter.sendUserNotification(
+                    sessionKey,
+                    bidderEmail,
+                    msg,
+                    operator
+            );
+            Notification notification = new Notification(msg, bidderEmail);
+            return Result.success(notification);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error responding to bid: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+//    public Result<Void> respondToBid(
+//            String sessionKey,
+//            String storeName,
+//            String productId,
+//            String bidderEmail,
+//            boolean accepted
+//    ) {
+//        try {
+//            authenticationService.checkSessionKey(sessionKey);
+//            String operator = authenticationService.getUserBySession(sessionKey);
+//
+//            if (!isOwner(operator, storeName)) {
+//                return Result.failure("Not authorized to respond to bids");
+//            }
+//
+//            Result<List<BidRequestDTO>> allBids = getBidRequests(sessionKey, storeName, productId);
+//            double amount = allBids.isSuccess()
+//                    ? allBids.getData().stream()
+//                    .filter(b -> b.getEmail().equals(bidderEmail))
+//                    .findFirst()
+//                    .map(BidRequestDTO::getAmount)
+//                    .orElse(0.0)
+//                    : 0.0;
+//
+//            // 4. tell the repository to remove that bid
+//            storeRepository.respondToBid(storeName, productId, bidderEmail);
+//
+//            // 5. fire a user notification
+//            String msg = accepted
+//                    ? String.format("🎉 Your bid of $%.2f on %s/%s was accepted!", amount, storeName, productId)
+//                    : String.format("❌ Your bid of $%.2f on %s/%s was rejected.", amount, storeName, productId);
+//
+//            notificationCenter.sendUserNotification(
+//                    sessionKey,
+//                    bidderEmail,
+//                    msg,
+//                    operator
+//            );
+//
+//            return Result.success(null);
+//        } catch (Exception e) {
+//            LoggerWrapper.error("Error responding to bid: " + e.getMessage(), e);
+//            return Result.failure(e.getMessage());
+//        }
+//    }
 }

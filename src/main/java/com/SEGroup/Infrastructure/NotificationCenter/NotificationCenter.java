@@ -45,8 +45,8 @@ public class NotificationCenter implements Runnable {
     private void enqueue(Notification n) {
         synchronized (lock) {
             queue.add(n);
+            lock.notifyAll();
         }
-        lock.notifyAll();
     }
 
     @Override

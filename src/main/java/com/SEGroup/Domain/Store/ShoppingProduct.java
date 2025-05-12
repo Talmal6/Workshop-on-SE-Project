@@ -156,5 +156,7 @@ public class ShoppingProduct {
         return auction != null;
     }
 
-
+    public void removeBid(Bid bidderEmail) {
+        this.bids.removeIf(b -> b.getBidderEmail().equals(bidderEmail));
+    }
 }
