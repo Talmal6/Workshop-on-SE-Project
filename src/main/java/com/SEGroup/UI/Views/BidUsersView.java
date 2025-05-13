@@ -3,8 +3,6 @@ package com.SEGroup.UI.Views;
 
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.BidUsersPresenter;
-import com.SEGroup.UI.Presenter.NotificationPresenter;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
@@ -15,7 +13,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.router.*;
 
-import java.awt.*;
 import java.util.List;
 
 @Route(value = "product/:productId/:storeName/bids", layout = MainLayout.class)
@@ -57,7 +54,10 @@ public class BidUsersView extends VerticalLayout implements BeforeEnterObserver 
         usersGrid.addComponentColumn(req -> {
             Button accept = new Button("Accept");
             accept.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            accept.addClickListener(e -> presenter.acceptBid(req.email(), req.amount()));
+            accept.addClickListener(e -> {
+                presenter.acceptBid(req.email(), req.amount());
+
+            });
 
             Button reject = new Button("Reject");
             reject.addThemeVariants(ButtonVariant.LUMO_ERROR);

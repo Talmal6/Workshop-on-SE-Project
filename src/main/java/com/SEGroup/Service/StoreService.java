@@ -13,11 +13,9 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Domain.Store.Auction;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Infrastructure.NotificationCenter.Notification;
 import com.SEGroup.Mapper.AuctionMapper;
-import com.SEGroup.UI.Presenter.NotificationPresenter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
@@ -1059,50 +1057,6 @@ public class StoreService {
     }
 
     /**
-     * Gets users who have placed bids on a product.
-     *
-     * @param sessionKey The session key of the authenticated user
-     * @param storeName The name of the store
-     * @param productId The ID of the product
-     * @return A Result containing the list of bidder emails
-     */
-    public Result<List<BidRequestDTO>> getBidRequests(String sessionKey,
-                                                      String storeName,
-                                                      String productId) {
-        try {
-            authenticationService.checkSessionKey(sessionKey);
-            String me = authenticationService.getUserBySession(sessionKey);
-            if (!isOwner(me, storeName)) {
-                return Result.failure("User is not an owner of the store");
-            }
-            // assume your repository can give you a Map<email,amount>
-            Map<String, Double> bids = storeRepository.getBidRequests(storeName, productId);
-            List<BidRequestDTO> dtoList = bids.entrySet().stream()
-                    .map(e -> new BidRequestDTO(e.getKey(), e.getValue()))
-                    .toList();
-            return Result.success(dtoList);
-        } catch (Exception e) {
-            LoggerWrapper.error("Error fetching bid requests: " + e.getMessage(), e);
-            return Result.failure(e.getMessage());
-        }
-    }
-//    public Result<List<String>> getBidUsers(String sessionKey,
-//                                            String storeName,
-//                                            String productId) {
-//        try {
-//            authenticationService.checkSessionKey(sessionKey);
-//            if (isOwner(authenticationService.getUserBySession(sessionKey), storeName)) {
-//                List<String> users = storeRepository.getBidUsers(storeName, productId);
-//                return Result.success(users);
-//            }
-//            return Result.failure("User is not an owner of the store");
-//        } catch (Exception e) {
-//            LoggerWrapper.error("Error fetching bid users: " + e.getMessage(), e);
-//            return Result.failure(e.getMessage());
-//        }
-//    }
-
-    /**
      * Sends an auction offer.
      *
      * @param sessionKey The session key of the authenticated user
@@ -1155,7 +1109,8 @@ public class StoreService {
                                      String storeName,
                                      String productId,
                                      String bidderEmail,
-                                     boolean accepted) {
+                                     boolean accepted,
+                                             double amount) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             String operator = authenticationService.getUserBySession(sessionKey);
@@ -1168,19 +1123,13 @@ public class StoreService {
             // 4) send back a user notification
             String msg = accepted
                     ? String.format("🎉 Your bid of $%.2f on %s/%s was accepted.",
-                    /* you’ll need to look up the actual amount, see note below */ 0.0,
+                    /* you’ll need to look up the actual amount, see note below */ amount,
                     storeName, productId)
                     : String.format("😞 Your bid of $%.2f on %s/%s was rejected.",
-                    0.0,
+                    amount,
                     storeName, productId);
             // replace 0.0 above with the actual bid amount if you pass it back from the repo
 
-            notificationCenter.sendUserNotification(
-                    sessionKey,
-                    bidderEmail,
-                    msg,
-                    operator
-            );
             Notification notification = new Notification(msg, bidderEmail);
             return Result.success(notification);
         } catch (Exception e) {
@@ -1188,49 +1137,33 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-//    public Result<Void> respondToBid(
-//            String sessionKey,
-//            String storeName,
-//            String productId,
-//            String bidderEmail,
-//            boolean accepted
-//    ) {
-//        try {
-//            authenticationService.checkSessionKey(sessionKey);
-//            String operator = authenticationService.getUserBySession(sessionKey);
-//
-//            if (!isOwner(operator, storeName)) {
-//                return Result.failure("Not authorized to respond to bids");
-//            }
-//
-//            Result<List<BidRequestDTO>> allBids = getBidRequests(sessionKey, storeName, productId);
-//            double amount = allBids.isSuccess()
-//                    ? allBids.getData().stream()
-//                    .filter(b -> b.getEmail().equals(bidderEmail))
-//                    .findFirst()
-//                    .map(BidRequestDTO::getAmount)
-//                    .orElse(0.0)
-//                    : 0.0;
-//
-//            // 4. tell the repository to remove that bid
-//            storeRepository.respondToBid(storeName, productId, bidderEmail);
-//
-//            // 5. fire a user notification
-//            String msg = accepted
-//                    ? String.format("🎉 Your bid of $%.2f on %s/%s was accepted!", amount, storeName, productId)
-//                    : String.format("❌ Your bid of $%.2f on %s/%s was rejected.", amount, storeName, productId);
-//
-//            notificationCenter.sendUserNotification(
-//                    sessionKey,
-//                    bidderEmail,
-//                    msg,
-//                    operator
-//            );
-//
-//            return Result.success(null);
-//        } catch (Exception e) {
-//            LoggerWrapper.error("Error responding to bid: " + e.getMessage(), e);
-//            return Result.failure(e.getMessage());
-//        }
-//    }
+
+    /**
+     * Gets users who have placed bids on a product.
+     *
+     * @param sessionKey The session key of the authenticated user
+     * @param storeName The name of the store
+     * @param productId The ID of the product
+     * @return A Result containing the list of bidder emails
+     */
+    public Result<List<BidRequestDTO>> getBidRequests(String sessionKey,
+                                                      String storeName,
+                                                      String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String me = authenticationService.getUserBySession(sessionKey);
+            if (!isOwner(me, storeName)) {
+                return Result.failure("User is not an owner of the store");
+            }
+            // assume your repository can give you a Map<email,amount>
+            Map<String, Double> bids = storeRepository.getBidRequests(storeName, productId);
+            List<BidRequestDTO> dtoList = bids.entrySet().stream()
+                    .map(e -> new BidRequestDTO(e.getKey(), e.getValue()))
+                    .toList();
+            return Result.success(dtoList);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error fetching bid requests: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
 }

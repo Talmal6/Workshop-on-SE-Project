@@ -595,13 +595,11 @@ public class StoreRepository implements IStoreRepository {
         if (!store.isOwner(operatorEmail)) {
             throw new RuntimeException("User is not owner");
         }
-
         ShoppingProduct product = store.getProduct(productId);
         if (product == null) {
             throw new RuntimeException("Product not found: " + productId);
         }
 
-        // 3) locate the pending bid
         Optional<Bid> maybeBid = product.getBids().stream()
                 .filter(b -> b.getBidderEmail().equals(bidderEmail))
                 .findFirst();
@@ -610,7 +608,7 @@ public class StoreRepository implements IStoreRepository {
         }
         Bid bid = maybeBid.get();
 
-        product.removeBid(bid);
+        product.removeBid(bid.getBidderEmail());
     }
 
 

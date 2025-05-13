@@ -5,8 +5,13 @@ import org.springframework.stereotype.Service;
 
 import com.vaadin.hilla.EndpointExposed;
 
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @EndpointExposed
 @PermitAll           // demo only – secure in production
@@ -15,6 +20,7 @@ public class NotificationEndpoint {
 
     private final Sinks.Many<Notification> sink =
             Sinks.many().multicast().onBackpressureBuffer();
+
 
     /** Browser calls this; only items for that user flow down the socket. */
     public Flux<Notification> subscribe(String userId) {
@@ -25,4 +31,5 @@ public class NotificationEndpoint {
     public void publish(Notification n) {
         sink.tryEmitNext(n);
     }
+
 }

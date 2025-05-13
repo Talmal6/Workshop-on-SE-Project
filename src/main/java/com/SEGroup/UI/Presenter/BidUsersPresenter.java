@@ -22,12 +22,14 @@ public class BidUsersPresenter {
     private final StoreService storeService;
     private final String storeName;
     private final String productId;
+    private NotificationView notificationView;
 
     public BidUsersPresenter(BidUsersView view, String storeName, String productId) {
         this.view = view;
         this.storeName = storeName;
         this.productId = productId;
         this.storeService = ServiceLocator.getStoreService();
+        notificationView = new NotificationView();
     }
 
     /**
@@ -52,13 +54,15 @@ public class BidUsersPresenter {
                 storeName,
                 productId,
                 userEmail,
-                true   // accepted
+                true,   // accepted
+                amount
         );
         if (res.isSuccess()) {
             view.displayBidUsers(view.usersGrid.getDataProvider().fetch(new com.vaadin.flow.data.provider.Query<>())
                     .filter(b -> !b.email().equals(userEmail))
                     .collect(Collectors.toList()));
             view.showSuccess("Accepted " + userEmail + "’s bid of $" + amount);
+            notificationView.addNotification(res.getData());
         } else {
             view.showError("Could not accept bid: " + res.getErrorMessage());
         }
@@ -70,13 +74,15 @@ public class BidUsersPresenter {
                 storeName,
                 productId,
                 userEmail,
-                false  // rejected
+                false,  // rejected
+                amount
         );
         if (res.isSuccess()) {
             view.displayBidUsers(view.usersGrid.getDataProvider().fetch(new com.vaadin.flow.data.provider.Query<>())
                     .filter(b -> !b.email().equals(userEmail))
                     .collect(Collectors.toList()));
             view.showSuccess("Rejected " + userEmail + "’s bid of $" + amount);
+            notificationView.addNotification(res.getData());
         } else {
             view.showError("Could not reject bid: " + res.getErrorMessage());
         }

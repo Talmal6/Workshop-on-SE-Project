@@ -4,7 +4,6 @@ import com.SEGroup.Infrastructure.NotificationCenter.Notification;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationWithSender;
 import com.SEGroup.UI.MainLayout;
-import com.SEGroup.UI.Presenter.NotificationPresenter;
 import com.SEGroup.UI.SecurityContextHolder;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
@@ -17,7 +16,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -42,18 +40,15 @@ import java.util.concurrent.TimeUnit;
 public class NotificationView extends VerticalLayout {
 
     private final Grid<NotificationItem> grid = new Grid<>();
-    private final List<NotificationItem> notifications = new ArrayList<>();
+    private List<NotificationItem> notifications;
     private final Span emptyMessage = new Span("You have no notifications");
-    private final NotificationEndpoint notificationEndpoint;
 
-    private final NotificationPresenter notificationPresenter = new NotificationPresenter(this);
     private Registration broadcasterRegistration;
     private ScheduledExecutorService refreshExecutor;
 
     @Autowired
-    public NotificationView(NotificationEndpoint notificationEndpoint) {
-        this.notificationEndpoint = notificationEndpoint;
-
+    public NotificationView() {
+        notifications = new ArrayList<>();
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -61,7 +56,7 @@ public class NotificationView extends VerticalLayout {
         // Title with notification count badge
         H2 title = new H2("Notifications");
         HorizontalLayout headerLayout = new HorizontalLayout(title);
-        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        headerLayout.setAlignItems(Alignment.CENTER);
         add(headerLayout);
 
         // Configure empty state message
@@ -72,6 +67,7 @@ public class NotificationView extends VerticalLayout {
                 .set("padding", "2em");
 
         // Configure grid
+
         configureNotificationsGrid();
         add(grid);
 
@@ -92,6 +88,7 @@ public class NotificationView extends VerticalLayout {
 
         // Add empty message
         add(emptyMessage);
+
 
         // Initially show/hide components based on notifications
         updateGrid();
@@ -139,9 +136,9 @@ public class NotificationView extends VerticalLayout {
     /**
      * Updates the grid with the current notifications and shows/hides components accordingly.
      */
-    private void updateGrid() {
+    public void updateGrid() {
+        System.out.println("nnot :" +notifications.size());
         grid.setItems(notifications);
-
         boolean hasNotifications = !notifications.isEmpty();
         grid.setVisible(hasNotifications);
         emptyMessage.setVisible(!hasNotifications);
