@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IAuthenticationService;
@@ -61,7 +62,7 @@ public class StoreService {
      */
     public Result<String> addProductToCatalog(String catalogID, String name, String brand, String description,
             List<String> categories) {
-                
+
         try {
             LoggerWrapper.info("Adding product to catalog: " + catalogID); // Log the product addition
             productCatalog.addCatalogProduct(catalogID, name, brand, description, categories);
@@ -160,14 +161,16 @@ public class StoreService {
             String email = authenticationService.getUserBySession(sessionKey);
             userRepository.checkUserSuspension(email);
             boolean isAdmin = userRepository.userIsAdmin(email);
-            List<String> WorkersInStore = storeRepository.closeStore(storeName, email,isAdmin);
+            List<String> WorkersInStore = storeRepository.closeStore(storeName, email, isAdmin);
 
             for (ShoppingProductDTO sp : storeDTO.getProducts()) {
                 productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId());
             }
             for (String worker : WorkersInStore) {
                 notificationService.sendSystemNotification(worker, "Store " + storeName + " has been closed.");
-                if(isAdmin){removeOwner(sessionKey,storeName,worker);}
+                if (isAdmin) {
+                    removeOwner(sessionKey, storeName, worker);
+                }
             }
             LoggerWrapper.info("Store closed: " + storeName); // Log store closure
             return Result.success(null);
@@ -190,7 +193,7 @@ public class StoreService {
             String email = authenticationService.getUserBySession(sessionKey);
             userRepository.checkUserSuspension(email);
             boolean isAdmin = userRepository.userIsAdmin(email);
-            List<String> WorkersInStore = storeRepository.reopenStore(storeName, email,isAdmin);
+            List<String> WorkersInStore = storeRepository.reopenStore(storeName, email, isAdmin);
             for (ShoppingProductDTO sp : storeRepository.getStore(storeName).getProducts()) {
                 productCatalog.addStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId(), sp.getPrice(),
                         sp.getQuantity(), sp.getAvgRating(), sp.getName());
@@ -198,8 +201,7 @@ public class StoreService {
             for (String worker : WorkersInStore) {
                 notificationService.sendSystemNotification(
                         worker,
-                        "The store '" + storeName + "' has been reopen."
-                );
+                        "The store '" + storeName + "' has been reopen.");
             }
             LoggerWrapper.info("Store reopened: " + storeName); // Log store reopening
             return Result.success(null);
@@ -401,12 +403,11 @@ public class StoreService {
             String email = authenticationService.getUserBySession(sessionKey);
             boolean isAdmin = userRepository.userIsAdmin(email);
             userRepository.checkUserSuspension(email);
-            storeRepository.removeOwner(storeName, email, apointeeEmail,isAdmin);
+            storeRepository.removeOwner(storeName, email, apointeeEmail, isAdmin);
             userRepository.removeOwner(storeName, apointeeEmail);
             notificationService.sendSystemNotification(
                     apointeeEmail,
-                    "Your ownership role in store '" + storeName + "' has been removed."
-            );
+                    "Your ownership role in store '" + storeName + "' has been removed.");
             LoggerWrapper.info("Removed owner from store: " + storeName + ", Owner: " + apointeeEmail); // Log owner
                                                                                                         // removal
             return Result.success(null);
@@ -596,21 +597,21 @@ public class StoreService {
     public Result<Void> submitBidToShoppingItem(String sessionKey,
             String storeName,
             String productId,
-            double bidAmount) {
+            double bidAmount,
+            Integer quantity) {
         try {
             authenticationService.authenticate(sessionKey);
             String bidderEmail = authenticationService.getUserBySession(sessionKey);
             userRepository.checkUserSuspension(bidderEmail);
             storeRepository.submitBidToShoppingItem(bidderEmail, storeName,
-                    productId, bidAmount);
+                    productId, bidAmount, quantity);
             List<String> ownersAndManagers = storeRepository.getAllBidManagers(storeName);
             for (String recipient : ownersAndManagers) {
                 notificationService.sendSystemNotification(
                         recipient,
                         "A new bid was submitted by " + bidderEmail +
                                 " on product '" + productId + "' in store '" + storeName +
-                                "' for amount: " + bidAmount
-                );
+                                "' for amount: " + bidAmount);
             }
             return Result.success(null);
         } catch (Exception e) {
@@ -622,17 +623,19 @@ public class StoreService {
     public Result<Void> sendAuctionOffer(String sessionKey,
             String storeName,
             String productId,
-            double bidAmount) {
+            double bidAmount,
+            Integer quantity) {
         try {
             authenticationService.authenticate(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             storeRepository.sendAuctionOffer(authenticationService.getUserBySession(sessionKey), storeName, productId,
-                    bidAmount);
+                    bidAmount, quantity);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
+
     // 3.12
     public Result<Void> sendMessageToStoreFounder(String sessionKey, String storeName, String messageContent) {
         try {
@@ -645,8 +648,7 @@ public class StoreService {
                     sessionKey,
                     founderEmail,
                     messageContent,
-                    senderEmail
-            );
+                    senderEmail);
 
             LoggerWrapper.info("User " + senderEmail + " sent message to founder of store '" + storeName + "'");
             return Result.success(null);
@@ -674,11 +676,13 @@ public class StoreService {
         }
     }
 
-    public Result<Void> startAuction(String sessionKey, String storeName, String productId , double minPrice, Date endDate) {
+    public Result<Void> startAuction(String sessionKey, String storeName, String productId, double minPrice,
+            Date endDate) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.startAuction(authenticationService.getUserBySession(sessionKey), storeName, productId , minPrice, endDate);
+            storeRepository.startAuction(authenticationService.getUserBySession(sessionKey), storeName, productId,
+                    minPrice, endDate);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -686,9 +690,13 @@ public class StoreService {
 
     }
 
-    
-
-    
-
+    public Result<List<BidDTO>> getProductBids(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getProductBids(storeName, productId));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 
 }

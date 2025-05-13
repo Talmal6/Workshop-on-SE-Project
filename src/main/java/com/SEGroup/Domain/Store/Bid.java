@@ -8,7 +8,7 @@ public class Bid {
     private final double amount;
     private int quantity;
 
-    public Bid(String bidderEmail, double amount) {
+    public Bid(String bidderEmail, double amount,Integer quantity) {
         if (bidderEmail == null || bidderEmail.isEmpty())
             throw new IllegalArgumentException("Bidder email cannot be null or empty");
         if (amount <= 0)
@@ -18,6 +18,7 @@ public class Bid {
 
         this.bidderEmail = bidderEmail;
         this.amount = amount;
+        this.quantity = quantity;
     }
 
     public String getBidderEmail() {

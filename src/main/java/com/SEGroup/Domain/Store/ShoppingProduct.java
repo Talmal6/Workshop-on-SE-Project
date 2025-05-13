@@ -83,8 +83,8 @@ public class ShoppingProduct {
     }
 
     // Bidding logic
-    public void addBid(String bidderEmail, double amount) {
-        bids.add(new Bid(bidderEmail, amount));
+    public void addBid(String bidderEmail, double amount, Integer quantity) {
+        bids.add(new Bid(bidderEmail, amount,quantity));
     }
 
     public Optional<Bid> getHighestBid() {

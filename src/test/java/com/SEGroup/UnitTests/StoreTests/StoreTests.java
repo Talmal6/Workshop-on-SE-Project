@@ -95,10 +95,10 @@ public class StoreTests {
     @Test
     @DisplayName("Given store with no bids, when submitBidToShoppingItem invalid params, then returns false")
     public void Given_StoreWithNoProduct_When_SubmitBidInvalid_Then_False() {
-        assertFalse(store.submitBidToShoppingItem("Unknown", 10.0, "bidder@test.com"));
+        assertFalse(store.submitBidToShoppingItem("Unknown", 10.0, "bidder@test.com", 1));
         store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
         ShoppingProduct prod = store.getAllProducts().iterator().next();
-        assertFalse(store.submitBidToShoppingItem(prod.getProductId(), -1.0, ""));
+        assertFalse(store.submitBidToShoppingItem(prod.getProductId(), -1.0, "", 1));
     }
 
     @Test
@@ -106,7 +106,7 @@ public class StoreTests {
     public void Given_StoreWithProduct_When_SubmitBidValid_Then_True() {
         store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
         ShoppingProduct prod = store.getAllProducts().iterator().next();
-        assertTrue(store.submitBidToShoppingItem(prod.getProductId(), 15.0, "bidder@test.com"));
+        assertTrue(store.submitBidToShoppingItem(prod.getProductId(), 15.0, "bidder@test.com", 1));
     }
 
     @Test
@@ -114,7 +114,7 @@ public class StoreTests {
     public void Given_Store_When_SubmitAuctionWithoutAuction_Then_False() {
         store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
         ShoppingProduct prod = store.getAllProducts().iterator().next();
-        assertFalse(store.submitAuctionOffer(prod.getProductId(), 20.0, "bidder@test.com"));
+        assertFalse(store.submitAuctionOffer(prod.getProductId(), 20.0, "bidder@test.com",1 ));
     }
 
     @Test

@@ -354,18 +354,44 @@ class UserServiceTests {
     }
 
 
+    
+    private void storeForUserAction(){
+        // initiate store
+        StoreRepository store = new StoreRepository();
+        store.createStore("S1", email);
+        // initiate product catalog
+        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
+        store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false);
+        store.addProductToStore(email, "S1", "P2", "Product 2", "someDesc", 5.7, 10, false);
+    }
 
     @Test 
     public void WhileUserIsSuspended_AttemptUserAction_ShouldFail() throws Exception{
+        storeForUserAction();
         String susKey = regLoginAndGetSession("suspendedUser", "sus@sus.com", "pass");
+        // Attemps to add to cart as unsuspended user
+        Result<String> r1 = sut.addToUserCart(susKey, "sus@sus.com", "Product 1", "S1");
+        assertTrue(r1.isSuccess());
         Result<String> result = sut.suspendUser(adminSeshKey, "sus@sus.com", 100, "suspension reason");
         assertTrue(result.isSuccess());
-        
-        // Attempt to perform an action with the suspended user
-
-        
-        Result<String> r1 = sut.addToUserCart(susKey, "sus@sus.com", "Product 1", "S1");
-        assertTrue(r1.isFailure());       
+        Result<String> r2 = sut.addToUserCart(susKey, "sus@sus.com", "Product 2", "S1");
+        assertTrue(r2.isFailure());      
     }
 
+
+    @Test
+    public void WhileUserIsSuspeded_UnsuspendUser_ThenAttemptUserAction_ShouldSucceed() throws Exception{
+        storeForUserAction();
+        String susKey = regLoginAndGetSession("suspendedUser", "sus@sus.com", "pass");
+        // suspend the user
+        Result<String> result = sut.suspendUser(adminSeshKey, "sus@sus.com", 100, "suspension reason");
+        assertTrue(result.isSuccess());
+        Result<String> r1 = sut.addToUserCart(susKey, "sus@sus.com", "Product 1", "S1");
+        assertTrue(r1.isFailure());
+        Result<String> r2 = sut.unsuspendUser(susKey,"sus@sus.com" );
+        Result<String> r3 = sut.addToUserCart(susKey, "sus@sus.com", "Product 2", "S1");
+        assertTrue(r3.isSuccess());
+    }
+    
+    
 }

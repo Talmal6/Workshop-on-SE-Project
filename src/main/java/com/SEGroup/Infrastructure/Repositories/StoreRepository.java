@@ -513,13 +513,13 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount) {
+    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount,Integer quantity) {
         Store store = findByName(storeName);
-        store.submitBidToShoppingItem(productId, bidAmount, Email);
+        store.submitBidToShoppingItem(productId, bidAmount, Email,quantity);
     }
 
     @Override
-    public void sendAuctionOffer(String email, String storeName, String productId, double bidAmount) {
+    public void sendAuctionOffer(String email, String storeName, String productId, double bidAmount , Integer quantity) {
         Store store = findByName(storeName);
         ShoppingProduct product = store.getProduct(productId);
         if (product == null) {
@@ -535,7 +535,7 @@ public class StoreRepository implements IStoreRepository {
         if (auc.getHighestBid() != null && auc.getHighestBid().getBidderEmail().equals(email)) {
             throw new RuntimeException("You are already the highest bidder");
         }
-        store.submitAuctionOffer(productId, bidAmount, email);
+        store.submitAuctionOffer(productId, bidAmount, email, quantity);
     }
 
     @Override
@@ -703,6 +703,20 @@ public class StoreRepository implements IStoreRepository {
         } else {
             throw new RuntimeException("User is not authorized to start auction");
         }
+    }
+
+    @Override
+    public List<BidDTO> getProductBids(String storeName, String productId) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+        List<BidDTO> bids = new ArrayList<>();
+        for (Bid bid : product.getBids()) {
+            bids.add(convertBidToDTO(bid, productId));
+        }
+        return bids;
     }
 
 }

@@ -164,7 +164,7 @@ public class Store {
         * @param bidderEmail The email of the bidder.
         * @return true if the bid was successfully submitted, false otherwise.
      */
-    public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail) {
+    public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail, Integer quantity) {
         ShoppingProduct product = products.get(itemName);
 
         if (product == null) {
@@ -175,7 +175,8 @@ public class Store {
             return false;
         }
 
-        product.addBid(bidderEmail, bidAmount);
+        product.addBid(bidderEmail, bidAmount, quantity);
+        updateProduct(bidderEmail, product);
         return true;
     }
 
@@ -187,7 +188,7 @@ public class Store {
         * @param bidderEmail The email of the bidder.
         * @return true if the offer was successfully submitted, false otherwise.
      */
-    public boolean submitAuctionOffer(String productId, double offerAmount, String bidderEmail) {
+    public boolean submitAuctionOffer(String productId, double offerAmount, String bidderEmail, Integer quantity) {
         ShoppingProduct product = products.get(productId);
         if (product == null || product.getAuction() == null) {
             return false;
@@ -195,7 +196,7 @@ public class Store {
 
 
         Auction auction = product.getAuction();
-        return auction.submitBid(bidderEmail, offerAmount);
+        return auction.submitBid(bidderEmail, offerAmount, quantity);
     }
     /*
      * checks if a given email is the owner of the store

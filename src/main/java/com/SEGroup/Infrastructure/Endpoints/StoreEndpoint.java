@@ -146,13 +146,13 @@ public class StoreEndpoint {
     }
 
     public void submitBid(String sessionKey, String storeName,
-                          String productID, double bidAmount) {
-        unwrap(storeService.submitBidToShoppingItem(sessionKey, storeName, productID, bidAmount));
+                          String productID, double bidAmount, int quantity) {
+        unwrap(storeService.submitBidToShoppingItem(sessionKey, storeName, productID, bidAmount , quantity));
     }
 
     public void sendAuctionOffer(String sessionKey, String storeName,
-                                 String productID, double bidAmount) {
-        unwrap(storeService.sendAuctionOffer(sessionKey, storeName, productID, bidAmount));
+                                 String productID, double bidAmount, int quantity) {
+        unwrap(storeService.sendAuctionOffer(sessionKey, storeName, productID, bidAmount, quantity));
     }
 
     /* ---------- 23‑24. Single‑product queries ---------- */

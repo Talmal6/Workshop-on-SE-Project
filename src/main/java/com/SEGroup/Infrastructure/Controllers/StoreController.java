@@ -314,10 +314,11 @@ public class StoreController {
             @RequestParam String sessionKey,
             @PathVariable String storeName,
             @PathVariable String productID,
-            @RequestParam double bidAmount
+            @RequestParam double bidAmount,
+            @RequestParam int quentity
     ) {
         Result<Void> r = storeService.submitBidToShoppingItem(
-            sessionKey, storeName, productID, bidAmount
+            sessionKey, storeName, productID, bidAmount, quentity
         );
         return r.isSuccess()
                 ? ResponseEntity.ok().build()
@@ -329,10 +330,11 @@ public class StoreController {
             @RequestParam String sessionKey,
             @PathVariable String storeName,
             @PathVariable String productID,
-            @RequestParam double bidAmount
+            @RequestParam double bidAmount,
+            @RequestParam Integer quantity
     ) {
         Result<Void> r = storeService.sendAuctionOffer(
-            sessionKey, storeName, productID, bidAmount
+            sessionKey, storeName, productID, bidAmount, quantity
         );
         return r.isSuccess()
                 ? ResponseEntity.ok().build()
