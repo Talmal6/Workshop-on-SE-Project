@@ -42,6 +42,7 @@ public class UserRepository implements IUserRepository {
                 "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
         users.put("Admin", admin);
         admins.add("Admin");
+        admins.add("Admin@Admin.Admin");
     }
 
     /**

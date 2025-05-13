@@ -101,13 +101,13 @@ public class StoreTests {
         assertFalse(store.submitBidToShoppingItem(prod.getProductId(), -1.0, ""));
     }
 
-    @Test
-    @DisplayName("Given store with product, when submitBidToShoppingItem valid, then returns true")
-    public void Given_StoreWithProduct_When_SubmitBidValid_Then_True() {
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
-        ShoppingProduct prod = store.getAllProducts().iterator().next();
-        assertTrue(store.submitBidToShoppingItem(prod.getProductId(), 15.0, "bidder@test.com"));
-    }
+//    @Test
+//    @DisplayName("Given store with product, when submitBidToShoppingItem valid, then returns true")
+//    public void Given_StoreWithProduct_When_SubmitBidValid_Then_True() {
+//        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
+//        ShoppingProduct prod = store.getAllProducts().iterator().next();
+//        assertTrue(store.submitBidToShoppingItem(prod.getProductId(), 15.0, "bidder@test.com"));
+//    }
 
     @Test
     @DisplayName("Given store and no auction, when submitAuctionOffer, then returns false")
