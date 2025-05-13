@@ -20,6 +20,7 @@ public class ShoppingProduct {
     private double price;
     private int quantity;
     private final String storeName;
+    private final String imageUrl;
     private final Map<String, Store.Rating> ratings = new HashMap<>();
 
     // Bids and auction
@@ -28,7 +29,7 @@ public class ShoppingProduct {
     private BuyingPolicy buyingPolicy;
 
     public ShoppingProduct(String storeName, String catalogID, String productId, String name,
-                           String description, double price, int quantity) {
+                           String description, double price, int quantity, String imageUrl) {
         this.storeName = storeName;
         this.catalogID = catalogID;
         this.productId = productId;
@@ -38,6 +39,7 @@ public class ShoppingProduct {
         this.quantity = quantity;
         this.bids = new ArrayList<>();
         this.buyingPolicy = new BuyingPolicy(1);
+        this.imageUrl=imageUrl;
         this.ratings.clear();
     }
 
@@ -63,6 +65,9 @@ public class ShoppingProduct {
 
     public List<Bid> getBids() {
         return Collections.unmodifiableList(bids);
+    }
+    public void setAuction(Auction auction){
+        this.auction=auction;
     }
 
     // Setters
@@ -141,7 +146,7 @@ public class ShoppingProduct {
         }
         ratings.put(raterEmail, new Store.Rating(score, review));
     }
-    
+
     //rateStore
     /*
         * Retrieves the rating of the store.
@@ -154,5 +159,15 @@ public class ShoppingProduct {
                 .mapToInt(r -> r.score)
                 .average()
                 .orElse(0.0);
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public boolean hasAuction() {
+        return auction != null;
+    }
+    public void removeBid(String bidderEmail) {
+        this.bids.removeIf(b -> b.getBidderEmail().equals(bidderEmail));
     }
 }

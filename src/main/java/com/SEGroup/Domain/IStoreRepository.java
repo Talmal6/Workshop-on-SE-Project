@@ -68,11 +68,12 @@ public interface IStoreRepository {
          * @param description  A description of the product.
          * @param price        The price of the product.
          * @param quantity     The quantity of the product.
+         * @param imageURL     The URL of an image
          * @return The ID of the added product.
          */
         String addProductToStore(String email, String storeName, String catalogID, String product_name,
                         String description,
-                        double price, int quantity, boolean isAdmin);
+                        double price, int quantity, boolean isAdmin, String imageURL);
 
         /**
          * Updates the details of a shopping product.
@@ -121,7 +122,8 @@ public interface IStoreRepository {
 
         // Ownership and manager operations with operator email authorization
 
-        /**
+
+    /**
          * Appoints a new owner for a store.
          *
          * @param storeName     The name of the store.
@@ -259,4 +261,7 @@ public interface IStoreRepository {
 
         void rejectBid(String owner, String storeName, BidDTO bidDTO);
 
+    void updateStoreDescription(String storeName, String operatorEmail, String description);
+
+    List<StoreDTO> getStoresOwnedBy(String ownerEmail);
 }

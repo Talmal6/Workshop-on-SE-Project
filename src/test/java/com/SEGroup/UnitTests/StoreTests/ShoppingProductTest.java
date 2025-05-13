@@ -17,7 +17,7 @@ public class ShoppingProductTest {
     @BeforeEach
     public void init(){
         this.shoppingProduct = new ShoppingProduct("Supermarket", "Drink", "Milk", "Milk Vanilla", "" +
-                "The milk is made out of vanilla with milk", 7.18, 2);
+                "The milk is made out of vanilla with milk", 7.18, 2,"");
     }
 
     @Test

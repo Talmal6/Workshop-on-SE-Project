@@ -122,10 +122,11 @@ public class StoreController {
             @RequestParam String productName,
             @RequestParam String description,
             @RequestParam double price,
-            @RequestParam int quantity
+            @RequestParam int quantity,
+            @RequestParam String imageURL
     ) {
         Result<String> r = storeService.addProductToStore(
-            sessionKey, storeName, catalogID, productName, description, price, quantity
+            sessionKey, storeName, catalogID, productName, description, price, quantity, imageURL
         );
         if (r.isSuccess()) {
             return ResponseEntity.ok(r.getData());

@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.DTO.StoreCardDto;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IProductCatalog;
@@ -228,7 +229,7 @@ public class StoreService {
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<String> addProductToStore(String sessionKey, String storeName, String catalogID, String productName,
-            String description, double price, int quantity) {
+            String description, double price, int quantity, String imageURL) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
@@ -236,7 +237,7 @@ public class StoreService {
             String email = authenticationService.getUserBySession(sessionKey);
             boolean isAdmin = userRepository.userIsAdmin(email);
             String productID = storeRepository.addProductToStore(email, storeName, catalogID,
-                    productName, description, price, quantity, isAdmin);
+                    productName, description, price, quantity, isAdmin, imageURL);
             productCatalog.addStoreProductEntry(catalogID, storeName, productID, price, quantity, 0, productName);
             LoggerWrapper.info("Added product to store: " + storeName + ", Product ID: " + productID); // Log the
                                                                                                        // product
@@ -765,6 +766,27 @@ public class StoreService {
         }
     }
 
-    
+    /**
+     * Lists stores owned by a specific user for display in the card view.
+     *
+     * @param ownerEmail Email of the store owner
+     * @return List of store card DTOs for stores owned by the specified user
+     */
+    public List<StoreCardDto> listStoresOwnedBy(String ownerEmail) {
+        return storeRepository.getStoresOwnedBy(ownerEmail)
+                .stream()
+                .map(this::toCard)
+                .toList();
+    }
+    /**
+     * Helper method to convert StoreDTO to StoreCardDto
+     */
+    public StoreCardDto toCard(StoreDTO dto) {
+        return new StoreCardDto(
+                dto.getName(),
+                dto.getFounderEmail(),
+                dto.getAvgRating(),
+                dto.getDescription());
+    }
 
 }

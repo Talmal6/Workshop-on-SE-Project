@@ -37,7 +37,7 @@ public class AllStoresPresenter {
                     view.showInfo("You don't own any stores yet");
                 }
             } else {
-                stores = storeService.listAllStores();
+                stores = storeService.viewAllStores();
             }
 
             view.displayStores(stores);

@@ -35,7 +35,6 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
     private String productId;
     private String storeName;
     private boolean isOwner;
-    private boolean isBidStarted;
     private final DecimalFormat ratingFormat = new DecimalFormat("0.0");
 
     public ProductView(View view) {
@@ -103,10 +102,14 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
 
         Button bidBtn = new Button("Place Bid", VaadinIcon.GAVEL.create());
         bidBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        TextField quantityField = new TextField("Your quantity");
+        quantityField.setWidth("150px");
         bidBtn.addClickListener(e -> {
             try {
                 double amt = Double.parseDouble(bidField.getValue());
-                presenter.placeBid(amt);
+                Integer qu = Integer.parseInt((quantityField.getValue()));
+                presenter.placeBid(amt, qu);
             } catch (NumberFormatException ex) {
                 showError("Please enter a valid number");
             }
@@ -117,6 +120,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 endsAtSpan,
                 remainSpan,
                 bidField,
+                quantityField,
                 bidBtn
         );
         auctionBar.getStyle()

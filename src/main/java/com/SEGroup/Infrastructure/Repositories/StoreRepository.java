@@ -19,7 +19,7 @@ import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Mapper.StoreMapper;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;;
+;
 
 //implement iStore
 /**
@@ -146,11 +146,11 @@ public class StoreRepository implements IStoreRepository {
     @Override
     public String addProductToStore(String email, String storeName, String catalogID, String product_name,
             String description, double price,
-            int quantity, boolean isAdmin) {
+            int quantity, boolean isAdmin, String imageURL) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
             return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity,
-                    isAdmin);
+                    isAdmin, imageURL);
         }
         return null;
 
@@ -437,7 +437,8 @@ public class StoreRepository implements IStoreRepository {
                 product.getDescription(),
                 product.getPrice(),
                 product.getQuantity(),
-                product.averageRating());
+                product.averageRating(),
+                product.getImageUrl());
     }
 
     private List<ShoppingProductDTO> convertProductsToDTO(List<ShoppingProduct> products) {
@@ -740,5 +741,23 @@ public class StoreRepository implements IStoreRepository {
         }
         product.removeBid(bidDTO.getBidderEmail(), bidDTO.getPrice(), bidDTO.getQuantity());
     }
+    @Override
+    public void updateStoreDescription(String storeName, String operatorEmail, String description) {
+        // Use findByName instead of stores.get(storeName)
+        Store store = findByName(storeName);
 
+        if (!store.isOwner(operatorEmail)) {
+            throw new IllegalArgumentException("User is not authorized to update store description");
+        }
+
+        store.setDescription(description);
+    }
+
+    @Override
+    public List<StoreDTO> getStoresOwnedBy(String ownerEmail) {
+        return stores.stream()                      // iterate over the list
+                .filter(s -> s.isOwner(ownerEmail)) // or s.getAllOwners().contains(ownerEmail)
+                .map(storeMapper::toDTO)       // convert to DTO
+                .toList();                     // Java 16 +  (Collectors.toList() for older)
+    }
 }
