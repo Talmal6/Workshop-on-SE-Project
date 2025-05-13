@@ -193,6 +193,7 @@ public class Store {
             return false;
         }
 
+
         Auction auction = product.getAuction();
         return auction.submitBid(bidderEmail, offerAmount);
     }
@@ -245,12 +246,12 @@ public class Store {
         * @param ownerToRemove  The email of the owner to remove.
         * @return true if the removal was successful, false otherwise.
      */
-    public boolean removeOwner(String removerEmail, String ownerToRemove) {
-        if (!ownersAppointer.containsKey(ownerToRemove))
+    public boolean removeOwner(String removerEmail, String ownerToRemove,boolean isAdmin) {
+        if (!ownersAppointer.containsKey(ownerToRemove) && !isAdmin)
             throw new IllegalArgumentException("owner email is not owner of this store");
 
         String appointedBy = ownersAppointer.get(ownerToRemove);
-        if (!removerEmail.equals(appointedBy))
+        if (!removerEmail.equals(appointedBy) && !isAdmin)
             throw new IllegalArgumentException("appointer email is not owner of this store");
 
         removeAppointedCascade(ownerToRemove);
@@ -479,6 +480,47 @@ public class Store {
 
         return totalPrice - totalDiscount;
     }
+    public List<String> getAllBidManagers() {
+        List<String> bidManagers = new ArrayList<>();
+
+        // Add all owners (including founder)
+        bidManagers.add(founderEmail);
+        bidManagers.addAll(ownersAppointer.keySet());
+
+        // Add all managers who have MANAGE_BIDS permission
+        for (Map.Entry<String, ManagerData> entry : managers.entrySet()) {
+            if (entry.getValue().getPermissions().contains(ManagerPermission.MANAGE_BIDS)) {
+                bidManagers.add(entry.getKey());
+            }
+        }
+
+        return bidManagers;
+    }
+
+    public Auction getProductAuction(String productId) {
+        ShoppingProduct product = products.get(productId);
+        if (product != null) {
+            return product.getAuction();
+        }
+        return null;
+    }
+
+    public List<Bid> getProductBids(String productId) {
+        ShoppingProduct product = products.get(productId);
+        if (product != null) {
+            return product.getBids();
+        }
+        return null;
+    }
+
+    public List<Bid> getAllBids(){
+        List<Bid> allBids = new ArrayList<>();
+        for (ShoppingProduct product : products.values()) {
+            allBids.addAll(product.getBids());
+        }
+        return allBids;
+    }
+
 
 
 

@@ -1,9 +1,11 @@
 package com.SEGroup.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IPaymentGateway;
@@ -11,6 +13,7 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.IShippingService;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 
 /**
  * TransactionService handles the operations related to transactions, including processing payments, viewing transaction history, and purchasing shopping carts.
@@ -23,6 +26,7 @@ public class TransactionService {
     private final IStoreRepository storeRepository; // Added StoreRepository
     private final IUserRepository userRepository; // Added UserRepository
     private final IShippingService shippingService; // Added ShippingService
+    private final NotificationCenter notificationService;
 
     /**
      * Constructs a new TransactionService instance with the provided dependencies.
@@ -38,14 +42,17 @@ public class TransactionService {
                               ITransactionRepository transactionRepository,
                               IStoreRepository storeRepository,
                               IUserRepository userRepository,
-                              IShippingService shippingService) {
+                              IShippingService shippingService,
+                              NotificationCenter notificationService) {
         this.authenticationService = authenticationService;
         this.paymentGateway = paymentGateway;
         this.transactionRepository = transactionRepository;
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;
         this.shippingService = shippingService; // Initialize ShippingService
+        this.notificationService = notificationService;
     }
+    
 
     /**
      * Retrieves the transaction history for a given user.
@@ -58,6 +65,7 @@ public class TransactionService {
     public Result<List<TransactionDTO>> getTransactionHistory(String sessionKey, String userEmail) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            
             LoggerWrapper.info("Fetching transaction history for user: " + userEmail);  // Log transaction history retrieval
             List<TransactionDTO> transactions = transactionRepository.getTransactionsByUserEmail(userEmail);
             return Result.success(transactions);
@@ -79,8 +87,9 @@ public class TransactionService {
     public Result<Void> purchaseShoppingCart(String sessionKey, String userEmail, String paymentDetails) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             LoggerWrapper.info("Initiating purchase for user: " + userEmail);  // Log the start of the purchase
+
 
             List<BasketDTO> cart = userRepository.getUserCart(userEmail);
             Map<BasketDTO, Double> basketToPrice = storeRepository.removeItemsFromStores(cart);
@@ -100,10 +109,10 @@ public class TransactionService {
                     LoggerWrapper.error("Payment failed for user: " + userEmail + ", Error: " + e.getMessage(), e);  // Log payment failure
                     throw new RuntimeException("Payment failed: " + e.getMessage());
                 }
-                } catch (Exception e) {
-                    for (BasketDTO basket : cart) {
-                        shippingService.cancelShipping(basket,userEmail);  // Rollback items to stores in case of shipping failure
-                }
+            } catch (Exception e) {
+                for (BasketDTO basket : cart) {
+                    shippingService.cancelShipping(basket,userEmail);  // Rollback items to stores in case of shipping failure
+            }
                 return Result.failure(  e.getMessage());
             }
             
@@ -112,6 +121,11 @@ public class TransactionService {
             for (Map.Entry<BasketDTO, Double> entry : basketToPrice.entrySet()) {
                 BasketDTO basket = entry.getKey();
                 double storeCost = entry.getValue();
+                String storeFounder = storeRepository.getStoreFounder(basket.storeId());
+                notificationService.sendSystemNotification(
+                        storeFounder,
+                        "A product has been purchased from your store '" + basket.getBasketProducts() + "'."
+                );
                 transactionRepository.addTransaction(basket.getBasketProducts(), storeCost, userEmail, basket.storeId());
                 LoggerWrapper.info("Transaction added for user: " + userEmail + ", Store: " + basket.storeId());  // Log successful transaction addition
             }
@@ -143,4 +157,114 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+
+    /*
+     * 
+     * 
+     */
+
+     public Result<Void> acceptBid(String sessionKey, String storeName, BidDTO bidDTO) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            storeRepository.acceptBid( storeName , userEmail, bidDTO.getProductId(), bidDTO);
+            double cost = bidDTO.getPrice();
+            try{
+                shippingService.ship(storeName, userEmail, bidDTO.getProductId());
+
+            }
+            catch (Exception e) {
+                LoggerWrapper.error("Shipping failed for bid acceptance: " + e.getMessage(), e);  // Log shipping failure
+                throw new RuntimeException("Shipping failed: " + e.getMessage());
+            }
+            try{
+                paymentGateway.processPayment(userEmail, cost);
+                LoggerWrapper.info("Payment processed for bid acceptance: " + userEmail + ", Amount: " + cost);  // Log successful payment processing
+            } catch (Exception e) {
+                LoggerWrapper.error("Payment failed for bid acceptance: " + e.getMessage(), e);  // Log payment failure
+                throw new RuntimeException("Payment failed: " + e.getMessage());
+            }
+
+
+            String storeFounder = storeRepository.getStoreFounder(storeName);
+            notificationService.sendSystemNotification(
+                    storeFounder,
+                    "A bid has been accepted for product '" + bidDTO.getProductId() + "' in your store '" + storeName + "'."
+            );
+            String user = bidDTO.getBidderEmail();
+            notificationService.sendSystemNotification(
+                    userRepository.getUserName(userEmail),
+                    "Your bid for product '" + bidDTO.getProductId() + "' in store '" + storeName + "' has been accepted."
+            );
+
+
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error accepting bid for store: " + storeName + " - " + e.getMessage(), e);  // Log error
+            storeRepository.rollBackByBid(storeName, bidDTO);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Void> executeAuction(String sessionKey, String storeName, BidDTO bidDTO){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            storeRepository.executeAuctionBid(storeName, bidDTO);
+            double cost = bidDTO.getPrice();
+            try{
+                shippingService.ship(storeName, userEmail, bidDTO.getProductId());
+
+            }
+            catch (Exception e) {
+                LoggerWrapper.error("Shipping failed for bid acceptance: " + e.getMessage(), e);  // Log shipping failure
+                throw new RuntimeException("Shipping failed: " + e.getMessage());
+            }
+            try{
+                paymentGateway.processPayment(userEmail, cost);
+                LoggerWrapper.info("Payment processed for bid acceptance: " + userEmail + ", Amount: " + cost);  // Log successful payment processing
+            } catch (Exception e) {
+                LoggerWrapper.error("Payment failed for bid acceptance: " + e.getMessage(), e);  // Log payment failure
+                throw new RuntimeException("Payment failed: " + e.getMessage());
+            }
+
+
+            // Notify the store founder and the user about the accepted bid
+            // Assuming you have a method to get the store founder's email
+            String storeFounder = storeRepository.getStoreFounder(storeName);
+            notificationService.sendSystemNotification(
+                    storeFounder,
+                    "A bid has been accepted for product '" + bidDTO.getProductId() + "' in your store '" + storeName + "'."
+            );
+            String user = bidDTO.getBidderEmail();
+            notificationService.sendSystemNotification(
+                    userRepository.getUserName(userEmail),
+                    "Your bid for product '" + bidDTO.getProductId() + "' in store '" + storeName + "' has been accepted."
+            );
+
+            return Result.success(null); // Ensure success is returned if no exceptions occur
+        }
+        catch (Exception e) {
+            LoggerWrapper.error("Error accepting bid for store: " + storeName + " - " + e.getMessage(), e);  // Log error
+            storeRepository.rollBackByBid(storeName, bidDTO);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    public Result<Date> getAuctionEndDate(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            Date endDate = storeRepository.getAuctionEndDate(storeName, productId);
+            return Result.success(endDate);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving auction end date for product: " + productId + " - " + e.getMessage(), e);  // Log error
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    
+
+    
 }

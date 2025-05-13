@@ -50,6 +50,7 @@ public class TransactionServiceAcceptanceTests {
     private TransactionService transactionService;
     private UserService userService;
     private IShippingService shippingService;
+    private NotificationCenter notificationService;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -66,8 +67,9 @@ public class TransactionServiceAcceptanceTests {
         authenticationService = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
         //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
         (( SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+        notificationService =  new NotificationCenter(authenticationService);
         userRepository = new UserRepository();
-        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository, new NotificationCenter(authenticationService));
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,notificationService);
         userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
         SESSION_KEY = regLoginAndGetSession(USER, USER_EMAIL, "password123"); // Register and login to get a valid session
         SELLER_TOKEN = regLoginAndGetSession(SELLER, SELLER_EMAIL, "password123"); // Register and login to get a valid session
@@ -81,7 +83,8 @@ public class TransactionServiceAcceptanceTests {
             transactionRepository,
             storeRepository,
             userRepository,
-            shippingService
+            shippingService,
+                notificationService
         );
         storeService.createStore(
                 SELLER_TOKEN, STORE_ID

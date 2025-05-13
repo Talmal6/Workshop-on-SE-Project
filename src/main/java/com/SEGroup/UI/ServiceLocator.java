@@ -61,7 +61,7 @@ public class ServiceLocator {
         userService = new UserService(guestService, userRepository, authService);
         storeService = new StoreService(storeRepository, productCatalog, authService, userRepository, notificationCenter);
         shippingService = mock(IShippingService.class);
-        transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService);
+        transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService,notificationCenter);
     }
 
     public static IAuthenticationService getAuthenticationService() {

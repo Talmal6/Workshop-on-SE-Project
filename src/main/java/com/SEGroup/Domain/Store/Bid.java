@@ -6,12 +6,15 @@ package com.SEGroup.Domain.Store;
 public class Bid {
     private final String bidderEmail;
     private final double amount;
+    private int quantity;
 
     public Bid(String bidderEmail, double amount) {
         if (bidderEmail == null || bidderEmail.isEmpty())
             throw new IllegalArgumentException("Bidder email cannot be null or empty");
         if (amount <= 0)
             throw new IllegalArgumentException("Bid amount must be positive");
+        if (quantity <= 0)
+            throw new IllegalArgumentException("Bid quantity must be positive");
 
         this.bidderEmail = bidderEmail;
         this.amount = amount;
@@ -23,6 +26,10 @@ public class Bid {
 
     public double getAmount() {
         return amount;
+    }
+
+    public int getQuantity() {
+        return quantity;
     }
 
     @Override

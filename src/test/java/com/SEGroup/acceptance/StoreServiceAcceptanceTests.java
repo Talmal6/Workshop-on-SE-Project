@@ -39,6 +39,10 @@ public class StoreServiceAcceptanceTests {
     private static final String STORE_NAME = "MyStore";
     private static final String CATALOG_ID = "catalog123";
     private static final String PRODUCT_ID = "product123";
+    private static final String ADMIN_EMAIL = "Admin@Admin.Admin";
+    private static final String ADMIN = "Admin";
+    private static final String ADMIN_PASS = "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS";
+    private static String defaultAdminSession;
     StoreService storeService;
     StoreRepository storeRepository;
     IAuthenticationService authenticationService;
@@ -63,7 +67,7 @@ public class StoreServiceAcceptanceTests {
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,new NotificationCenter(authenticationService));
         userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
         VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS); // Register and login to get a valid session
-
+        defaultAdminSession = regLoginAndGetSession(ADMIN, ADMIN_EMAIL, ADMIN_PASS); // Register and login to get a valid session
 
     }
 
@@ -294,5 +298,45 @@ public class StoreServiceAcceptanceTests {
         Result<Void> result2 = storeService.appointManager(authenticationService.authenticate(manager2),STORE_NAME, manager3, List.of("MANAGE_ROLES"));
         assertFalse(result2.isSuccess());
     }
+    //admins tests
+    @Test
+    public void adminCanCloseStore_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        Result<Void> result = storeService.closeStore(defaultAdminSession, STORE_NAME);
+        assertTrue(result.isSuccess());
+        StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
+        assertFalse(dto.isActive());
+    }
+
+    @Test
+    public void adminCanReopenStore_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.closeStore(defaultAdminSession, STORE_NAME);
+        Result<Void> result = storeService.reopenStore(defaultAdminSession, STORE_NAME);
+        assertTrue(result.isSuccess());
+        StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
+        assertTrue(dto.isActive());
+    }
+    @Test
+    public void adminCanAppointOwner_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        String newOwnerEmail = "newOwner1@example.com";
+        regLoginAndGetSession("newOwner1", newOwnerEmail, "pass");
+        Result<Void> result = storeService.appointOwner(defaultAdminSession, STORE_NAME, newOwnerEmail);
+        assertTrue(result.isSuccess());
+    }
+    @Test
+    public void adminCanRemoveOwner_ShouldSucceed() throws Exception {
+        String newOwnerEmail = "removableOwner@example.com";
+        regLoginAndGetSession("removableOwner", newOwnerEmail, "pass");
+
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.appointOwner(VALID_SESSION, STORE_NAME, newOwnerEmail);
+
+        Result<Void> result = storeService.removeOwner(defaultAdminSession, STORE_NAME, newOwnerEmail);
+        assertTrue(result.isSuccess());
+    }
+
+
 
 }
