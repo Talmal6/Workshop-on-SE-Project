@@ -1,6 +1,7 @@
 package com.SEGroup.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
@@ -671,6 +672,18 @@ public class StoreService {
         } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
+    }
+
+    public Result<Void> startAuction(String sessionKey, String storeName, String productId , double minPrice, Date endDate) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.startAuction(authenticationService.getUserBySession(sessionKey), storeName, productId , minPrice, endDate);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+
     }
 
     

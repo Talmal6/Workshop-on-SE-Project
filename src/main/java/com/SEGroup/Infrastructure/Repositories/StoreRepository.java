@@ -685,4 +685,24 @@ public class StoreRepository implements IStoreRepository {
         return auc.getEndTime();
     }
 
+    @Override
+    public void startAuction(String executor,String storeName, String productId, double startingPrice, Date endTime) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+        if (store.getProductAuction(productId) != null) {
+            throw new RuntimeException("Auction already exists for product: " + productId);
+        }
+        if (product.getAuction() != null) {
+            throw new RuntimeException("Auction already exists for product: " + productId);
+        };
+        if (store.isOwnerOrHasManagerPermissions(executor)){
+            product.startAuction(startingPrice, endTime);
+        } else {
+            throw new RuntimeException("User is not authorized to start auction");
+        }
+    }
+
 }
