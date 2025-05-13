@@ -37,11 +37,9 @@ public class UserRepository implements IUserRepository {
     }
 
     private void createAdmin() {
-        // create hard coded Admin with all permissions
-        User admin = new User("Admin@Admin.Admin", "Admin",
-                "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
-        users.put("Admin", admin);
-        admins.add("Admin");
+        //Password is: Admin (Its hashed)
+        addUser("Admin","Admin@Admin.Admin","$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
+        admins.add("Admin@Admin.Admin");
     }
 
     /**

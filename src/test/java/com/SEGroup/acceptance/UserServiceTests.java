@@ -12,6 +12,7 @@ import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.UserRepository;
+import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -47,7 +48,7 @@ class UserServiceTests {
     private IAuthenticationService auth;
     private IUserRepository users;
     private IGuestRepository guests;
-
+    
     /* real services wired with mocks */
     private GuestService guestSvc;
     private UserService sut;
@@ -57,7 +58,7 @@ class UserServiceTests {
     private final String pw = "P@ssw0rd";
     private final String hashPw = "enc(P@ssw0rd)"; // what our PasswordEncoder stub returns
     private String jwt = "jwt-owner";
-
+    private String adminSeshKey;
     /* ───────── generic stubbing ───────── */
     @BeforeEach
     void setUp() throws Exception {
@@ -68,7 +69,9 @@ class UserServiceTests {
         SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         security.setKey(key);
         auth = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
-        ((SecurityAdapter) auth).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+        PasswordEncoder PE = new PasswordEncoder();
+        ((SecurityAdapter) auth).setPasswordEncoder(PE);
+
 
         users = new UserRepository();
         guests = new GuestRepository();
@@ -76,6 +79,9 @@ class UserServiceTests {
         guestSvc = new GuestService(guests, auth);
         sut = new UserService(guestSvc, users, auth);
         jwt = regLoginAndGetSession("owner", email, pw); // register & login to get a session key
+        Result<String> adminSeshKeyR  =sut.login("Admin@Admin.Admin","Admin");
+        adminSeshKey = adminSeshKeyR.getData();
+
     }
 
     public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
@@ -349,6 +355,17 @@ class UserServiceTests {
 
 
 
+    @Test 
+    public void WhileUserIsSuspended_AttemptUserAction_ShouldFail() throws Exception{
+        String susKey = regLoginAndGetSession("suspendedUser", "sus@sus.com", "pass");
+        Result<String> result = sut.suspendUser(adminSeshKey, "sus@sus.com", 100, "suspension reason");
+        assertTrue(result.isSuccess());
+        
+        // Attempt to perform an action with the suspended user
 
+        
+        Result<String> r1 = sut.addToUserCart(susKey, "sus@sus.com", "Product 1", "S1");
+        assertTrue(r1.isFailure());       
+    }
 
 }

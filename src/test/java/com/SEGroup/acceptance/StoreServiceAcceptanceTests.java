@@ -67,7 +67,8 @@ public class StoreServiceAcceptanceTests {
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,new NotificationCenter(authenticationService));
         userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
         VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS); // Register and login to get a valid session
-        defaultAdminSession = regLoginAndGetSession(ADMIN, ADMIN_EMAIL, ADMIN_PASS); // Register and login to get a valid session
+        defaultAdminSession = LoginAndGetSession(ADMIN_EMAIL,ADMIN);
+        Result r1  = userService.login(ADMIN_EMAIL, "Admin"); // Register and login to get a valid sessio לא טו
 
     }
 
@@ -79,6 +80,11 @@ public class StoreServiceAcceptanceTests {
         return sessionKey;
     }
 
+    public String LoginAndGetSession(String email,String password) throws Exception {
+        Result<String> Admin = userService.login(email,password);
+        return Admin.getData();
+    }
+    
     @Test
     public void createStore_WithValidSession_ShouldSucceed() {
         Result<Void> result = storeService.createStore(VALID_SESSION, STORE_NAME);
@@ -337,10 +343,7 @@ public class StoreServiceAcceptanceTests {
         assertTrue(result.isSuccess());
     }
 
-    @Test 
-    public void OwnerStartingAuction() throws Exception{
-        
-    }
+
 
 
 

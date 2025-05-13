@@ -299,12 +299,12 @@ public class UserService {
         }
     }
 
-    public Result<String> suspendUser(String sessionKey, String email, String duration, String reason) {
+    public Result<String> suspendUser(String sessionKey, String email, Integer duration, String reason) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.userIsAdmin(authenticationService.getUserBySession(sessionKey));
-            float suspensionDuration = Float.parseFloat(duration);
-            userRepository.suspendUser(email, suspensionDuration, reason);
+         
+            userRepository.suspendUser(email, duration, reason);
             LoggerWrapper.info("User suspended: " + email + ", Duration: " + duration + ", Reason: " + reason); // Log
                                                                                                                 // user
                                                                                                                 // suspension
