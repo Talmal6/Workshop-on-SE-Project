@@ -19,8 +19,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class
-StoreRepositoryTests {
+public class StoreRepositoryTests {
     private StoreRepository repo;
     private final String founderEmail = "founder@test.com";
     private final String storeName = "TestStore";
@@ -90,7 +89,6 @@ StoreRepositoryTests {
     public void testUpdateShoppingProductReturnsUpdatedDTO() {
         String catalogID = "CID";
         repo.addProductToStore(founderEmail, storeName, catalogID, "ProdName", "Desc", 5.0, 10, false);
-        repo.addProductToStore(founderEmail, storeName, catalogID, "ProdName", "Desc", 5.0, 10, "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
 
         StoreDTO storeDTO = repo.getStore(storeName);
         assertEquals(1, storeDTO.getProducts().size());
@@ -102,8 +100,7 @@ StoreRepositoryTests {
         assertEquals("NewDesc", updated.getDescription());
         assertEquals(catalogID, updated.getCatalogID());
     }
-static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
-    ;
+
     @Test
     @DisplayName("Given no product in store, when updateShoppingProduct, then RuntimeException")
     public void testUpdateShoppingProductThrowsWhenProductNotFound() {
@@ -116,7 +113,7 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     public void testDeleteShoppingProductRemovesAndReturnsDTO() {
         String catalogID = "CID";
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false);
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, imageURL);
+
         StoreDTO storeDTO = repo.getStore(storeName);
         ShoppingProductDTO original = storeDTO.getProducts().get(0);
         String productId = original.getProductId();
@@ -133,7 +130,6 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     public void testDeleteShoppingProductThrowsForNonOwner() {
         String catalogID = "CID";
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false);
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();
@@ -147,7 +143,6 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     public void testRateProductValidReturnsAvgRating() {
         String catalogID = "CID";
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, false);
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();
@@ -168,7 +163,6 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     public void testRateProductThrowsOnInvalidScore() {
         String catalogID = "CID";
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, false);
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();
@@ -220,7 +214,6 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     public void testRemoveItemsFromStoresReturnsTotals() {
         String catalogID = "CID";
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false);
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();
@@ -239,7 +232,6 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     public void testRemoveItemsFromStoresRollbackOnException() {
         String catalogID = "CID";
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 2, false);
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 2, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();

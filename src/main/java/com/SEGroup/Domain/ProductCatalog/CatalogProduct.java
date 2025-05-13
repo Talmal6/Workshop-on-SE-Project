@@ -1,20 +1,27 @@
 package com.SEGroup.Domain.ProductCatalog;
 
-import java.util.List;
-
 /**
  * Represents a product in the catalog with details such as ID, name, brand, and description.
  */
 public class CatalogProduct {
     private final String catalogID;
-    private final String name;
-    private final List<String> categories;
+    private final String name; // Example: Iphone 13
+    private final String brand; // Example: Apple
+    private final String description; // IOS PHONE
 
-
-    public CatalogProduct(String catalogID, String name, List<String> categories) {
+    /**
+     * Constructs a new CatalogProduct instance.
+     *
+     * @param catalogID   The unique identifier for the catalog product.
+     * @param name        The name of the product.
+     * @param brand       The brand of the product.
+     * @param description A brief description of the product.
+     */
+    public CatalogProduct(String catalogID, String name, String brand, String description) {
         this.catalogID = catalogID;
-        this.name      = name;
-        this.categories = categories;
+        this.name = name;
+        this.brand = brand;
+        this.description = description;
     }
 
     /**
@@ -40,9 +47,17 @@ public class CatalogProduct {
      *
      * @return The product brand.
      */
+    public String getBrand() {
+        return brand;
+    }
 
-    public List<String> getCategories() {
-        return categories;
+    /**
+     * Gets the description of the product.
+     *
+     * @return The product description.
+     */
+    public String getDescription() {
+        return description;
     }
 
 }

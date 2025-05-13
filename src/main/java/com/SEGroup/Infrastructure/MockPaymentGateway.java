@@ -1,9 +1,7 @@
 package com.SEGroup.Infrastructure;
 
 import com.SEGroup.Domain.IPaymentGateway;
-import org.springframework.stereotype.Component;
 
-@Component
 public class MockPaymentGateway implements IPaymentGateway{
 
     @Override

@@ -12,10 +12,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * shopping cart, and purchase history.
  */
 public class User {
-    private final String username;
+
     private final String email;
-    private String passwordHash;
+    private       String passwordHash;
     private final ConcurrentMap<String, EnumSet<Role>> storeRoles = new ConcurrentHashMap<>();
+    private final String username;
+
     private volatile ShoppingCart cart; // Ensure ShoppingCart is defined or imported
     private final List<String> purchaseHistory = new LinkedList<>();
 
@@ -26,10 +28,12 @@ public class User {
      * @param passwordHash The hashed password of the user.
      * @param username     The username of the user.
      */
-    public User(String email, String username, String passwordHash) {
-        this.email = email;
+    public User(String email,String username ,String passwordHash) {
+        this.email        = email;
         this.passwordHash = passwordHash;
-        this.username = username;
+        this.username     = username;
+
+
     }
 
     /**
@@ -45,7 +49,7 @@ public class User {
     }
 
     /**
-     * Changes the password hash of the user.
+     * Chenges the password hash of the user.
      *
      * @param newHash The new password hash to set.
      */
@@ -59,9 +63,10 @@ public class User {
      * @param store The store ID.
      * @param r     The role to add.
      */
-    public void addRole(String store, Role r){
+    public void   addRole(String store, Role r){
         storeRoles.computeIfAbsent(store, k -> EnumSet.noneOf(Role.class)).add(r);
     }
+
 
     /**
      * Removes a role from the user for a specific store.
@@ -69,7 +74,7 @@ public class User {
      * @param store The store ID.
      * @param r     The role to remove.
      */
-    public void removeRole(String store, Role r){
+    public void   removeRole(String store, Role r){
         EnumSet<Role> set = storeRoles.get(store);
         if(set!=null){
             set.remove(r);
@@ -134,13 +139,8 @@ public class User {
      * @param storeId   The ID of the store.
      * @param productId The ID of the product.
      */
-    public void removeFromCart(String storeId, String productId) {
-        cart().changeQty(storeId, productId, 0);
-    }
-
-    public void addPurchase(String txId) {
-        purchaseHistory.add(txId);
-    }
+    public void removeFromCart(String storeId,String productId){ cart().changeQty(storeId, productId, 0); }
+    public void addPurchase(String txId) { purchaseHistory.add(txId); }
 
     public String getPassword() { return passwordHash; }
     public String          getEmail()     { return email; }
@@ -148,25 +148,4 @@ public class User {
     public String          getUserName()  { return username; }
 
     
-    public String getPassword() {
-        return passwordHash;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public List<String> getHistory() {
-        return List.copyOf(purchaseHistory);
-    }
-
-    // Unified method name to support both versions
-    public String getUsername() {
-        return username;
-    }
-
-    // For backward compatibility with code that might use getUserName
-    public String getUserName() {
-        return username;
-    }
 }

@@ -11,13 +11,12 @@ import java.util.stream.Collectors;
 import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import org.springframework.stereotype.Component;
 
 /**
  * An in-memory implementation of the ProductCatalog interface.
  * This class manages catalog products, store product entries, and their relationships.
  */
-@Component
+
 public class InMemoryProductCatalog implements IProductCatalog {
 
     private final Map<String, CatalogProduct> catalogIDtoCatalogProduct = new HashMap<>();
@@ -31,16 +30,18 @@ public class InMemoryProductCatalog implements IProductCatalog {
      *
      * @param catalogID   The unique identifier for the catalog product.
      * @param name        The name of the product.
+     * @param brand       The brand of the product.
+     * @param description A brief description of the product.
      * @param categories  A list of categories associated with the product.
      */
     @Override
-    public void addCatalogProduct(String catalogID, String name, List<String> categories) {
-        CatalogProduct product = new CatalogProduct(catalogID, name, categories);
+    public void addCatalogProduct(String catalogID, String name, String brand, String description,
+            List<String> categories) {
+        CatalogProduct product = new CatalogProduct(catalogID, name, brand, description);
         catalogIDtoCatalogProduct.put(catalogID, product);
+
         for (String category : categories) {
-            categoriesToProducts
-                    .computeIfAbsent(category.toLowerCase(), k -> new ArrayList<>())
-                    .add(catalogID);
+            categoriesToProducts.computeIfAbsent(category.toLowerCase(), k -> new ArrayList<>()).add(catalogID);
         }
     }
 
@@ -55,35 +56,17 @@ public class InMemoryProductCatalog implements IProductCatalog {
      * @param rating     The rating of the product.
      * @param name       The name of the product.
      */
+
     @Override
     public void addStoreProductEntry(String catalogID, String storeName, String productID, double price, int quantity,
-                                     double rating, String name) {
+            double rating, String name) {
+
         StoreSearchEntry entry = new StoreSearchEntry(catalogID, storeName, productID, price, quantity, rating, name);
         catalogIdToStoreOffers.computeIfAbsent(catalogID, k -> new ArrayList<>()).add(entry);
         storeNameToStoreOffers.computeIfAbsent(storeName, k -> new ArrayList<>()).add(entry);
-    }
 
-    /**
-     * Adds a store product entry with an image URL to the catalog.
-     *
-     * @param catalogID  The catalog ID of the product.
-     * @param storeName  The name of the store offering the product.
-     * @param productID  The unique identifier for the product in the store.
-     * @param price      The price of the product.
-     * @param quantity   The quantity of the product available.
-     * @param rating     The rating of the product.
-     * @param name       The name of the product.
-     * @param imageUrl   The URL of the product image.
-     */
-    @Override
-    public void addStoreProductEntryWithImage(String catalogID, String storeName, String productID, double price,
-                                              int quantity, double rating, String name, String imageUrl) {
-        StoreSearchEntry entry = new StoreSearchEntry(catalogID, storeName, productID, price, quantity, rating, name);
-        entry.setImageUrl(imageUrl); // Add this field to StoreSearchEntry class
 
-        // Add to both maps just like in addStoreProductEntry
-        catalogIdToStoreOffers.computeIfAbsent(catalogID, k -> new ArrayList<>()).add(entry);
-        storeNameToStoreOffers.computeIfAbsent(storeName, k -> new ArrayList<>()).add(entry);
+
     }
 
     /**
@@ -93,6 +76,7 @@ public class InMemoryProductCatalog implements IProductCatalog {
      * @param storeName  The name of the store offering the product.
      * @param productID  The unique identifier for the product in the store.
      */
+
     @Override
     public void deleteStoreProductEntry(String catalogID, String storeName, String productID) {
         List<StoreSearchEntry> catalogEntries = catalogIdToStoreOffers.getOrDefault(catalogID, new ArrayList<>());
@@ -103,7 +87,6 @@ public class InMemoryProductCatalog implements IProductCatalog {
         storeEntries
                 .removeIf(entry -> entry.getCatalogID().equals(catalogID) && entry.getProductID().equals(productID));
     }
-
     /**
      * Updates a store product entry in the catalog.
      *
@@ -114,9 +97,10 @@ public class InMemoryProductCatalog implements IProductCatalog {
      * @param quantity   The new quantity of the product (nullable).
      * @param rating     The new rating of the product (nullable).
      */
+
     @Override
     public void updateStoreProductEntry(String catalogID, String storeName, String productID, Double price,
-                                        Integer quantity, Double rating) {
+            Integer quantity, Double rating) {
         List<StoreSearchEntry> storeEntries = storeNameToStoreOffers.get(storeName);
         if (storeEntries != null) {
             for (StoreSearchEntry entry : storeEntries) {
@@ -158,35 +142,32 @@ public class InMemoryProductCatalog implements IProductCatalog {
     }
 
     /**
-     * Searches for store products based on query, filters, store name, and categories.
+     * Retrieves all store product entries by store name.
      *
-     * @param query The search query to match product names.
-     * @param searchFilters List of filters to apply to the search.
-     * @param storeName The name of the store to search in (optional).
-     * @param categories List of categories to filter by (optional).
-     * @return A list of store product entries matching the search criteria.
+     * @param storeName The name of the store to filter products by.
+     * @return A list of store product entries in the specified store.
      */
     @Override
-    public List<StoreSearchEntry> search(String query,
-                                         List<String> searchFilters,
-                                         String storeName,
-                                         List<String> categories) {
-        // Step 1: Filter CatalogProducts by name matching the query
+    public List<StoreSearchEntry> search(String query, List<String> searchFilters, String storeName,
+            List<String> categories) {
+        // Step 1: First pass - Filter CatalogProducts by name, brand, or description
+        // matching the query
         Set<String> firstPass = catalogIDtoCatalogProduct.values().stream()
-                .filter(product ->
-                        product.getName().toLowerCase().contains(query.toLowerCase())
-                )
+                .filter(product -> product.getName().toLowerCase().contains(query.toLowerCase()) ||
+                        product.getBrand().toLowerCase().contains(query.toLowerCase()) ||
+                        product.getDescription().toLowerCase().contains(query.toLowerCase()))
                 .map(CatalogProduct::getCatalogID)
                 .collect(Collectors.toSet());
 
-        // Step 2: Find StoreSearchEntries for those catalog IDs and matching any searchFilters
+        // Step 2: Second pass - Find StoreProductEntries matching those CatalogProducts
+        // and matching search filters
         List<StoreSearchEntry> secondPass = catalogIdToStoreOffers.entrySet().stream()
-                .filter(e -> firstPass.contains(e.getKey()))
-                .flatMap(e -> e.getValue().stream())
-                .filter(entry -> entry.matchesQuery(query, searchFilters))
+                .filter(entry -> firstPass.contains(entry.getKey()))
+                .flatMap(entry -> entry.getValue().stream())
+                .filter(storeProductEntry -> storeProductEntry.matchesQuery(query, searchFilters))
                 .collect(Collectors.toList());
 
-        // Step 3: If a specific store was requested, filter by storeName
+        // Step 3: Third pass - If storeName is specified, filter entries by store name
         List<StoreSearchEntry> thirdPass = secondPass;
         if (storeName != null && !storeName.isEmpty()) {
             thirdPass = thirdPass.stream()
@@ -194,12 +175,13 @@ public class InMemoryProductCatalog implements IProductCatalog {
                     .collect(Collectors.toList());
         }
 
-        // Step 4: If categories were provided, restrict to entries whose catalogID is in one of those categories
+        // Step 4: Fourth pass - If categories are specified, filter entries by
+        // categories
         List<StoreSearchEntry> fourthPass = thirdPass;
         if (categories != null && !categories.isEmpty()) {
             Set<String> validCatalogIds = categories.stream()
                     .filter(categoriesToProducts::containsKey)
-                    .flatMap(cat -> categoriesToProducts.get(cat).stream())
+                    .flatMap(category -> categoriesToProducts.get(category).stream())
                     .collect(Collectors.toSet());
 
             fourthPass = fourthPass.stream()
@@ -209,7 +191,6 @@ public class InMemoryProductCatalog implements IProductCatalog {
 
         return fourthPass;
     }
-
 
     /**
      * Checks if a product exists in the catalog.
@@ -245,14 +226,5 @@ public class InMemoryProductCatalog implements IProductCatalog {
         return result;
     }
 
-    /**
-     * Retrieves a catalog product by its ID.
-     *
-     * @param catalogId The ID of the catalog product to retrieve.
-     * @return The catalog product, or null if not found.
-     */
-    @Override
-    public CatalogProduct getCatalogProduct(String catalogId) {
-        return catalogIDtoCatalogProduct.get(catalogId);
-    }
+
 }

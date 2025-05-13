@@ -34,8 +34,7 @@ public class StoreMapper {
                     product.getDescription(),
                     product.getPrice(),
                     product.getQuantity(),
-                    product.averageRating(),
-                    product.getImageUrl()
+                    product.averageRating()
             ));
         }
 
@@ -47,8 +46,7 @@ public class StoreMapper {
                 domainInstance.isActive(),
                 domainInstance.getBalance(),
                 productDTOs,
-                domainInstance.averageRating(),
-                domainInstance.getDescription()
+                domainInstance.averageRating()
         );
 
         return storeDTO;

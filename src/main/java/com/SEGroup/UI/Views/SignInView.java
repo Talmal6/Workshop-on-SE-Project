@@ -10,7 +10,6 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -28,6 +27,7 @@ import com.vaadin.flow.router.RouterLink;
 @PageTitle("Sign in")
 public class SignInView extends FlexLayout {
 
+//    add field for username
     private final EmailField email = new EmailField("Email");
     private final PasswordField password = new PasswordField("Password");
     private final Button signIn = new Button("Sign in", VaadinIcon.SIGN_IN.create());
@@ -90,34 +90,23 @@ public class SignInView extends FlexLayout {
             binder.writeBean(login);
             presenter.onSignIn(login.getEmail(), login.getPassword());
         } catch (ValidationException ex) {
-            Notification.show("couldn't sign in: " + ex.getMessage(), 3000, Notification.Position.MIDDLE);
+            Notification.show("could'nt sign in: " + ex.getMessage(), 3000, Notification.Position.MIDDLE);
         }
     }
 
-    public void showSuccess(String sessionKey, String userName) {
-        Notification notification = Notification.show("Logged in successfully!", 2500, Notification.Position.TOP_CENTER);
-        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-
-        // Store the session key
+    public void showSuccess(String sessionKey, String userName){
+        Notification.show("Logged in successfully! Session: " + sessionKey);
+        UI.getCurrent().navigate("catalog");
         if (MainLayout.getInstance() != null) {
-            // Set both email and session key from the main branch version
-            MainLayout.getInstance().setSessionKey(sessionKey);
-            MainLayout.getInstance().setUserEmail(userName);
-
-            // Call your version of switchToSignedInMode with userName parameter
-            MainLayout.getInstance().switchToSignedInMode(userName);
+            MainLayout.getInstance().setUserName(userName);
+            MainLayout.getInstance().switchToSignedInMode();
         } else {
-            // Add error notification if MainLayout isn't found (from main branch)
             Notification.show("Main layout not found", 3000, Notification.Position.MIDDLE);
         }
-
-        // Navigate to catalog using your class-based navigation
-        UI.getCurrent().navigate(CatalogView.class);
     }
 
     public void showError(String message) {
-        Notification notification = Notification.show("Login failed: " + message, 4000, Notification.Position.MIDDLE);
-        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        Notification.show("Login failed: " + message, 4000, Notification.Position.MIDDLE);
     }
 
     // DTO class for login form

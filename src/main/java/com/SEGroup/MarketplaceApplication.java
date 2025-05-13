@@ -1,29 +1,26 @@
+// src/main/java/com/SEGroup/MarketplaceApplication.java
 package com.SEGroup;
 
+import com.SEGroup.Domain.*;
+import com.SEGroup.UI.ServiceLocator;
+import com.vaadin.flow.spring.annotation.EnableVaadin;
+import com.vaadin.flow.shared.communication.PushMode;
+import com.vaadin.flow.shared.ui.Transport;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 
-/**
- * The entry point of the Spring Boot application.
- *
- * Use the @PWA annotation to make the application installable on phones, tablets
- * and some desktop browsers.
- *
- */
+
+
 
 
 @SpringBootApplication
-// Remove the AppShellConfigurator implementation as it's already implemented in AppShellConfig
-public class MarketplaceApplication extends SpringBootServletInitializer {
+@EnableVaadin
+public class MarketplaceApplication {
 
-    /**
-     * Main method, used to run the application.
-     *
-     * @param args Command line arguments
-     */
-    public static void main(String[] args) {
-        SpringApplication.run(MarketplaceApplication.class, args);
-    }
+	public static void main(String[] args) {
 
+		SpringApplication.run(MarketplaceApplication.class, args);
+	}
 }

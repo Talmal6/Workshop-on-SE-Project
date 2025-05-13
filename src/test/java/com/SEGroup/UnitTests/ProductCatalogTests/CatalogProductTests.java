@@ -13,11 +13,11 @@ public class CatalogProductTests {
     static CatalogProduct catalogProduct1;
     static CatalogProduct catalogProduct2;
     
-//    @BeforeAll
-//    static void init(){
-//        catalogProduct1 = new CatalogProduct("catalog123", "Nike Air Force", "Nike", "Comfortable shoes");
-//        catalogProduct2 = new CatalogProduct(null, null, null, null);
-//    }
+    @BeforeAll
+    static void init(){
+        catalogProduct1 = new CatalogProduct("catalog123", "Nike Air Force", "Nike", "Comfortable shoes");
+        catalogProduct2 = new CatalogProduct(null, null, null, null);
+    }
 
     @Test
     void GivenCatalogProduct_WhenGetName_ThenSucceeds(){
@@ -29,9 +29,15 @@ public class CatalogProductTests {
         assertNotEquals(null, catalogProduct1.getCatalogID());
     }
 
+    @Test
+    void GivenCatalogProduct_WhenGetBrand_ThenSucceeds(){
+        assertNotEquals(null, catalogProduct1.getBrand());
+    }
 
-
-
+    @Test
+    void GivenCatalogProduct_WhenGetDescription_ThenSucceeds(){
+        assertNotEquals(null, catalogProduct1.getDescription());
+    }
 
     @Test
     void GivenCatalogProductWithNullName_WhenGetName_ThenFails(){
@@ -43,5 +49,13 @@ public class CatalogProductTests {
         assertEquals(null, catalogProduct2.getCatalogID());
     }
 
+    @Test
+    void GivenCatalogProductWithNullBrand_WhenGetBrand_ThenFails(){
+        assertEquals(null, catalogProduct2.getBrand());
+    }
 
+    @Test
+    void GivenCatalogProductWithNullDescription_WhenGetDescription_ThenFails(){
+        assertEquals(null, catalogProduct2.getDescription());
+    }
 }

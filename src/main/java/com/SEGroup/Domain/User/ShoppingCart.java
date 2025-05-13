@@ -1,10 +1,6 @@
 package com.SEGroup.Domain.User;
 
-import com.SEGroup.DTO.BasketDTO;
-
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,17 +63,5 @@ public class ShoppingCart {
 
         storeToBasket.values().forEach(Basket::clear);
         storeToBasket.clear();
-    }
-
-    // Add this method to ShoppingCart.java
-    public List<BasketDTO> getBaskets() {
-        List<BasketDTO> baskets = new ArrayList<>();
-        for (Map.Entry<String, Basket> entry : storeToBasket.entrySet()) {
-            baskets.add(new BasketDTO(
-                    entry.getKey(),  // storeId
-                    entry.getValue().snapshot()  // prod2qty map
-            ));
-        }
-        return baskets;
     }
 }

@@ -20,7 +20,6 @@ public class ShoppingProduct {
     private double price;
     private int quantity;
     private final String storeName;
-    private final String imageUrl;
     private final Map<String, Store.Rating> ratings = new HashMap<>();
 
     // Bids and auction
@@ -29,7 +28,7 @@ public class ShoppingProduct {
     private BuyingPolicy buyingPolicy;
 
     public ShoppingProduct(String storeName, String catalogID, String productId, String name,
-                           String description, double price, int quantity,String imageUrl) {
+                           String description, double price, int quantity) {
         this.storeName = storeName;
         this.catalogID = catalogID;
         this.productId = productId;
@@ -40,7 +39,6 @@ public class ShoppingProduct {
         this.bids = new ArrayList<>();
         this.buyingPolicy = new BuyingPolicy(1);
         this.ratings.clear();
-        this.imageUrl=imageUrl;
     }
 
     // Getters
@@ -67,10 +65,6 @@ public class ShoppingProduct {
         return Collections.unmodifiableList(bids);
     }
 
-
-    public void setAuction(Auction auction){
-        this.auction=auction;
-    }
     // Setters
     public void setName(String name) {
         this.name = name;
@@ -117,10 +111,9 @@ public class ShoppingProduct {
         * @param startingPrice The starting price of the auction.
         * @param endTime     The end time of the auction.
      */
-    public void startAuction(double startingPrice, long durationMillis) {
-        this.auction = new Auction(startingPrice, new Date(System.currentTimeMillis() + durationMillis));
+    public void startAuction(double startingPrice, Date endTime) {
+        this.auction = new Auction(startingPrice, endTime);
     }
-
 
     public Auction getAuction() {
         return auction;
@@ -162,14 +155,4 @@ public class ShoppingProduct {
                 .average()
                 .orElse(0.0);
     }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public boolean hasAuction() {
-        return auction != null;
-    }
-
-
 }

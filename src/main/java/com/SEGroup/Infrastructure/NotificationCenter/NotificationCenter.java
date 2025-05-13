@@ -9,8 +9,6 @@ import java.util.concurrent.*;
 
 /** Central dispatcher for user & system notifications. */
 @Component
-
-@Component("infrastructureNotificationCenter")
 public class NotificationCenter implements Runnable {
 
     /* ------------ configuration ------------ */

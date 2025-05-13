@@ -57,7 +57,7 @@ public interface IAuthenticationService {
      * Compares the provided encrypted password with the user's input password.
      *
      * @param encryptedPassword The stored encrypted password.
-     * @param userPassword      The plain-text password provided by the user.
+     * @param userPassword The plain-text password provided by the user.
      * @throws AuthenticationException If the passwords do not match.
      */
     void matchPassword(String encryptedPassword, String userPassword) throws AuthenticationException;
