@@ -303,7 +303,7 @@ public class UserService {
         try {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.userIsAdmin(authenticationService.getUserBySession(sessionKey));
-         
+
             userRepository.suspendUser(email, duration, reason);
             LoggerWrapper.info("User suspended: " + email + ", Duration: " + duration + ", Reason: " + reason); // Log
                                                                                                                 // user
@@ -355,5 +355,78 @@ public class UserService {
             return Result.failure(e.getMessage());
         }
     }
+    //merge crazy
+    /**
+     * Adds a product to the cart for both users and guests.
+     *
+     * @param sessionKey The session key
+     * @param productId The product ID
+     * @param storeName The store name
+     * @return Result object with success or failure
+     */
+    public Result<String> addToCart(String sessionKey,
+                                    String productId,
+                                    String storeName) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String owner = authenticationService.getUserBySession(sessionKey);
+            if (owner.startsWith("g-")) {
+                ShoppingCart cart = guestService.cart(sessionKey);
+                cart.add(storeName, productId, 1);
+            } else {
+                User user = userRepository.findUserByEmail(owner);
+                user.addToCart(storeName, productId);
+            }
+            return Result.success("Added item to cart successfully!");
+        } catch (Exception e) {
+            return Result.failure("Cannot add to cart: " + e.getMessage());
+        }
+    }
 
+    /**
+     * Removes a product from the user's cart.
+     * Logs the removal of the product from the cart.
+     *
+     * @param sessionKey The session key of the authenticated user.
+     * @param productId The ID of the product to remove from the cart.
+     * @param storeName The name of the store where the product is located.
+     * @return A Result object indicating success or failure of the operation.
+     */
+    public Result<String> removeFromCart(String sessionKey,
+                                         String productId,
+                                         String storeName) {
+        return changeCartQuantity(sessionKey, productId, storeName, 0);
+    }
+
+    /**
+     * Modifies the quantity of a product in the user's cart.
+     * Logs the modification of the product quantity.
+     *
+     * @param sessionKey The session key of the authenticated user.
+     * @param productId The ID of the product to modify.
+     * @param storeName The name of the store where the product is located.
+     * @param newQty The new quantity of the product.
+     * @return A Result object indicating success or failure of the operation.
+     */
+    public Result<String> changeCartQuantity(String sessionKey,
+                                             String productId,
+                                             String storeName,
+                                             int newQty) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String owner = authenticationService.getUserBySession(sessionKey);
+
+            if (owner.startsWith("g-")) {
+                ShoppingCart cart = guestService.cart(sessionKey);
+                cart.changeQty(storeName, productId, newQty);
+            } else {
+                User user = userRepository.findUserByEmail(owner);
+                user.cart().changeQty(storeName, productId, newQty);
+            }
+
+            return Result.success("Cart updated");
+        } catch (Exception e) {
+            return Result.failure("Cannot update cart: " + e.getMessage());
+        }
+    }
 }
