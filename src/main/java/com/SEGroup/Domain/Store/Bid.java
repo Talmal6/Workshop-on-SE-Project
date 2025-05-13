@@ -37,4 +37,6 @@ public class Bid {
     public String toString() {
         return "Bid{email='" + bidderEmail + "', amount=" + amount + '}';
     }
+
+
 }

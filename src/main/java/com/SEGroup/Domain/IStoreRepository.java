@@ -4,11 +4,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.SEGroup.DTO.AuctionDTO;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
+
 import com.SEGroup.Domain.Store.Bid;
+import com.SEGroup.Domain.Store.Auction;
+import com.SEGroup.Domain.Store.Store;
 
 /**
  * Interface representing a repository for managing stores.
@@ -260,3 +264,242 @@ public interface IStoreRepository {
         void rejectBid(String owner, String storeName, BidDTO bidDTO);
 
 }
+    /**
+     * Retrieves all the stores in the repository.
+     *
+     * @return A list of all stores.
+     */
+    List<StoreDTO> getAllStores();
+
+    /**
+     * Retrieves a store by its name.
+     *
+     * @param storeName The name of the store.
+     * @return The store details.
+     */
+    StoreDTO getStore(String storeName);
+
+    /**
+     * Creates a new store with the specified name and founder's email.
+     *
+     * @param storeName The name of the store.
+     * @param founderEmail The email address of the founder.
+     */
+    void createStore(String storeName, String founderEmail);
+
+    /**
+     * Closes a store by its name and the founder's email.
+     *
+     * @param name The name of the store.
+     * @param founderEmail The email address of the founder.
+     */
+    void closeStore(String name, String founderEmail);
+
+    /**
+     * Reopens a store by its name and the founder's email.
+     *
+     * @param storeName The name of the store.
+     * @param founderEmail The email address of the founder.
+     */
+    void reopenStore(String storeName, String founderEmail);
+
+    // Omri functions
+
+    /**
+     * Adds a product to a store.
+     *
+     * @param email The email of the user performing the operation.
+     * @param storeName The name of the store.
+     * @param catalogID The ID of the catalog.
+     * @param product_name The name of the product.
+     * @param description A description of the product.
+     * @param price The price of the product.
+     * @param quantity The quantity of the product.
+     * @return The ID of the added product.
+     */
+    String addProductToStore(String email, String storeName, String catalogID, String product_name, String description, double price, int quantity, String imageURL);
+
+    /**
+     * Updates the details of a shopping product.
+     *
+     * @param email The email of the user performing the operation.
+     * @param storeName The name of the store.
+     * @param catalogID The ID of the catalog.
+     * @param price The new price of the product.
+     * @param description The new description of the product.
+     * @return The updated product details.
+     */
+    ShoppingProductDTO updateShoppingProduct(String email, String storeName, String catalogID, double price, String description);
+
+    /**
+     * Deletes a shopping product from a store.
+     *
+     * @param email The email of the user performing the operation.
+     * @param storeName The name of the store.
+     * @param productID The ID of the product to delete.
+     * @return The deleted product details.
+     */
+    ShoppingProductDTO deleteShoppingProduct(String email, String storeName, String productID);
+
+    /**
+     * Rates a product in a store.
+     *
+     * @param email The email of the user performing the operation.
+     * @param storeName The name of the store.
+     * @param productID The ID of the product to rate.
+     * @param rating The rating score.
+     * @param review A review for the product.
+     * @return The rated product details.
+     */
+    ShoppingProductDTO rateProduct(String email, String storeName, String productID, int rating, String review);
+
+    /**
+     * Rates a store.
+     *
+     * @param email The email of the user performing the operation.
+     * @param storeName The name of the store.
+     * @param rating The rating score for the store.
+     * @param review A review for the store.
+     */
+    void rateStore(String email, String storeName, int rating, String review);
+
+    // Ownership and manager operations with operator email authorization
+
+    /**
+     * Appoints a new owner for a store.
+     *
+     * @param storeName The name of the store.
+     * @param operatorEmail The email of the operator performing the operation.
+     * @param newOwnerEmail The email of the new owner to appoint.
+     */
+    void appointOwner(String storeName, String operatorEmail, String newOwnerEmail);
+
+    /**
+     * Removes an owner from a store.
+     *
+     * @param storeName The name of the store.
+     * @param operatorEmail The email of the operator performing the operation.
+     * @param ownerToRemove The email of the owner to remove.
+     */
+    void removeOwner(String storeName, String operatorEmail, String ownerToRemove);
+
+    /**
+     * The operator resigns ownership of a store.
+     *
+     * @param storeName The name of the store.
+     * @param operatorEmail The email of the operator resigning ownership.
+     */
+    void resignOwnership(String storeName, String operatorEmail);
+
+    /**
+     * Appoints a new manager for a store.
+     *
+     * @param storeName The name of the store.
+     * @param operatorEmail The email of the operator performing the operation.
+     * @param managerEmail The email of the manager to appoint.
+     * @param permissions The list of permissions for the manager.
+     */
+    void appointManager(String storeName, String operatorEmail, String managerEmail, List<String> permissions);
+
+    /**
+     * Updates the permissions of a manager in a store.
+     *
+     * @param storeName The name of the store.
+     * @param operatorEmail The email of the operator performing the operation.
+     * @param managerEmail The email of the manager to update.
+     * @param newPermissions The new list of permissions for the manager.
+     */
+    void updateManagerPermissions(String storeName, String operatorEmail, String managerEmail, List<String> newPermissions);
+
+    /**
+     * Retrieves the permissions of a manager in a store.
+     *
+     * @param storeName The name of the store.
+     * @param operatorEmail The email of the operator performing the operation.
+     * @param managerEmail The email of the manager to query.
+     * @return A list of permissions assigned to the manager.
+     */
+    List<String> getManagerPermissions(String storeName, String operatorEmail, String managerEmail);
+
+    /**
+     * Retrieves all owners of a store.
+     *
+     * @param storeName The name of the store.
+     * @param operatorEmail The email of the operator performing the operation.
+     * @return A list of all owners' emails.
+     */
+    List<String> getAllOwners(String storeName, String operatorEmail);
+
+    /**
+     * Retrieves all managers of a store.
+     *
+     * @param storeName The name of the store.
+     * @param operatorEmail The email of the operator performing the operation.
+     * @return A list of all managers' emails.
+     */
+    List<String> getAllManagers(String storeName, String operatorEmail);
+
+    /**
+     * Adds funds to a store's balance.
+     *
+     * @param userBySession The email of the user adding funds.
+     * @param storeName The name of the store to update.
+     * @param amount The amount to add to the balance.
+     */
+    void addToBalance(String userBySession, String storeName, double amount);
+
+    /**
+     * Get ratings of some store
+     * @param storeName The name of the store to update.
+     */
+    Map<String, Store.Rating> findRatingsByStore(String storeName);
+    /**
+     * Removes items from stores based on a list of basket items.
+     *
+     * @param basketDTOList The list of items to remove from the stores.
+     * @return A map of basket items to their prices.
+     */
+    Map<BasketDTO, Double> removeItemsFromStores(List<BasketDTO> basketDTOList);
+
+    /**
+     * Rolls back items to stores from a basket.
+     *
+     * @param basketDTO The list of basket items to roll back.
+     */
+    void rollBackItemsToStores(List<BasketDTO> basketDTO);
+
+    /**
+     * Retrieves a product from a store by its ID.
+     *
+     * @param storeName The name of the store.
+     * @param productID The ID of the product to retrieve.
+     * @return The product details.
+     */
+    ShoppingProductDTO getProduct(String storeName, String productID);
+    void submitBidToShoppingItem(String Email,String storeName,String productId,double bidAmount);
+    void sendAuctionOffer(String Email,String storeName,String productId,double bidAmount);
+    Integer getProductQuantity(String storeName, String productId);
+    List<StoreDTO> getStoresOwnedBy(String ownerEmail);
+
+    void updateStoreDescription(String storeName, String operatorEmail, String description);
+    void startAuction(String storeName, String productId, double startingPrice, long durationMillis);
+
+
+    /**
+     * Place a bid on an auction.
+     */
+    boolean bidOnAuction(String bidderEmail,
+                         String storeName,
+                         String productId,
+                         double amount);
+
+    /**
+     * Fetch the auction entity for UI display.
+     */
+    Auction getAuctionInfo(String storeName,
+                           String productId);
+
+
+    List<String> getBidUsers(String storeName, String productId);
+
+    AuctionDTO    getAuction(String storeName, String productId);}

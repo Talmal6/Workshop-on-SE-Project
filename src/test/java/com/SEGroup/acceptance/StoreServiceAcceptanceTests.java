@@ -10,6 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
+import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
@@ -46,6 +49,7 @@ public class StoreServiceAcceptanceTests {
     private static final String ADMIN = "Admin";
     private static final String ADMIN_PASS = "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS";
     private static String defaultAdminSession;
+    private PasswordEncoder passwordEncoder;
     StoreService storeService;
     StoreRepository storeRepository;
     IAuthenticationService authenticationService;
@@ -55,10 +59,10 @@ public class StoreServiceAcceptanceTests {
 
     @BeforeEach
     public void setUp() throws Exception {
-        // Auth stubs: valid vs invalid sessions
-        // doNothing().when(authenticationService).checkSessionKey(VALID_SESSION);
         storeRepository = new StoreRepository();
         productCatalog = new InMemoryProductCatalog();
+        NotificationEndpoint endpoint = new NotificationEndpoint();
+        NotificationCenter nc = new NotificationCenter(authenticationService, endpoint);
         Security security = new Security();
         // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
         // create a key
@@ -78,6 +82,47 @@ public class StoreServiceAcceptanceTests {
         defaultAdminSession = LoginAndGetSession(ADMIN_EMAIL, ADMIN);
         Result r1 = userService.login(ADMIN_EMAIL, "Admin"); // Register and login to get a valid sessio לא טו
 
+        // Create the key
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        security.setKey(key);
+
+        // Create a shared PasswordEncoder
+        passwordEncoder = new com.SEGroup.Infrastructure.PasswordEncoder();
+
+        // Create the authentication service with our passwordEncoder
+        authenticationService = new SecurityAdapter(security, passwordEncoder);
+
+        // Two options here:
+
+        // OPTION 1: If UserRepository has been updated to accept a PasswordEncoder in constructor:
+        userRepository = new UserRepository(passwordEncoder);
+
+
+
+        try {
+            java.lang.reflect.Field encoderField = UserRepository.class.getDeclaredField("encoder");
+            encoderField.setAccessible(true);
+            encoderField.set(userRepository, passwordEncoder);
+        } catch (Exception e) {
+            System.err.println("Warning: Could not set shared PasswordEncoder in UserRepository");
+        }
+
+        // Create the services
+        storeService = new StoreService(
+                storeRepository,
+                productCatalog,
+                authenticationService,
+                userRepository,
+                nc
+        );
+        userService = new UserService(
+                new GuestService(new GuestRepository(), authenticationService),
+                userRepository,
+                authenticationService,
+                passwordEncoder
+        );
+
+        VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS);
     }
 
     public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
@@ -116,6 +161,8 @@ public class StoreServiceAcceptanceTests {
         Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName",
                 "Desc",
                 9.99, 5);
+        Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
+                9.99, 5, "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
         assertTrue(result.isSuccess());
         Result<List<ShoppingProductDTO>> productResult = storeService.searchProducts("iphone", Collections.emptyList(),
                 null, null);
@@ -129,6 +176,8 @@ public class StoreServiceAcceptanceTests {
         Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName",
                 "Desc",
                 9.99, -1);
+        Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
+                9.99, -1, "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
         assertFalse(result.isSuccess());
     }
 
@@ -279,8 +328,8 @@ public class StoreServiceAcceptanceTests {
     @Test
     public void rateProduct_WithValidData_ShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
-        productCatalog.addCatalogProduct(CATALOG_ID, "ProdName", "someBrand", "Desc", List.of("Clothes"));
-        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 5.0, 3);
+        productCatalog.addCatalogProduct(CATALOG_ID, "ProdName", List.of("Clothes"));
+        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 5.0, 3, "somestring");
         Result<Void> result = storeService.rateProduct(VALID_SESSION, STORE_NAME,
                 storeService.viewStore(STORE_NAME).getData().getProducts().get(0).getProductId(), 4, "Good");
         assertTrue(result.isSuccess());

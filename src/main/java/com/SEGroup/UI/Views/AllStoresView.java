@@ -1,18 +1,26 @@
 package com.SEGroup.UI.Views;
 
+import com.SEGroup.DTO.StoreCardDto;
+import com.SEGroup.UI.FormatUtils;
 import com.SEGroup.UI.MainLayout;
+import com.SEGroup.UI.Presenter.AllStoresPresenter;
+import com.SEGroup.UI.SecurityContextHolder;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.*;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteParameters;
 
 import java.util.List;
 
@@ -20,106 +28,249 @@ import java.util.List;
 @PageTitle("Store Listings")
 public class AllStoresView extends VerticalLayout {
 
+    private final AllStoresPresenter presenter;
+    private final VerticalLayout storeCardsContainer = new VerticalLayout();
+    private boolean showMyStoresOnly = false;
+    private final Button toggleButton = new Button("Show My Stores");
+    private final Button sortByRatingButton = new Button("Sort by Rating");
+
     public AllStoresView() {
+        this.presenter = new AllStoresPresenter(this);
+
         setSizeFull();
         setPadding(true);
         setSpacing(true);
         setAlignItems(Alignment.CENTER);
 
-        // Title with icon
-        Icon storeIcon = VaadinIcon.LIST.create();
-        storeIcon.setSize("24px");
-        storeIcon.getStyle().set("margin-right", "0.5em");
+        // Header
+        setupHeader();
 
-        H2 title = new H2("Store listings");
-        title.getStyle()
-                .set("margin", "0")
-                .set("font-size", "1.8em")
-                .set("text-shadow", "1px 1px 2px rgba(0,0,0,0.2)");
+        // Store cards container
+        storeCardsContainer.setPadding(false);
+        storeCardsContainer.setSpacing(true);
+        storeCardsContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        add(storeCardsContainer);
 
-        HorizontalLayout titleBar = new HorizontalLayout(storeIcon, title);
-        titleBar.setAlignItems(FlexComponent.Alignment.CENTER);
+        // Add navigation back to marketplace
+        Button backToMarketplaceBtn = new Button("Back to Marketplace", VaadinIcon.ARROW_LEFT.create());
+        backToMarketplaceBtn.addClickListener(e -> UI.getCurrent().navigate("catalog"));
+        add(backToMarketplaceBtn);
 
-        Anchor nextPage = new Anchor("#", "next page");
-        nextPage.getStyle().set("margin-top", "0.5em");
-
-        HorizontalLayout topBar = new HorizontalLayout(titleBar, createSpacer(), nextPage);
-        topBar.setWidthFull();
-        topBar.setAlignItems(FlexComponent.Alignment.BASELINE);
-        topBar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-
-        // Sort bar
-        Span sortLabel = new Span("sort by : ");
-        Anchor ratingLink = new Anchor("#", "Rating");
-        ratingLink.getStyle().set("color", "red");
-
-        HorizontalLayout sortBar = new HorizontalLayout(sortLabel, ratingLink);
-        sortBar.setSpacing(true);
-
-        add(topBar, sortBar);
-
-        // Store cards
-        fakeStores().forEach(store -> add(createStoreCard(store)));
+        // Initial data load
+        presenter.loadStores(false);
     }
 
-    private Component createStoreCard(Store store) {
+    private void setupHeader() {
+        // Create store button (visible only when logged in)
+        Button createStoreBtn = new Button("Create Store", VaadinIcon.PLUS.create());
+        createStoreBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        createStoreBtn.setVisible(SecurityContextHolder.isLoggedIn());
+        createStoreBtn.addClickListener(e -> openCreateStoreDialog());
+
+        // Toggle button for "My Stores" vs "All Stores"
+        toggleButton.setVisible(SecurityContextHolder.isLoggedIn());
+        toggleButton.addClickListener(e -> {
+            showMyStoresOnly = !showMyStoresOnly;
+            toggleButton.setText(showMyStoresOnly ? "Show All Stores" : "Show My Stores");
+            presenter.loadStores(showMyStoresOnly);
+        });
+
+        // Sort by rating button
+        sortByRatingButton.addClickListener(e -> presenter.sortByRating());
+
+        // Title with icon
+        Icon listIcon = VaadinIcon.LIST.create();
+        listIcon.setSize("24px");
+        H2 title = new H2("Store Listings");
+
+        HorizontalLayout titleSection = new HorizontalLayout(listIcon, title);
+        titleSection.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        HorizontalLayout header = new HorizontalLayout(
+                titleSection,
+                createSpacer(),
+                sortByRatingButton,
+                toggleButton,
+                createStoreBtn
+        );
+        header.setWidthFull();
+        header.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        add(header);
+    }
+
+    private void openCreateStoreDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Create New Store");
+
+        TextField storeName = new TextField("Store Name");
+        storeName.setWidthFull();
+        storeName.setRequired(true);
+
+        Button cancelBtn = new Button("Cancel", e -> dialog.close());
+        Button createBtn = new Button("Create", e -> {
+            presenter.createStore(storeName.getValue());
+            dialog.close();
+        });
+        createBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        HorizontalLayout buttons = new HorizontalLayout(cancelBtn, createBtn);
+        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        buttons.setWidthFull();
+
+        VerticalLayout content = new VerticalLayout(storeName, buttons);
+        content.setPadding(true);
+        content.setSpacing(true);
+
+        dialog.add(content);
+        dialog.open();
+    }
+
+    /**
+     * Displays the provided list of stores as cards.
+     */
+    public void displayStores(List<StoreCardDto> stores) {
+        storeCardsContainer.removeAll();
+
+        if (stores.isEmpty()) {
+            storeCardsContainer.add(createEmptyStoresMessage());
+            return;
+        }
+
+        for (StoreCardDto store : stores) {
+            storeCardsContainer.add(createStoreCard(store));
+        }
+    }
+
+    private Component createEmptyStoresMessage() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Span message = new Span(showMyStoresOnly
+                ? "You don't have any stores yet"
+                : "No stores found");
+        message.getStyle()
+                .set("font-size", "1.2em")
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("margin", "2em 0");
+
+        if (showMyStoresOnly && SecurityContextHolder.isLoggedIn()) {
+            Button createBtn = new Button("Create Your First Store", e -> openCreateStoreDialog());
+            createBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            layout.add(message, createBtn);
+        } else {
+            layout.add(message);
+        }
+
+        return layout;
+    }
+
+    private Component createStoreCard(StoreCardDto store) {
         HorizontalLayout card = new HorizontalLayout();
         card.getStyle()
                 .set("border", "1px solid #ddd")
                 .set("border-radius", "8px")
                 .set("padding", "1em")
                 .set("width", "600px")
-                .set("box-shadow", "0 2px 4px rgba(0,0,0,0.05)");
-        card.setAlignItems(Alignment.START);
+                .set("box-shadow", "0 2px 4px rgba(0,0,0,0.05)")
+                .set("transition", "all 0.2s ease");
 
-        Icon storeIcon = VaadinIcon.STORAGE.create();
-        storeIcon.setSize("80px");
-        storeIcon.getStyle().set("margin-right", "1em").set("color", "#9e9e9e");
+        card.getElement().executeJs(
+                "this.onmouseenter = function() {" +
+                        "this.style.transform = 'translateY(-3px)';" +
+                        "this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';" +
+                        "};" +
+                        "this.onmouseleave = function() {" +
+                        "this.style.transform = '';" +
+                        "this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';" +
+                        "};"
+        );
 
+        // Store icon
+        Icon icon = VaadinIcon.STORAGE.create();
+        icon.setSize("80px");
+        icon.getStyle().set("color", "#9e9e9e");
+
+        // Content section
         VerticalLayout content = new VerticalLayout();
-        content.setSpacing(false);
         content.setPadding(false);
+        content.setSpacing(false);
 
         H4 name = new H4(store.name());
+        Span owner = new Span("Store owner: " + store.owner());
 
-        HorizontalLayout meta = new HorizontalLayout();
-        Anchor ownerLink = new Anchor("#", store.owner());
-        ownerLink.getStyle().set("color", "gray");
+        // Format rating to one decimal place
+        String formattedRating = FormatUtils.formatRating(store.rating());
+        Span rating = new Span("Rating: " + formattedRating);
 
-        Anchor ratingLink = new Anchor("#", "Rating: " + store.rating());
-        ratingLink.getStyle().set("color", "gray");
+        // Stars for rating
+        int fullStars = (int)Math.floor(store.rating());
+        boolean hasHalfStar = store.rating() - fullStars >= 0.5;
 
-        meta.add(new Span("Store owner : "), ownerLink, new Text("   "), ratingLink);
+        StringBuilder starsString = new StringBuilder();
+        for (int i = 0; i < fullStars; i++) {
+            starsString.append("★");
+        }
+        if (hasHalfStar) {
+            starsString.append("⯨");
+        }
+        for (int i = 0; i < 5 - fullStars - (hasHalfStar ? 1 : 0); i++) {
+            starsString.append("☆");
+        }
 
-        HorizontalLayout infoLine = new HorizontalLayout();
-        Anchor infoAnchor = new Anchor("#", "Info : ");
-        infoAnchor.getStyle().set("color", "gray");
-        Span infoText = new Span(store.description());
-        infoLine.add(infoAnchor, infoText);
+        Span stars = new Span(starsString.toString());
+        stars.getStyle().set("color", "gold").set("letter-spacing", "2px");
 
+        HorizontalLayout ratingLayout = new HorizontalLayout(rating, stars);
+        ratingLayout.setSpacing(true);
+        ratingLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Button viewButton = new Button("View Store", e ->
-                UI.getCurrent().navigate(StoreView.class, new RouteParameters("storeName", store.name()))
-        );
-        viewButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        content.add(name, meta, infoLine, viewButton);
-        card.add(storeIcon, content);
+        Paragraph desc = new Paragraph(store.description() != null && !store.description().isEmpty()
+                ? store.description()
+                : "No description available");
+
+        Button viewBtn = new Button("View Store", e -> {
+            // Use direct path navigation instead of RouteParameters
+            UI.getCurrent().navigate("store/" + store.name());
+        });
+        viewBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        content.add(name, owner, ratingLayout, desc, viewBtn);
+        card.add(icon, content);
+
+        // Make the entire card clickable
+        card.addClickListener(e -> UI.getCurrent().navigate("store/" + store.name()));
+
         return card;
     }
 
     private Component createSpacer() {
-        Div spacer = new Div();
-        spacer.getStyle().set("flex-grow", "1");
-        return spacer;
+        Div d = new Div();
+        d.getStyle().set("flex-grow", "1");
+        return d;
     }
 
-    private List<Store> fakeStores() {
-        return List.of(
-                new Store("Adults +18 store", "Goseph", 5, "This is a store for adults only! Get in at your own risk"),
-                new Store("Toy store", "Laura", 2, "This is a store for kids, if you are not a kid grow up!"),
-                new Store("iHerb store", "Kaplan", 1, "Selling herbs for the lefties only if you are not a facist and follow bibii")
-        );
+    /**
+     * Shows a success notification.
+     */
+    public void showSuccess(String message) {
+        Notification notification = Notification.show(message, 3000, Notification.Position.BOTTOM_START);
+        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
 
-    record Store(String name, String owner, int rating, String description) {}
+    /**
+     * Shows an informational notification.
+     */
+    public void showInfo(String message) {
+        Notification notification = Notification.show(message, 3000, Notification.Position.TOP_CENTER);
+        notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+    }
+
+    /**
+     * Shows an error notification.
+     */
+    public void showError(String message) {
+        Notification notification = Notification.show(message, 4000, Notification.Position.MIDDLE);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+    }
 }

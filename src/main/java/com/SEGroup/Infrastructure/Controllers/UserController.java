@@ -6,6 +6,7 @@ import com.SEGroup.Service.Result;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
+    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -28,11 +30,11 @@ public class UserController {
         } else {
             // 500 Internal Server Error + error message
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body(result.getErrorMessage());
+                    .body(result.getErrorMessage());
         }
     }
 
-    @PostMapping("/register")
+    @PostMapping({"/signup", "/register"})
     public ResponseEntity<Void> register(@RequestParam String username,
                                          @RequestParam String email,
                                          @RequestParam String password) {
@@ -46,7 +48,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/login")
+    @PostMapping({"/signin", "/login"})
     public ResponseEntity<String> login(@RequestParam String email,
                                         @RequestParam String password) {
         Result<String> result = userService.login(email, password);
@@ -56,7 +58,7 @@ public class UserController {
         } else {
             // 401 Unauthorized
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                 .body(result.getErrorMessage());
+                    .body(result.getErrorMessage());
         }
     }
 
@@ -90,7 +92,7 @@ public class UserController {
             return ResponseEntity.ok(result.getData());
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .body(null);
+                    .body(null);
         }
     }
 
@@ -103,7 +105,7 @@ public class UserController {
             return ResponseEntity.ok(result.getData());
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .body(null);
+                    .body(null);
         }
     }
 
@@ -128,29 +130,29 @@ public class UserController {
             return ResponseEntity.ok(result.getData());
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .body(result.getErrorMessage());
+                    .body(result.getErrorMessage());
         }
     }
 
     @PutMapping("/cart/modify")
     public ResponseEntity<String> modifyProductQuantityInCartItem(@RequestParam String sessionKey,
-                                                                   @RequestParam String email,
-                                                                   @RequestParam String productID,
-                                                                   @RequestParam String storeName,
-                                                                   @RequestParam int quantity) {
+                                                                  @RequestParam String email,
+                                                                  @RequestParam String productID,
+                                                                  @RequestParam String storeName,
+                                                                  @RequestParam int quantity) {
         Result<String> result = userService.modifyProductQuantityInCartItem(
                 sessionKey, email, productID, storeName, quantity);
         if (result.isSuccess()) {
             return ResponseEntity.ok(result.getData());
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .body(result.getErrorMessage());
+                    .body(result.getErrorMessage());
         }
     }
 
     @GetMapping("/cart")
     public ResponseEntity<List<BasketDTO>> getUserCart(@RequestParam String sessionKey,
-                                              @RequestParam String email) {
+                                                       @RequestParam String email) {
         Result<List<BasketDTO>> result = userService.getUserCart(sessionKey, email);
         if (result.isSuccess()) {
             return ResponseEntity.ok(result.getData());
@@ -158,7 +160,4 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
-
-
-    
 }

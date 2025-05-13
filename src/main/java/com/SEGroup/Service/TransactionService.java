@@ -17,6 +17,7 @@ import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.IShippingService;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import org.springframework.stereotype.Service;
 
 /**
  * TransactionService handles the operations related to transactions, including
@@ -25,6 +26,8 @@ import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
  * It interacts with authentication, payment gateway, transaction repository,
  * store repository, and user repository.
  */
+
+@Service
 public class TransactionService {
     private final IAuthenticationService authenticationService;
     private final IPaymentGateway paymentGateway;

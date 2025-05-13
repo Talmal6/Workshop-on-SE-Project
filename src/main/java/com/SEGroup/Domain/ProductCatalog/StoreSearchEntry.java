@@ -11,6 +11,7 @@ public class StoreSearchEntry {
     private int quantity;
     private double rating;
     private final String name;
+    private String imageUrl;
 
     public StoreSearchEntry(String catalogID, String storeName, String productID, double price, int quantity, double rating, String name) {
         this.catalogID = catalogID;
@@ -20,6 +21,8 @@ public class StoreSearchEntry {
         this.quantity = quantity;
         this.rating = rating;
         this.name = name;
+        this.imageUrl = "https://via.placeholder.com/200x150?text=" + name; // Default image
+
     }
 
     public String getCatalogID() {
@@ -62,6 +65,16 @@ public class StoreSearchEntry {
         return name;
     }
 
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+
     /**
      * Checks if the product matches the given search query and filters.
      *
@@ -92,4 +105,6 @@ public class StoreSearchEntry {
         }
         return true;
     }
+
+
 }
