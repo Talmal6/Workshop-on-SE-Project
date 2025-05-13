@@ -113,12 +113,12 @@ public class ProductSearchAndUpdatingAcceptanceTests {
         storeService.createStore(VALID_SESSION, "GamingHub");
 
 
-        storeService.addProductToStore(VALID_SESSION, "TechHeaven", "iphone13", "iPhone 13 128GB", "Latest iPhone", 999.99, 5);
-        storeService.addProductToStore(VALID_SESSION, "TechHeaven", "macbookair", "Macbook Air Used", "M2 Chip", 1299.99, 3);
-        storeService.addProductToStore(VALID_SESSION, "GadgetWorld", "pixel7", "Pixel 7 64GB 15MP Camera", "Android flagship", 599.99, 10);
-        storeService.addProductToStore(VALID_SESSION, "GadgetWorld", "galaxya54", "Galaxy A54", "Android flagship", 549.99, 10);
-        storeService.addProductToStore(VALID_SESSION, "GamingHub", "ps5", "PlayStation 5", "Next-gen console", 499.99, 8);
-        storeService.addProductToStore(VALID_SESSION, "GamingHub", "xboxseriesx", "Xbox Series X", "Gaming console", 499.99, 7);
+        storeService.addProductToStore(VALID_SESSION, "TechHeaven", "iphone13", "iPhone 13 128GB", "Latest iPhone", 999.99, 5,"");
+        storeService.addProductToStore(VALID_SESSION, "TechHeaven", "macbookair", "Macbook Air Used", "M2 Chip", 1299.99, 3,"");
+        storeService.addProductToStore(VALID_SESSION, "GadgetWorld", "pixel7", "Pixel 7 64GB 15MP Camera", "Android flagship", 599.99, 10,"");
+        storeService.addProductToStore(VALID_SESSION, "GadgetWorld", "galaxya54", "Galaxy A54", "Android flagship", 549.99, 10,"");
+        storeService.addProductToStore(VALID_SESSION, "GamingHub", "ps5", "PlayStation 5", "Next-gen console", 499.99, 8,"");
+        storeService.addProductToStore(VALID_SESSION, "GamingHub", "xboxseriesx", "Xbox Series X", "Gaming console", 499.99, 7,"");
     }
 
     @Test

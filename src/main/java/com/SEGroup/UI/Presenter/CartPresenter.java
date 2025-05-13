@@ -135,7 +135,7 @@ public class CartPresenter {
 
                     // Fetch actual product details from store
                     System.out.println("Fetching product: " + productId + " from store: " + storeName);
-                    Result<ShoppingProductDTO> productResult = storeService.getProduct(storeName, productId);
+                    Result<ShoppingProductDTO> productResult = storeService.getProductFromStore(SecurityContextHolder.token(),storeName, productId);
 
                     if (productResult.isSuccess() && productResult.getData() != null) {
                         ShoppingProductDTO product = productResult.getData();

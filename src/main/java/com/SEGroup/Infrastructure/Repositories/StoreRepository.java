@@ -44,6 +44,12 @@ public class StoreRepository implements IStoreRepository {
         return storeDTOs;
     }
 
+    @Override
+    public Map<String,Store.Rating> findRatingsByStore(String storeName) {
+        Store store = findByName(storeName);
+        return store.getRatings();
+    }
+
     /**
      * Retrieves a specific store by its name.
      * 
@@ -760,4 +766,16 @@ public class StoreRepository implements IStoreRepository {
                 .map(storeMapper::toDTO)       // convert to DTO
                 .toList();                     // Java 16 +  (Collectors.toList() for older)
     }
-}
+    @Override
+    public List<ShoppingProductDTO> getStoreProducts(String storeName) {
+        Store store = findByName(storeName);
+        List<ShoppingProductDTO> dtos = new ArrayList<>();
+        for (ShoppingProduct product : store.getAllProducts()) {
+            dtos.add(convertProductToDTO(product));
+        }
+        return dtos;
+        }
+    }
+
+
+

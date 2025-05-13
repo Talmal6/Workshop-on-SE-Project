@@ -22,6 +22,7 @@ import org.springframework.web.servlet.View;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Date;
 
 /**
  * View for displaying a single product's details.
@@ -425,8 +426,9 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         Button ok = new Button("Start", e -> {
             try {
                 double sp = startPrice.getValue();
-                long durMs = (long)(duration.getValue() * 60_000);
-                presenter.startAuction(sp, durMs);
+                long durMs = (long) (duration.getValue() * 60000);
+                Date endDate = new Date(System.currentTimeMillis() + durMs);  // <-- פה השינוי
+                presenter.startAuction(sp, endDate);
                 dlg.close();
             } catch (Exception ex) {
                 showError("Invalid values");

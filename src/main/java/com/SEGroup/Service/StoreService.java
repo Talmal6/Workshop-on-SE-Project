@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.SEGroup.DTO.BidDTO;
-import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.DTO.StoreCardDto;
-import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.IStoreRepository;
@@ -15,6 +12,8 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+
+import javax.print.DocFlavor;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
@@ -525,6 +524,16 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    /**
+     * Checks if a user is an owner of a store.
+     *
+     * @param email The email of the user
+     * @param storeName The name of the store
+     * @return True if the user is an owner, false otherwise
+     */
+    public boolean isOwner(String email, String storeName) {
+        return storeRepository.getAllOwners(storeName, email).contains(email);
+    }
 
     /**
      * Retrieves a list of all owners for a store.
@@ -691,6 +700,25 @@ public class StoreService {
 
     }
 
+    /**
+     * Gets all products for a specific store.
+     *
+     * @param storeName The name of the store to get products for.
+     * @return A Result object containing a list of products in the store if successful, or an error message.
+     */
+    public Result<List<ShoppingProductDTO>> getStoreProducts(String storeName) {
+        try {
+            LoggerWrapper.info("Fetching products for store: " + storeName);
+
+            // Use the existing searchProducts method with empty query and filters
+
+            return searchProducts("", List.of(), storeName, (List<String>) null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting store products: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
     public Result<List<BidDTO>> getProductBids(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -787,6 +815,46 @@ public class StoreService {
                 dto.getFounderEmail(),
                 dto.getAvgRating(),
                 dto.getDescription());
+    }
+    /**
+     * Lists all stores for display in the card view.
+     *
+     * @return List of store card DTOs for all stores
+     */
+    public List<StoreCardDto> listAllStores() {
+        return storeRepository.getAllStores()
+                .stream()
+                .map(this::toCard)
+                .toList();
+    }
+    /**
+     * Fetches a single catalog product by its catalog ID.
+     *
+     * @param catalogId the unique ID of the catalog product
+     * @return a Result containing a CatalogProductDTO on success, or an error message on failure
+     */
+    public Result<CatalogProductDTO> getCatalogProduct(String catalogId) {
+        try {
+            LoggerWrapper.info("Fetching catalog product: " + catalogId);
+            List<CatalogProduct> allProducts = productCatalog.getAllProducts();
+            List<String> categories = new ArrayList<>();
+            for (CatalogProduct cp : allProducts) {
+                if (cp.getCatalogID().equals(catalogId)) {
+                    categories.add(cp.getBrand());
+                    CatalogProductDTO dto = new CatalogProductDTO(
+                            cp.getCatalogID(),
+                            cp.getName(),
+                            categories
+                    );
+                    return Result.success(dto);
+                }
+            }
+
+            return Result.failure("Catalog product not found: " + catalogId);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error fetching catalog product: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
     }
 
 }

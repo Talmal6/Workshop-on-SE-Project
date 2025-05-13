@@ -9,6 +9,8 @@ import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.ProductView;
 
+import javax.xml.crypto.Data;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -150,7 +152,7 @@ public class ProductPresenter {
     }
 
 
-    public void startAuction(double startingPrice, long durationMillis) {
+    public void startAuction(double startingPrice, Date durationMillis) {
         String token = SecurityContextHolder.token();
         Result<Void> r = storeService.startAuction(token, storeName, productId, startingPrice, durationMillis);
         if (r.isSuccess()) {

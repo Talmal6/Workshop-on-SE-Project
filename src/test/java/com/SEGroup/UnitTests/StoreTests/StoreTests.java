@@ -67,7 +67,7 @@ public class StoreTests {
     @Test
     @DisplayName("Given owner, when addProductToStore, then product is present in store")
     public void Given_Owner_When_AddProduct_Then_ProductPresent() {
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
+        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false,"");
         Collection<ShoppingProduct> products = store.getAllProducts();
         assertEquals(1, products.size());
         ShoppingProduct prod = products.iterator().next();
@@ -79,13 +79,13 @@ public class StoreTests {
     @DisplayName("Given non-owner, when addProductToStore, then authorization exception thrown")
     public void Given_NonOwner_When_AddProduct_Then_Exception() {
         assertThrows(RuntimeException.class,
-                () -> store.addProductToStore("notOwner@test.com", storeName, "CID", "Name", "Desc", 10.0, 5, false));
+                () -> store.addProductToStore("notOwner@test.com", storeName, "CID", "Name", "Desc", 10.0, 5, false,""));
     }
 
     @Test
     @DisplayName("Given store with product, when removeProduct, then product is removed")
     public void Given_StoreWithProduct_When_RemoveProduct_Then_ProductRemoved() {
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
+        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false,"");
         ShoppingProduct prod = store.getAllProducts().iterator().next();
         store.removeProduct(prod.getProductId());
         assertTrue(store.getAllProducts().isEmpty());
@@ -104,7 +104,7 @@ public class StoreTests {
     @Test
     @DisplayName("Given store with product, when submitBidToShoppingItem valid, then returns true")
     public void Given_StoreWithProduct_When_SubmitBidValid_Then_True() {
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
+        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false,"");
         ShoppingProduct prod = store.getAllProducts().iterator().next();
         assertTrue(store.submitBidToShoppingItem(prod.getProductId(), 15.0, "bidder@test.com", 1));
     }
@@ -112,7 +112,7 @@ public class StoreTests {
     @Test
     @DisplayName("Given store and no auction, when submitAuctionOffer, then returns false")
     public void Given_Store_When_SubmitAuctionWithoutAuction_Then_False() {
-        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false);
+        store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false,"");
         ShoppingProduct prod = store.getAllProducts().iterator().next();
         assertFalse(store.submitAuctionOffer(prod.getProductId(), 20.0, "bidder@test.com",1 ));
     }
@@ -220,7 +220,7 @@ public class StoreTests {
         double originalPrice = 100.0;
 
         String productId = store.addProductToStore(founderEmail, storeName, catalogID, productName, "Desc",
-                originalPrice, 1, false);
+                originalPrice, 1, false,"");
 
         DiscountScope scope = new DiscountScope(DiscountScope.ScopeType.PRODUCT, productId);
         store.addDiscount(new SimpleDiscount(10.0, scope));

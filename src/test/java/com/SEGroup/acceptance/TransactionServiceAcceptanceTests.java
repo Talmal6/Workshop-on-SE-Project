@@ -108,7 +108,8 @@ public class TransactionServiceAcceptanceTests {
                                 PRODUCT_ID, // store-specific product id
                                 "Product 1", // name
                                 100.0, // price
-                                10 // quantity on shelf
+                                10, // quantity on shelf
+                        ""
                 );
                 ACTUAL_PRODUCT_ID = addProduct.getData();
 
@@ -243,7 +244,7 @@ public class TransactionServiceAcceptanceTests {
                 // Given: Customer trying to purchase an out-of-stock product
                 String newProductName = "newProduct";
                 Result<String> newProductID = storeService.addProductToStore(
-                                SELLER_TOKEN, STORE_ID, CATALOG_ID, newProductName, "Product 1", 100.0, 0 // Set
+                                SELLER_TOKEN, STORE_ID, CATALOG_ID, newProductName, "Product 1", 100.0, 0,"" // Set
                                                                                                           // quantity to
                                                                                                           // 0
                 );
@@ -424,7 +425,7 @@ public class TransactionServiceAcceptanceTests {
                 // Arrange
                 storeService.createStore(SELLER_TOKEN, STORE_ID);
                 productCatalog.addCatalogProduct(CATALOG_ID, PRODUCT_ID, "Brand", "Desc", List.of("Electronics"));
-                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3).getData();
+                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3,"").getData();
 
                 // Simulate an auction and a bid
                 Date futureDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60); // 1 hour in the future
@@ -444,7 +445,7 @@ public class TransactionServiceAcceptanceTests {
                 // Arrange
                 storeService.createStore(SELLER_TOKEN, STORE_ID);
                 productCatalog.addCatalogProduct(CATALOG_ID, PRODUCT_ID, "Brand", "Desc", List.of("Electronics"));
-                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3).getData();
+                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3,"").getData();
 
                 // Start an auction
                 Date futureDate = new Date(System.currentTimeMillis() + 60 * 60 * 1000); // 1 hour ahead

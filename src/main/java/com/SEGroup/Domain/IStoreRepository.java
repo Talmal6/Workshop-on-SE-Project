@@ -9,6 +9,8 @@ import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.Store.Bid;
+import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.UI.Views.AddProductDialog;
 
 /**
  * Interface representing a repository for managing stores.
@@ -261,7 +263,11 @@ public interface IStoreRepository {
 
         void rejectBid(String owner, String storeName, BidDTO bidDTO);
 
-    void updateStoreDescription(String storeName, String operatorEmail, String description);
+        void updateStoreDescription(String storeName, String operatorEmail, String description);
 
-    List<StoreDTO> getStoresOwnedBy(String ownerEmail);
+        List<StoreDTO> getStoresOwnedBy(String ownerEmail);
+
+        List<ShoppingProductDTO> getStoreProducts(String storeName);
+
+        Map<String, Store.Rating> findRatingsByStore(String storeName);
 }
