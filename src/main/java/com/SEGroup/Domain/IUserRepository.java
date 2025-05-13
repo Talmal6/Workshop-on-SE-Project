@@ -1,6 +1,7 @@
 package com.SEGroup.Domain;
 
 import com.SEGroup.Domain.Store.ManagerPermission;
+import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.DTO.BasketDTO;
@@ -140,4 +141,7 @@ public interface IUserRepository {
 
     List<UserSuspensionDTO> getAllSuspendedUsers();
 
+    List<String> getAllEmails();
+
+    Set<Role> getGlobalRoles(String email);
 }

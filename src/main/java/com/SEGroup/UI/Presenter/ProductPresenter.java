@@ -71,6 +71,7 @@ public class ProductPresenter {
     public void loadProductDetails() {
         try {
             System.out.println("Loading product details for: " + productId + " in store: " + storeName);
+            //need to be session key!!
             Result<ShoppingProductDTO> productResult = storeService.getProduct(storeName, productId);
 
             if (productResult.isSuccess() && productResult.getData() != null) {
@@ -163,7 +164,7 @@ public class ProductPresenter {
     public void bidBuy(String amount1){
         if(isBidStarted) {
             double amount = Double.parseDouble((amount1.trim()));
-            Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount);
+            Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount,1);
             if (res.isSuccess()) {
                 this.view.showSuccess("Buying well done..Good Luck");
             } else {

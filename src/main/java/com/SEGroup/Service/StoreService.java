@@ -730,6 +730,40 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    public Result<List<ShoppingProductDTO>> getAllProducts() {
+        try {
+            LoggerWrapper.info("Fetching all products from all stores");
+
+            List<ShoppingProductDTO> allProducts = new ArrayList<>();
+
+            // Get all stores
+            List<StoreDTO> stores = storeRepository.getAllStores();
+
+            // For each store, get its products
+            for (StoreDTO store : stores) {
+                allProducts.addAll(store.getProducts());
+            }
+            for (ShoppingProductDTO p : allProducts) {
+                List<StoreSearchEntry> entries = productCatalog.search(
+                        p.getName(), List.of(), p.getStoreName(), null);
+
+                for (StoreSearchEntry e : entries) {
+                    if (e.getProductID().equals(p.getProductId()) &&
+                            e.getStoreName().equals(p.getStoreName()) &&
+                            e.getImageUrl() != null && !e.getImageUrl().isBlank()) {
+
+                        p.setImageUrl(e.getImageUrl());
+                        break;                 // picture found → stop inner loop
+                    }
+                }
+            }
+
+            return Result.success(allProducts);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting all products: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
 
     
 

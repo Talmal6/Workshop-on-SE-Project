@@ -22,11 +22,13 @@ public class SuspensionPresenter {
     }
 
     public void suspendUser(String email, int days) {
+        //put session key and reason !!
         Result<?> result = userService.suspendUser(email, days);
         handleResult(result);
     }
 
     public void unsuspendUser(String email) {
+        //put session key !!!
         Result<?> result = userService.unsuspendUser(email);
         handleResult(result);
     }
@@ -34,7 +36,7 @@ public class SuspensionPresenter {
     public void loadSuspensions() {
         var suspensions = userService.allSuspensions()
                 .stream()
-                .map(dto -> new SuspensionView.Susp(dto.email(), dto.since(), dto.until()))
+                .map(dto -> new SuspensionView.Susp(dto.getUserEmail(),(dto.getStartTime()).toString(), (dto.getEndTime()).toString()))
                 .collect(Collectors.toList());
         view.showSuspensions(suspensions);
     }

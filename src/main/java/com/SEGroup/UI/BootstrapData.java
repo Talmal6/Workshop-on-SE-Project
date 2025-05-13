@@ -79,7 +79,7 @@ class BootstrapData {
     @PostConstruct
     void initDemoData() {
         PasswordEncoder encoder = new PasswordEncoder();
-        UserRepository users = new UserRepository(encoder);
+        UserRepository users = new UserRepository();
         StoreRepository stores = new StoreRepository();
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
@@ -107,7 +107,7 @@ class BootstrapData {
         // Demo Store
         String demoStore = "Demo Store";
         stores.createStore(demoStore, "owner@demo.com");
-        stores.appointOwner(demoStore, "owner@demo.com", "co-owner@demo.com");
+        stores.appointOwner(demoStore, "owner@demo.com", "co-owner@demo.com",false);
         stores.updateStoreDescription(demoStore, "owner@demo.com",
                 "Your one-stop shop for all premium electronics, fashion, and home goods. We offer the best prices and quality service.");
 
@@ -115,7 +115,7 @@ class BootstrapData {
         String techStore = "Tech Gadgets";
         stores.createStore(techStore, "tech@demo.com");
         stores.appointManager(techStore, "tech@demo.com", "user@demo.com",
-                List.of("VIEW_ONLY", "MANAGE_PRODUCTS"));
+                List.of("VIEW_ONLY", "MANAGE_PRODUCTS"),false);
         stores.updateStoreDescription(techStore, "tech@demo.com",
                 "Cutting-edge technology at affordable prices. From smartphones to laptops, we have everything a tech enthusiast needs.");
 
