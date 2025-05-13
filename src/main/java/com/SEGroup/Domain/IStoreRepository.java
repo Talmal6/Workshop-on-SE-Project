@@ -251,4 +251,7 @@ public interface IStoreRepository {
 
     void executeAuctionBid(String storeName, BidDTO bidDTO);
 
+    void startAuction(String executor,String storeName, String productId, double minPrice, Date endDate);
+    
+
 }

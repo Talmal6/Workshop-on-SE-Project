@@ -337,6 +337,11 @@ public class StoreServiceAcceptanceTests {
         assertTrue(result.isSuccess());
     }
 
+    @Test 
+    public void OwnerStartingAuction() throws Exception{
+        
+    }
+
 
 
 }
