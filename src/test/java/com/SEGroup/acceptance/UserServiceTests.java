@@ -48,7 +48,7 @@ class UserServiceTests {
     private IAuthenticationService auth;
     private IUserRepository users;
     private IGuestRepository guests;
-    
+
     /* real services wired with mocks */
     private GuestService guestSvc;
     private UserService sut;
@@ -59,6 +59,7 @@ class UserServiceTests {
     private final String hashPw = "enc(P@ssw0rd)"; // what our PasswordEncoder stub returns
     private String jwt = "jwt-owner";
     private String adminSeshKey;
+
     /* ───────── generic stubbing ───────── */
     @BeforeEach
     void setUp() throws Exception {
@@ -72,14 +73,13 @@ class UserServiceTests {
         PasswordEncoder PE = new PasswordEncoder();
         ((SecurityAdapter) auth).setPasswordEncoder(PE);
 
-
         users = new UserRepository();
         guests = new GuestRepository();
 
         guestSvc = new GuestService(guests, auth);
         sut = new UserService(guestSvc, users, auth);
         jwt = regLoginAndGetSession("owner", email, pw); // register & login to get a session key
-        Result<String> adminSeshKeyR  =sut.login("Admin@Admin.Admin","Admin");
+        Result<String> adminSeshKeyR = sut.login("Admin@Admin.Admin", "Admin");
         adminSeshKey = adminSeshKeyR.getData();
 
     }
@@ -297,8 +297,8 @@ class UserServiceTests {
         @Test
         @DisplayName("User exists → deletion succeeds")
         void deleteSuccess() {
-            String adminAuth = sut.login("Admin", "Admin").getData();
-            Result<Void> r = sut.deleteUser(adminAuth,email);
+            String adminAuth = sut.login("Admin@Admin.Admin", "Admin").getData();
+            Result<Void> r = sut.deleteUser(adminAuth, email);
             assertTrue(r.isSuccess());
             User user = users.findUserByEmail(email);
             assertNull(user); // user should be deleted
@@ -319,7 +319,7 @@ class UserServiceTests {
     void WhenAdminAlreadyExists_ThenAddAdminFails() {
         // A hard codede admin User
         String adminEmail = "Admin@Admin.Admin";
-        String authKey = sut.login("Admin", "Admin").getData();
+        String authKey = sut.login("Admin@Admin.Admin", "Admin").getData();
         // Create a new user
         String newUserEmail = "new@new.new";
         Result<Void> r = sut.register("Admin", newUserEmail, "Admin");
@@ -337,7 +337,7 @@ class UserServiceTests {
     void WhenAdminAlreadyExists_ThenRemoveAdmin() {
         // A hard codede admin User
         String adminEmail = "Admin@Admin.Admin";
-        String authKey = sut.login("Admin", "Admin").getData();
+        String authKey = sut.login("Admin@Admin.Admin", "Admin").getData();
         // Create a new user
         String newUserEmail = "new@new.new";
         Result<Void> r = sut.register("Admin", newUserEmail, "Admin");
@@ -353,9 +353,7 @@ class UserServiceTests {
         assertTrue(r4.isFailure());
     }
 
-
-    
-    private void storeForUserAction(){
+    private void storeForUserAction() {
         // initiate store
         StoreRepository store = new StoreRepository();
         store.createStore("S1", email);
@@ -365,8 +363,8 @@ class UserServiceTests {
         store.addProductToStore(email, "S1", "P2", "Product 2", "someDesc", 5.7, 10, false);
     }
 
-    @Test 
-    public void WhileUserIsSuspended_AttemptUserAction_ShouldFail() throws Exception{
+    @Test
+    public void WhileUserIsSuspended_AttemptUserAction_ShouldFail() throws Exception {
         storeForUserAction();
         String susKey = regLoginAndGetSession("suspendedUser", "sus@sus.com", "pass");
         // Attemps to add to cart as unsuspended user
@@ -375,12 +373,11 @@ class UserServiceTests {
         Result<String> result = sut.suspendUser(adminSeshKey, "sus@sus.com", 100, "suspension reason");
         assertTrue(result.isSuccess());
         Result<String> r2 = sut.addToUserCart(susKey, "sus@sus.com", "Product 2", "S1");
-        assertTrue(r2.isFailure());      
+        assertTrue(r2.isFailure());
     }
 
-
     @Test
-    public void WhileUserIsSuspeded_UnsuspendUser_ThenAttemptUserAction_ShouldSucceed() throws Exception{
+    public void WhileUserIsSuspeded_UnsuspendUser_ThenAttemptUserAction_ShouldSucceed() throws Exception {
         storeForUserAction();
         String susKey = regLoginAndGetSession("suspendedUser", "sus@sus.com", "pass");
         // suspend the user
@@ -388,10 +385,9 @@ class UserServiceTests {
         assertTrue(result.isSuccess());
         Result<String> r1 = sut.addToUserCart(susKey, "sus@sus.com", "Product 1", "S1");
         assertTrue(r1.isFailure());
-        Result<String> r2 = sut.unsuspendUser(susKey,"sus@sus.com" );
+        Result<String> r2 = sut.unsuspendUser(susKey, "sus@sus.com");
         Result<String> r3 = sut.addToUserCart(susKey, "sus@sus.com", "Product 2", "S1");
         assertTrue(r3.isSuccess());
     }
-    
-    
+
 }

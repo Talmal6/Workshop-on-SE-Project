@@ -2,6 +2,7 @@ package com.SEGroup.acceptance;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -414,17 +415,77 @@ public class StoreServiceAcceptanceTests {
     @Test
     public void WhenBidSubmited_ThenAcceptBid_ShouldSucceed() throws Exception {
         // Given: A store with an auction product
-        // addProductsToStore();
-        // Result<Void> r = productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"),true);
-        // // When: A user sends a bid
-        // Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0, 1);
-        // assertTrue(result.isSuccess());
-        // // Then: The bid should be accepted and the auction should be updated
-        // Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, productId);
-        // assertTrue(productsResult.isSuccess());
-        // List<BidDTO> bids = productsResult.getData();
-        // assertFalse(bids.isEmpty());
-        // assertEquals(productId, bids.get(0).getProductId());
+        addProductsToStore();
+        productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
+        // When: A user sends a bid
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5).getData();
+        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0, 1);
+        assertTrue(result.isSuccess());
+        
+        Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, productId);
+        assertTrue(productsResult.isSuccess());
+        List<BidDTO> bids = productsResult.getData();
+        assertFalse(bids.isEmpty());
+        assertEquals(productId, bids.get(0).getProductId());
     }
+    @Test
+    public void startAuction_WithValidData_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
 
+        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24); 
+
+        Result<Void> result = storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
+        assertTrue(result.isSuccess());
+    }
+    @Test
+    public void submitAuctionBid_WithValidData_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
+
+        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+        storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
+
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0, 1);
+        assertTrue(result.isSuccess());
+    }
+    @Test
+    public void submitAuctionBid_TooLow_ShouldFail() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
+
+        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+        storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 40.0, endDate);
+
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 25.0, 1);
+        assertFalse(result.isSuccess());
+    }
+    @Test
+    public void submitAuctionBid_InvalidQuantity_ShouldFail() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
+
+        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+        storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
+
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0, -3);
+        assertFalse(result.isSuccess());
+    }
+    @Test
+    public void submitBid_AfterAuctionEnd_ShouldFail() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
+
+        // End date in the past
+        Date endDate = new Date(System.currentTimeMillis() - 1000 * 60);
+        storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
+
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0, 1);
+        assertFalse(result.isSuccess());
+    }
 }

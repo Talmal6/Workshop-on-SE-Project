@@ -699,4 +699,38 @@ public class StoreService {
         }
     }
 
+    public Result<Date> getAuctionEndDate(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            Date endDate = storeRepository.getAuctionEndDate(storeName, productId);
+            return Result.success(endDate);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving auction end date for product: " + productId + " - " + e.getMessage(), e);  // Log error
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<List<BidDTO>> getAllBids(String sessionKey, String storeName) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getAllBids(authenticationService.getUserBySession(sessionKey),storeName));
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving all bids for store: " + storeName + " - " + e.getMessage(), e);  // Log error
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    public Result<BidDTO> getAuctionHighestBidByProduct(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getAuctionHighestBidByProduct(storeName, productId));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    
+
 }

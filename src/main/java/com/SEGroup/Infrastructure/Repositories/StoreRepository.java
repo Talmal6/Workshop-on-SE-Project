@@ -33,7 +33,6 @@ public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
     private StoreMapper storeMapper = new StoreMapper();
 
-
     /**
      * Retrieves all stores in the system.
      * 
@@ -290,7 +289,7 @@ public class StoreRepository implements IStoreRepository {
     public List<String> getManagerPermissions(String storeName, String operatorEmail, String managerEmail) {
         Store store = findByName(storeName);
 
-        if (!store.isOwner(operatorEmail)
+        if (!store.isOwnerOrHasManagerPermissions(operatorEmail)
                 && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
             throw new RuntimeException("User is not authorized to view manager permissions");
         }
@@ -414,7 +413,7 @@ public class StoreRepository implements IStoreRepository {
             throw new IllegalArgumentException("Amount must be positive");
         Store store = findByName(storeName);
         boolean authorised = store.isOwner(operatorEmail) ||
-                store.hasManagerPermission(operatorEmail,
+                store.isOwnerOrHasManagerBidPermission(operatorEmail,
                         ManagerPermission.MANAGE_ROLES);
         if (!authorised)
             throw new RuntimeException("User is not allowed to modify balance");
@@ -513,13 +512,14 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount,Integer quantity) {
+    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount,
+            Integer quantity) {
         Store store = findByName(storeName);
-        store.submitBidToShoppingItem(productId, bidAmount, Email,quantity);
+        store.submitBidToShoppingItem(productId, bidAmount, Email, quantity);
     }
 
     @Override
-    public void sendAuctionOffer(String email, String storeName, String productId, double bidAmount , Integer quantity) {
+    public void sendAuctionOffer(String email, String storeName, String productId, double bidAmount, Integer quantity) {
         Store store = findByName(storeName);
         ShoppingProduct product = store.getProduct(productId);
         if (product == null) {
@@ -534,6 +534,9 @@ public class StoreRepository implements IStoreRepository {
         }
         if (auc.getHighestBid() != null && auc.getHighestBid().getBidderEmail().equals(email)) {
             throw new RuntimeException("You are already the highest bidder");
+        }
+        if (auc.getStartingPrice() > bidAmount) {
+            throw new RuntimeException("The bid amount is less than the Starting Price");
         }
         store.submitAuctionOffer(productId, bidAmount, email, quantity);
     }
@@ -561,8 +564,12 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public List<BidDTO> getAllBids(String storeName) {
+    public List<BidDTO> getAllBids(String OwnerId, String storeName) {
+
         Store store = findByName(storeName);
+        if (!store.isOwnerOrHasManagerPermissions(OwnerId)) {
+            throw new RuntimeException("User is not authorized to view bids");
+        }
         List<BidDTO> allBids = new ArrayList<>();
         for (ShoppingProduct product : store.getAllProducts()) {
             for (Bid bid : product.getBids()) {
@@ -600,7 +607,7 @@ public class StoreRepository implements IStoreRepository {
         if (store == null) {
             throw new RuntimeException("Store not found");
         }
-        if (!store.isOwner(assigneeUsername)) {
+        if (!store.isOwnerOrHasManagerBidPermission(assigneeUsername, ManagerPermission.MANAGE_BIDS)) {
             throw new RuntimeException("User is not authorized to accept bid");
         }
         ShoppingProduct product = store.getProduct(productId);
@@ -619,9 +626,11 @@ public class StoreRepository implements IStoreRepository {
         }
     }
 
-    
-    public void executeAuctionBid(String storeName, BidDTO bidDTO) {
+    public void executeAuctionBid(String Email, String storeName, BidDTO bidDTO) {
         Store store = findByName(storeName);
+        if (!store.isOwnerOrHasManagerBidPermission(Email, ManagerPermission.MANAGE_BIDS)) {
+            throw new RuntimeException("User is not authorized to execute auction bid");
+        }
         if (store == null) {
             throw new RuntimeException("Store not found");
         }
@@ -633,12 +642,13 @@ public class StoreRepository implements IStoreRepository {
         if (auc == null) {
             throw new RuntimeException("Auction not found for product: " + bidDTO.getProductId());
         }
-        if (auc.getEndTime().getTime() > System.currentTimeMillis()) {
-            throw new RuntimeException("Auction is still active");
-        }
+        // if (auc.getEndTime().getTime() > System.currentTimeMillis()) {
+        // throw new RuntimeException("Auction is still active");
+        // }
         if (auc.getHighestBid() == null) {
             throw new RuntimeException("No bids found for auction");
         }
+
         if (auc.getHighestBid().getBidderEmail().equals(bidDTO.getBidderEmail())) {
             product.setQuantity(product.getQuantity() - bidDTO.getQuantity());
             if (product.getQuantity() == 0) {
@@ -649,11 +659,6 @@ public class StoreRepository implements IStoreRepository {
         } else {
             throw new RuntimeException("Bidder is not the highest bidder");
         }
-
-
-
-
-
 
     }
 
@@ -686,7 +691,7 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void startAuction(String executor,String storeName, String productId, double startingPrice, Date endTime) {
+    public void startAuction(String executor, String storeName, String productId, double startingPrice, Date endTime) {
         Store store = findByName(storeName);
         ShoppingProduct product = store.getProduct(productId);
         if (product == null) {
@@ -697,8 +702,9 @@ public class StoreRepository implements IStoreRepository {
         }
         if (product.getAuction() != null) {
             throw new RuntimeException("Auction already exists for product: " + productId);
-        };
-        if (store.isOwnerOrHasManagerPermissions(executor)){
+        }
+        ;
+        if (store.isOwnerOrHasManagerPermissions(executor)) {
             product.startAuction(startingPrice, endTime);
         } else {
             throw new RuntimeException("User is not authorized to start auction");
@@ -717,6 +723,22 @@ public class StoreRepository implements IStoreRepository {
             bids.add(convertBidToDTO(bid, productId));
         }
         return bids;
+    }
+
+    @Override
+    public void rejectBid(String owner, String storeName, BidDTO bidDTO) {
+        Store store = findByName(storeName);
+        if (store == null) {
+            throw new RuntimeException("Store not found");
+        }
+        if (!store.isOwnerOrHasManagerPermissions(owner)) {
+            throw new RuntimeException("User is not authorized to reject bid");
+        }
+        ShoppingProduct product = store.getProduct(bidDTO.getProductId());
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+        product.removeBid(bidDTO.getBidderEmail(), bidDTO.getPrice(), bidDTO.getQuantity());
     }
 
 }

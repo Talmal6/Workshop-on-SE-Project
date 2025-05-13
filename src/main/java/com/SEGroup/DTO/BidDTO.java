@@ -19,6 +19,7 @@ public class BidDTO {
         this.bidderEmail = bidderEmail;
         this.product = product;
         this.price = amount;
+        this.quantity = quantity;
     }
 
     public String getBidderEmail() {

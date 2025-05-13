@@ -241,7 +241,7 @@ public interface IStoreRepository {
 
         List<String> getAllBidManagers(String storeName);
 
-        List<BidDTO> getAllBids(String storeName);
+        List<BidDTO> getAllBids(String owner, String storeName);
 
         BidDTO getAuctionHighestBidByProduct(String storeName, String productId);
 
@@ -251,10 +251,12 @@ public interface IStoreRepository {
 
         void rollBackByBid(String storeName, BidDTO bidDTO);
 
-        void executeAuctionBid(String storeName, BidDTO bidDTO);
+        void executeAuctionBid(String Email, String storeName, BidDTO bidDTO);
 
         void startAuction(String executor, String storeName, String productId, double minPrice, Date endDate);
 
         List<BidDTO> getProductBids(String storeName, String productId);
+
+        void rejectBid(String owner, String storeName, BidDTO bidDTO);
 
 }

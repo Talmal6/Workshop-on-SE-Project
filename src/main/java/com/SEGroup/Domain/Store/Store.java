@@ -168,15 +168,14 @@ public class Store {
         ShoppingProduct product = products.get(itemName);
 
         if (product == null) {
-            return false;
+            throw new IllegalArgumentException("Product not found");
         }
 
         if (bidAmount <= 0 || bidderEmail == null || bidderEmail.isBlank()) {
-            return false;
+            throw new IllegalArgumentException("Invalid bid amount or bidder email");
         }
 
         product.addBid(bidderEmail, bidAmount, quantity);
-        updateProduct(bidderEmail, product);
         return true;
     }
 
@@ -215,6 +214,12 @@ public class Store {
      */
     public boolean isOwnerOrHasManagerPermissions(String email){
         if (!isOwner(email) && !hasManagerPermission(email, ManagerPermission.MANAGE_PRODUCTS)) {
+            throw new RuntimeException("User is not authorized to update products");
+        }
+        return true;
+    }
+    public boolean isOwnerOrHasManagerBidPermission(String email, ManagerPermission permission){
+        if (!isOwner(email) && !hasManagerPermission(email, permission)) {
             throw new RuntimeException("User is not authorized to update products");
         }
         return true;
