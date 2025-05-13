@@ -60,6 +60,7 @@ public class Store {
     //Owners and managers
     private final Map<String, String> ownersAppointer = new java.util.concurrent.ConcurrentHashMap<>(); // email → appointedBy
     private final Map<String, ManagerData> managers = new java.util.concurrent.ConcurrentHashMap<>(); // email → metadata
+    
 
     public Store(String name, String founderEmail) {
         //field
@@ -125,10 +126,11 @@ public class Store {
      * @param quantity     The quantity of the product.
      * @return The ID of the added product.
      */
+    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity,boolean isAdmin){
     public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity, String imageURL){
         if(quantity == 0)
             throw new IllegalArgumentException("quantity cannot be 0 ");
-        if (isOwnerOrHasManagerPermissions(email)) {
+        if (isOwnerOrHasManagerPermissions(email) || isAdmin) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
             ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity, imageURL);
             products.put(productId, product);
@@ -156,6 +158,15 @@ public class Store {
     public void addToBalance(double amount){
         this.balance += amount;
     }
+
+    public List<String> getAllWorkers() {
+        List<String> allWorkers = new ArrayList<>();
+        allWorkers.add(founderEmail);
+        allWorkers.addAll(ownersAppointer.keySet());
+        allWorkers.addAll(managers.keySet());
+        return allWorkers;
+    }
+    
     /*
      * Submits a bid to a shopping item.
      *
@@ -164,18 +175,18 @@ public class Store {
      * @param bidderEmail The email of the bidder.
      * @return true if the bid was successfully submitted, false otherwise.
      */
-    public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail) {
+    public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail, Integer quantity) {
         ShoppingProduct product = products.get(itemName);
 
         if (product == null) {
-            return false;
+            throw new IllegalArgumentException("Product not found");
         }
 
         if (bidAmount <= 0 || bidderEmail == null || bidderEmail.isBlank()) {
-            return false;
+            throw new IllegalArgumentException("Invalid bid amount or bidder email");
         }
 
-        product.addBid(bidderEmail, bidAmount);
+        product.addBid(bidderEmail, bidAmount, quantity);
         return true;
     }
 
@@ -187,14 +198,15 @@ public class Store {
      * @param bidderEmail The email of the bidder.
      * @return true if the offer was successfully submitted, false otherwise.
      */
-    public boolean submitAuctionOffer(String productId, double offerAmount, String bidderEmail) {
+    public boolean submitAuctionOffer(String productId, double offerAmount, String bidderEmail, Integer quantity) {
         ShoppingProduct product = products.get(productId);
         if (product == null || product.getAuction() == null) {
             return false;
         }
 
+
         Auction auction = product.getAuction();
-        return auction.submitBid(bidderEmail, offerAmount);
+        return auction.submitBid(bidderEmail, offerAmount, quantity);
     }
     /*
      * checks if a given email is the owner of the store
@@ -217,6 +229,12 @@ public class Store {
         }
         return true;
     }
+    public boolean isOwnerOrHasManagerBidPermission(String email, ManagerPermission permission){
+        if (!isOwner(email) && !hasManagerPermission(email, permission)) {
+            throw new RuntimeException("User is not authorized to update products");
+        }
+        return true;
+    }
     //Management 4.3
     /*
      * Appoints a new owner for the store.
@@ -225,9 +243,9 @@ public class Store {
      * @param newOwnerEmail  The email of the new owner.
      * @return true if the appointment was successful, false otherwise.
      */
-    public boolean appointOwner(String appointerEmail, String newOwnerEmail) {
+    public boolean appointOwner(String appointerEmail, String newOwnerEmail,boolean isAdmin) {
         // Only Owner can appoint owner
-        if (!isOwner(appointerEmail))
+        if (!isOwner(appointerEmail) && !isAdmin)
             throw new IllegalArgumentException("appointer email is not owner of this store");
 
         // Can't reappoint
@@ -245,12 +263,12 @@ public class Store {
      * @param ownerToRemove  The email of the owner to remove.
      * @return true if the removal was successful, false otherwise.
      */
-    public boolean removeOwner(String removerEmail, String ownerToRemove) {
-        if (!ownersAppointer.containsKey(ownerToRemove))
+    public boolean removeOwner(String removerEmail, String ownerToRemove,boolean isAdmin) {
+        if (!ownersAppointer.containsKey(ownerToRemove) && !isAdmin)
             throw new IllegalArgumentException("owner email is not owner of this store");
 
         String appointedBy = ownersAppointer.get(ownerToRemove);
-        if (!removerEmail.equals(appointedBy))
+        if (!removerEmail.equals(appointedBy) && !isAdmin)
             throw new IllegalArgumentException("appointer email is not owner of this store");
 
         removeAppointedCascade(ownerToRemove);
@@ -305,8 +323,8 @@ public class Store {
      * @param permissions   The permissions granted to the manager.
      * @return true if the appointment was successful, false otherwise.
      */
-    public boolean appointManager(String ownerEmail, String managerEmail, Set<ManagerPermission> permissions) {
-        if (!isOwner(ownerEmail) || managers.containsKey(managerEmail))
+    public boolean appointManager(String ownerEmail, String managerEmail, Set<ManagerPermission> permissions, boolean isAdmin) {
+        if ((!isOwner(ownerEmail) && !isAdmin) || managers.containsKey(managerEmail) )
             throw new IllegalArgumentException("manager email is not owner of this store");
         managers.put(managerEmail, new ManagerData(ownerEmail, permissions));
         return true;
@@ -532,4 +550,49 @@ public class Store {
 
         return totalPrice - totalDiscount;
     }
+    public List<String> getAllBidManagers() {
+        List<String> bidManagers = new ArrayList<>();
+
+        // Add all owners (including founder)
+        bidManagers.add(founderEmail);
+        bidManagers.addAll(ownersAppointer.keySet());
+
+        // Add all managers who have MANAGE_BIDS permission
+        for (Map.Entry<String, ManagerData> entry : managers.entrySet()) {
+            if (entry.getValue().getPermissions().contains(ManagerPermission.MANAGE_BIDS)) {
+                bidManagers.add(entry.getKey());
+            }
+        }
+
+        return bidManagers;
+    }
+
+    public Auction getProductAuction(String productId) {
+        ShoppingProduct product = products.get(productId);
+        if (product != null) {
+            return product.getAuction();
+        }
+        return null;
+    }
+
+    public List<Bid> getProductBids(String productId) {
+        ShoppingProduct product = products.get(productId);
+        if (product != null) {
+            return product.getBids();
+        }
+        return null;
+    }
+
+    public List<Bid> getAllBids(){
+        List<Bid> allBids = new ArrayList<>();
+        for (ShoppingProduct product : products.values()) {
+            allBids.addAll(product.getBids());
+        }
+        return allBids;
+    }
+
+
+
+
+}
 }

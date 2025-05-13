@@ -72,9 +72,9 @@ StoreRepositoryTests {
     @Test
     @DisplayName("Given repository with store, when close and reopen, then StoreDTO isActive toggles")
     public void testCloseReopenTogglesIsActive() {
-        repo.closeStore(storeName, founderEmail);
+        repo.closeStore(storeName, founderEmail,false);
         assertFalse(repo.getStore(storeName).isActive());
-        repo.reopenStore(storeName, founderEmail);
+        repo.reopenStore(storeName, founderEmail,false);
         assertTrue(repo.getStore(storeName).isActive());
     }
 
@@ -82,13 +82,14 @@ StoreRepositoryTests {
     @DisplayName("Given non-founder, when closeStore, then RuntimeException")
     public void testCloseStoreThrowsForNonFounder() {
         assertThrows(RuntimeException.class,
-            () -> repo.closeStore(storeName, "other@test.com"));
+            () -> repo.closeStore(storeName, "other@test.com",false));
     }
 
     @Test
     @DisplayName("Given store with product, when updateShoppingProduct, then returns updated DTO")
     public void testUpdateShoppingProductReturnsUpdatedDTO() {
         String catalogID = "CID";
+        repo.addProductToStore(founderEmail, storeName, catalogID, "ProdName", "Desc", 5.0, 10, false);
         repo.addProductToStore(founderEmail, storeName, catalogID, "ProdName", "Desc", 5.0, 10, "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
 
         StoreDTO storeDTO = repo.getStore(storeName);
@@ -114,8 +115,8 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     @DisplayName("Given store with product, when deleteShoppingProduct, then returns DTO and product removed")
     public void testDeleteShoppingProductRemovesAndReturnsDTO() {
         String catalogID = "CID";
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false);
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, imageURL);
-
         StoreDTO storeDTO = repo.getStore(storeName);
         ShoppingProductDTO original = storeDTO.getProducts().get(0);
         String productId = original.getProductId();
@@ -131,6 +132,7 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     @DisplayName("Given non-owner, when deleteShoppingProduct, then RuntimeException")
     public void testDeleteShoppingProductThrowsForNonOwner() {
         String catalogID = "CID";
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false);
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);
@@ -144,6 +146,7 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     @DisplayName("Given store with product, when rateProduct valid, then returns DTO with avgRating")
     public void testRateProductValidReturnsAvgRating() {
         String catalogID = "CID";
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, false);
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);
@@ -164,6 +167,7 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     @DisplayName("Given product, when rateProduct invalid score, then IllegalArgumentException")
     public void testRateProductThrowsOnInvalidScore() {
         String catalogID = "CID";
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, false);
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);
@@ -184,7 +188,7 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     @Test
     @DisplayName("Given closed store, when rateStore, then RuntimeException")
     public void testRateStoreThrowsWhenClosed() {
-        repo.closeStore(storeName, founderEmail);
+        repo.closeStore(storeName, founderEmail,false);
         assertThrows(RuntimeException.class,
             () -> repo.rateStore("u@test.com", storeName, 4, ""));
     }
@@ -215,6 +219,7 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     @DisplayName("Given baskets with valid items, when removeItemsFromStores, then returns correct totals")
     public void testRemoveItemsFromStoresReturnsTotals() {
         String catalogID = "CID";
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false);
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);
@@ -233,6 +238,7 @@ static String imageURL = "https://images.unsplash.com/photo-1624555130581-1d9cca
     @DisplayName("Given baskets with insufficient quantity, when removeItemsFromStores, then exception and rollback")
     public void testRemoveItemsFromStoresRollbackOnException() {
         String catalogID = "CID";
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 2, false);
         repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 2, imageURL);
 
         StoreDTO storeDTO = repo.getStore(storeName);

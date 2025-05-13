@@ -89,8 +89,23 @@ public class ShoppingProduct {
     }
 
     // Bidding logic
-    public void addBid(String bidderEmail, double amount) {
-        bids.add(new Bid(bidderEmail, amount));
+    public void addBid(String bidderEmail, double amount, Integer quantity) {
+        // prevent duplicate bid
+        boolean exists = bids.stream()
+            .anyMatch(bid -> bid.getBidderEmail().equals(bidderEmail)
+                && bid.getAmount() == amount
+                && bid.getQuantity() == quantity);
+        if (exists) {
+            throw new IllegalArgumentException("Bid already exists");
+        }
+        bids.add(new Bid(bidderEmail, amount, quantity));
+    }
+
+    public void removeBid(String bidderEmail, double amount, Integer quantity) {
+        boolean removed = bids.removeIf(bid -> bid.getBidderEmail().equals(bidderEmail) && bid.getAmount() == amount && bid.getQuantity() == quantity);
+        if (!removed) {
+            throw new IllegalArgumentException("Bid not found");
+        }
     }
 
     public Optional<Bid> getHighestBid() {

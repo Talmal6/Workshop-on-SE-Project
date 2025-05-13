@@ -142,6 +142,12 @@ public class User {
         purchaseHistory.add(txId);
     }
 
+    public String getPassword() { return passwordHash; }
+    public String          getEmail()     { return email; }
+    public List<String>    getHistory()   { return List.copyOf(purchaseHistory); }
+    public String          getUserName()  { return username; }
+
+    
     public String getPassword() {
         return passwordHash;
     }

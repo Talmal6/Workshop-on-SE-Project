@@ -1,11 +1,15 @@
 package com.SEGroup.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.SEGroup.DTO.BidDTO;
+import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IProductCatalog;
@@ -13,6 +17,7 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Domain.Store.Auction;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Mapper.AuctionMapper;
@@ -31,11 +36,17 @@ public class StoreService {
     private final IProductCatalog productCatalog;
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
+    private final NotificationCenter notificationService;
     private final NotificationCenter notificationCenter;
 
     /**
      * Constructs a new StoreService instance with the provided dependencies.
      *
+     * @param storeRepository       The store repository for managing store data.
+     * @param productCatalog        The product catalog for managing product data.
+     * @param authenticationService The authentication service for handling user
+     *                              sessions.
+     * @param userRepository        The user repository for managing user data.
      * @param storeRepository The store repository for managing store data.
      * @param productCatalog The product catalog for managing product data.
      * @param authenticationService The authentication service for handling user sessions.
@@ -44,6 +55,10 @@ public class StoreService {
      */
     @Autowired
     public StoreService(IStoreRepository storeRepository,
+            IProductCatalog productCatalog,
+            IAuthenticationService authenticationService,
+            IUserRepository userRepository,
+            NotificationCenter notificationService) {
                         IProductCatalog productCatalog,
                         IAuthenticationService authenticationService,
                         IUserRepository userRepository,
@@ -52,6 +67,7 @@ public class StoreService {
         this.productCatalog = productCatalog;
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
         this.notificationCenter = notificationCenter;
     }
 
@@ -72,6 +88,25 @@ public class StoreService {
     /**
      * Lists all stores for display in the card view.
      *
+     * @param catalogID   The ID of the product catalog.
+     * @param name        The name of the product.
+     * @param brand       The brand of the product.
+     * @param description A description of the product.
+     * @param categories  The categories the product belongs to.
+     * @return A Result object containing the catalog ID if successful, or an error
+     *         message.
+     */
+    public Result<String> addProductToCatalog(String catalogID, String name, String brand, String description,
+            List<String> categories) {
+
+        try {
+            LoggerWrapper.info("Adding product to catalog: " + catalogID); // Log the product addition
+            productCatalog.addCatalogProduct(catalogID, name, brand, description, categories);
+            return Result.success(catalogID);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error adding product to catalog: " + e.getMessage(), e); // Log errors
+            return Result.failure(e.getMessage());
+        }
      * @return List of store card DTOs for all stores
      */
     public List<StoreCardDto> listAllStores() {
@@ -84,6 +119,18 @@ public class StoreService {
     /**
      * Lists stores owned by a specific user for display in the card view.
      *
+     * @param storeName The name of the store to view.
+     * @return A Result object containing the store DTO if successful, or an error
+     *         message.
+     */
+    public Result<StoreDTO> viewStore(String storeName) {
+        try {
+            LoggerWrapper.info("Viewing store: " + storeName); // Log the viewing of the store
+            return Result.success(storeRepository.getStore(storeName));
+        } catch (Exception e) {
+            LoggerWrapper.error("Error viewing store: " + e.getMessage(), e); // Log errors
+            return Result.failure(e.getMessage());
+        }
      * @param ownerEmail Email of the store owner
      * @return List of store card DTOs for stores owned by the specified user
      */
@@ -108,6 +155,17 @@ public class StoreService {
     /**
      * Checks if a user is an owner of a store.
      *
+     * @return A Result object containing the list of all store DTOs if successful,
+     *         or an error message.
+     */
+    public Result<List<StoreDTO>> viewAllStores() {
+        try {
+            LoggerWrapper.info("Fetching all public stores."); // Log the fetching of all public stores
+            return Result.success(storeRepository.getAllStores());
+        } catch (Exception e) {
+            LoggerWrapper.error("Error fetching all stores: " + e.getMessage(), e); // Log any errors that occur
+            return Result.failure(e.getMessage());
+        }
      * @param email The email of the user
      * @param storeName The name of the store
      * @return True if the user is an owner, false otherwise
@@ -124,6 +182,16 @@ public class StoreService {
      * Creates a new store for the current user.
      * Non-Result version for AllStoresPresenter.
      *
+     * @return A Result object containing the list of catalog products if
+     *         successful, or an error message.
+     */
+    public Result<List<CatalogProduct>> viewPublicProductCatalog() {
+        try {
+            LoggerWrapper.info("Fetching public product catalog."); // Log the fetching of the product catalog
+            return Result.success(productCatalog.getAllProducts());
+        } catch (Exception e) {
+            LoggerWrapper.error("Error fetching product catalog: " + e.getMessage(), e); // Log any errors
+            return Result.failure(e.getMessage());
      * @param token The authentication token
      * @param storeName The name of the new store
      * @throws Exception if creation fails
@@ -150,12 +218,18 @@ public class StoreService {
      * Result-returning version for backward compatibility.
      *
      * @param sessionKey The session key for the authenticated user.
-     * @param storeName The name of the store to create.
+     * @param storeName  The name of the store to create.
      * @return A Result object indicating success or failure.
      */
     public Result<Void> createStore(String sessionKey, String storeName, String founderEmail) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            LoggerWrapper.info("Creating store: " + storeName); // Log the creation of the store
+            storeRepository.createStore(storeName, authenticationService.getUserBySession(sessionKey));
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error creating store: " + e.getMessage(), e); // Log errors
             LoggerWrapper.info("Creating store: " + storeName);
             storeRepository.createStore(storeName, founderEmail);
             return Result.success(null);
@@ -169,16 +243,30 @@ public class StoreService {
      * Closes a store for an authenticated user.
      *
      * @param sessionKey The session key for the authenticated user.
-     * @param storeName The name of the store to close.
+     * @param storeName  The name of the store to close.
      * @return A Result object indicating success or failure.
      */
     public Result<Void> closeStore(String sessionKey, String storeName) {
         try {
             StoreDTO storeDTO = storeRepository.getStore(storeName);
-            storeRepository.closeStore(storeName, authenticationService.getUserBySession(sessionKey));
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            boolean isAdmin = userRepository.userIsAdmin(email);
+            List<String> WorkersInStore = storeRepository.closeStore(storeName, email, isAdmin);
+
             for (ShoppingProductDTO sp : storeDTO.getProducts()) {
                 productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId());
             }
+            for (String worker : WorkersInStore) {
+                notificationService.sendSystemNotification(worker, "Store " + storeName + " has been closed.");
+                if (isAdmin) {
+                    removeOwner(sessionKey, storeName, worker);
+                }
+            }
+            LoggerWrapper.info("Store closed: " + storeName); // Log store closure
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error closing store: " + e.getMessage(), e); // Log errors
             LoggerWrapper.info("Store closed: " + storeName);
             return Result.success(null);
         } catch (Exception e) {
@@ -191,16 +279,28 @@ public class StoreService {
      * Reopens a store for an authenticated user.
      *
      * @param sessionKey The session key for the authenticated user.
-     * @param storeName The name of the store to reopen.
+     * @param storeName  The name of the store to reopen.
      * @return A Result object indicating success or failure.
      */
     public Result<Void> reopenStore(String sessionKey, String storeName) {
         try {
-            storeRepository.reopenStore(storeName, authenticationService.getUserBySession(sessionKey));
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            boolean isAdmin = userRepository.userIsAdmin(email);
+            List<String> WorkersInStore = storeRepository.reopenStore(storeName, email, isAdmin);
             for (ShoppingProductDTO sp : storeRepository.getStore(storeName).getProducts()) {
                 productCatalog.addStoreProductEntry(sp.getCatalogID(), storeName, sp.getProductId(), sp.getPrice(),
                         sp.getQuantity(), sp.getAvgRating(), sp.getName());
             }
+            for (String worker : WorkersInStore) {
+                notificationService.sendSystemNotification(
+                        worker,
+                        "The store '" + storeName + "' has been reopen.");
+            }
+            LoggerWrapper.info("Store reopened: " + storeName); // Log store reopening
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error reopening store: " + e.getMessage(), e); // Log errors
             LoggerWrapper.info("Store reopened: " + storeName);
             return Result.success(null);
         } catch (Exception e) {
@@ -209,6 +309,8 @@ public class StoreService {
         }
     }
 
+    // Other methods like `addProductToStore`, `updateShoppingProduct`,
+    // `deleteShoppingProduct`, etc. would similarly have logs for info and error
     // ========================
     // Product Catalog Methods
     // ========================
@@ -328,10 +430,24 @@ public class StoreService {
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<String> addProductToStore(String sessionKey, String storeName, String catalogID, String productName,
+            String description, double price, int quantity) {
                                             String description, double price, int quantity, String imageURL) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             productCatalog.isProductExist(catalogID);
+            String email = authenticationService.getUserBySession(sessionKey);
+            boolean isAdmin = userRepository.userIsAdmin(email);
+            String productID = storeRepository.addProductToStore(email, storeName, catalogID,
+                    productName, description, price, quantity, isAdmin);
+            productCatalog.addStoreProductEntry(catalogID, storeName, productID, price, quantity, 0, productName);
+            LoggerWrapper.info("Added product to store: " + storeName + ", Product ID: " + productID); // Log the
+                                                                                                       // product
+                                                                                                       // addition
+            return Result.success(productID);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            LoggerWrapper.error("Error adding product to store: " + e.getMessage(), e); // Log error on failure
             String productID = storeRepository.addProductToStore(authenticationService.getUserBySession(sessionKey), storeName, catalogID,
                     productName, description, price, quantity, imageURL);
             productCatalog.addStoreProductEntry(catalogID, storeName, productID, price, quantity, 0, productName);
@@ -364,20 +480,26 @@ public class StoreService {
     /**
      * Updates a shopping product in the store.
      *
-     * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the product is located.
-     * @param productID The ID of the product being updated.
+     * @param sessionKey  The session key of the user performing the action.
+     * @param storeName   The name of the store where the product is located.
+     * @param productID   The ID of the product being updated.
      * @param description The updated description of the product.
-     * @param price The updated price of the product.
+     * @param price       The updated price of the product.
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<Void> updateShoppingProduct(String sessionKey, String storeName, String productID, String description,
-                                              Double price) {
+            Double price) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             ShoppingProductDTO sp = storeRepository.updateShoppingProduct(
                     authenticationService.getUserBySession(sessionKey), storeName, productID, price, description);
             productCatalog.updateStoreProductEntry(sp.getCatalogID(), storeName, productID, price, null, null);
+            LoggerWrapper.info("Updated product in store: " + storeName + ", Product ID: " + productID); // Log product
+                                                                                                         // update
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error updating shopping product: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.info("Updated product in store: " + storeName + ", Product ID: " + productID);
             return Result.success(null);
         } catch (Exception e) {
@@ -390,16 +512,23 @@ public class StoreService {
      * Deletes a shopping product from the store.
      *
      * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the product is located.
-     * @param productID The ID of the product to be deleted.
+     * @param storeName  The name of the store where the product is located.
+     * @param productID  The ID of the product to be deleted.
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<Void> deleteShoppingProduct(String sessionKey, String storeName, String productID) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             ShoppingProductDTO sp = storeRepository
                     .deleteShoppingProduct(authenticationService.getUserBySession(sessionKey), storeName, productID);
             productCatalog.deleteStoreProductEntry(sp.getCatalogID(), storeName, productID);
+            LoggerWrapper.info("Deleted product from store: " + storeName + ", Product ID: " + productID); // Log
+                                                                                                           // product
+                                                                                                           // deletion
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error deleting shopping product: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.info("Deleted product from store: " + storeName + ", Product ID: " + productID);
             return Result.success(null);
         } catch (Exception e) {
@@ -696,15 +825,20 @@ public class StoreService {
      * Rates a store.
      *
      * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store being rated.
-     * @param rating The rating given to the store.
-     * @param review The review written for the store.
+     * @param storeName  The name of the store being rated.
+     * @param rating     The rating given to the store.
+     * @param review     The review written for the store.
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<Void> rateStore(String sessionKey, String storeName, int rating, String review) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             storeRepository.rateStore(authenticationService.getUserBySession(sessionKey), storeName, rating, review);
+            LoggerWrapper.info("Rated store: " + storeName + ", Rating: " + rating); // Log the store rating
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error rating store: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.info("Rated store: " + storeName + ", Rating: " + rating);
             return Result.success(null);
         } catch (Exception e) {
@@ -717,17 +851,28 @@ public class StoreService {
      * Rates a product.
      *
      * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the product is located.
-     * @param productID The ID of the product being rated.
-     * @param rating The rating given to the product.
-     * @param review The review written for the product.
+     * @param storeName  The name of the store where the product is located.
+     * @param productID  The ID of the product being rated.
+     * @param rating     The rating given to the product.
+     * @param review     The review written for the product.
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<Void> rateProduct(String sessionKey, String storeName, String productID, int rating, String review) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             ShoppingProductDTO sp = storeRepository.rateProduct(authenticationService.getUserBySession(sessionKey),
                     storeName, productID, rating, review);
+            productCatalog.updateStoreProductEntry(sp.getCatalogID(), storeName, productID, null, null,
+                    sp.getAvgRating());
+            LoggerWrapper.info(
+                    "Rated product in store: " + storeName + ", Product ID: " + productID + ", Rating: " + rating); // Log
+                                                                                                                    // the
+                                                                                                                    // product
+                                                                                                                    // rating
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error rating product: " + e.getMessage(), e); // Log error on failure
             productCatalog.updateStoreProductEntry(sp.getCatalogID(), storeName, productID, null, null, sp.getAvgRating());
             LoggerWrapper.info("Rated product in store: " + storeName + ", Product ID: " + productID + ", Rating: " + rating);
             return Result.success(null);
@@ -758,16 +903,26 @@ public class StoreService {
     /**
      * Appoints a new owner for a store.
      *
-     * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the owner is being appointed.
+     * @param sessionKey    The session key of the user performing the action.
+     * @param storeName     The name of the store where the owner is being
+     *                      appointed.
      * @param apointeeEmail The email of the new owner.
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<Void> appointOwner(String sessionKey, String storeName, String apointeeEmail) {
         try {
             authenticationService.authenticate(sessionKey);
-            storeRepository.appointOwner(storeName, authenticationService.getUserBySession(sessionKey), apointeeEmail);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            boolean isAdmin = userRepository.userIsAdmin(userEmail);
+            storeRepository.appointOwner(storeName, userEmail, apointeeEmail, isAdmin);
             userRepository.appointOwner(storeName, apointeeEmail);
+            LoggerWrapper.info("Appointed new owner for store: " + storeName + ", New Owner: " + apointeeEmail); // Log
+                                                                                                                 // owner
+                                                                                                                 // appointment
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error appointing owner: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.info("Appointed new owner for store: " + storeName + ", New Owner: " + apointeeEmail);
             return Result.success(null);
         } catch (Exception e) {
@@ -779,16 +934,28 @@ public class StoreService {
     /**
      * Removes an owner from a store.
      *
-     * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store from which the owner is being removed.
+     * @param sessionKey    The session key of the user performing the action.
+     * @param storeName     The name of the store from which the owner is being
+     *                      removed.
      * @param apointeeEmail The email of the owner being removed.
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<Void> removeOwner(String sessionKey, String storeName, String apointeeEmail) {
         try {
             authenticationService.authenticate(sessionKey);
-            storeRepository.removeOwner(storeName, authenticationService.getUserBySession(sessionKey), apointeeEmail);
+            String email = authenticationService.getUserBySession(sessionKey);
+            boolean isAdmin = userRepository.userIsAdmin(email);
+            userRepository.checkUserSuspension(email);
+            storeRepository.removeOwner(storeName, email, apointeeEmail, isAdmin);
             userRepository.removeOwner(storeName, apointeeEmail);
+            notificationService.sendSystemNotification(
+                    apointeeEmail,
+                    "Your ownership role in store '" + storeName + "' has been removed.");
+            LoggerWrapper.info("Removed owner from store: " + storeName + ", Owner: " + apointeeEmail); // Log owner
+                                                                                                        // removal
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error removing owner: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.info("Removed owner from store: " + storeName + ", Owner: " + apointeeEmail);
             return Result.success(null);
         } catch (Exception e) {
@@ -801,15 +968,21 @@ public class StoreService {
      * Allows an owner to resign ownership of a store.
      *
      * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store from which the owner is resigning.
+     * @param storeName  The name of the store from which the owner is resigning.
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<Void> resignOwnership(String sessionKey, String storeName) {
         try {
             authenticationService.authenticate(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             String userEmail = authenticationService.getUserBySession(sessionKey);
             storeRepository.resignOwnership(storeName, userEmail);
             userRepository.removeOwner(storeName, userEmail);
+            LoggerWrapper.info("Owner resigned from store: " + storeName + ", Owner: " + userEmail); // Log owner
+                                                                                                     // resignation
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error resigning ownership: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.info("Owner resigned from store: " + storeName + ", Owner: " + userEmail);
             return Result.success(null);
         } catch (Exception e) {
@@ -821,19 +994,28 @@ public class StoreService {
     /**
      * Appoints a new manager to a store.
      *
-     * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the manager is being appointed.
+     * @param sessionKey    The session key of the user performing the action.
+     * @param storeName     The name of the store where the manager is being
+     *                      appointed.
      * @param apointeeEmail The email of the new manager.
-     * @param permissions The permissions granted to the manager.
+     * @param permissions   The permissions granted to the manager.
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<Void> appointManager(String sessionKey, String storeName, String apointeeEmail,
-                                       List<String> permissions) {
+            List<String> permissions) {
         try {
             authenticationService.authenticate(sessionKey);
-            storeRepository.appointManager(storeName, authenticationService.getUserBySession(sessionKey), apointeeEmail,
-                    permissions);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            boolean isAdmin = userRepository.userIsAdmin(userEmail);
+            storeRepository.appointManager(storeName, userEmail, apointeeEmail,
+                    permissions, isAdmin);
             userRepository.appointManager(storeName, apointeeEmail);
+                                                                                                             // manager
+                                                                                                             // appointment
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error appointing manager: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.info("Appointed manager for store: " + storeName + ", Manager: " + apointeeEmail);
             return Result.success(null);
         } catch (Exception e) {
@@ -845,18 +1027,28 @@ public class StoreService {
     /**
      * Updates the permissions of a manager in a store.
      *
-     * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the manager's permissions are being updated.
-     * @param apointeeEmail The email of the manager whose permissions are being updated.
-     * @param permissions The updated list of permissions for the manager.
+     * @param sessionKey    The session key of the user performing the action.
+     * @param storeName     The name of the store where the manager's permissions
+     *                      are being updated.
+     * @param apointeeEmail The email of the manager whose permissions are being
+     *                      updated.
+     * @param permissions   The updated list of permissions for the manager.
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<Void> updateManagerPermissions(String sessionKey, String storeName, String apointeeEmail,
-                                                 List<String> permissions) {
+            List<String> permissions) {
         try {
             authenticationService.authenticate(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             storeRepository.updateManagerPermissions(storeName, authenticationService.getUserBySession(sessionKey),
                     apointeeEmail, permissions);
+            LoggerWrapper.info("Updated manager permissions for store: " + storeName + ", Manager: " + apointeeEmail); // Log
+                                                                                                                       // manager
+                                                                                                                       // permission
+                                                                                                                       // update
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error updating manager permissions: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.info("Updated manager permissions for store: " + storeName + ", Manager: " + apointeeEmail);
             return Result.success(null);
         } catch (Exception e) {
@@ -868,17 +1060,22 @@ public class StoreService {
     /**
      * Retrieves the permissions of a manager in a store.
      *
-     * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the manager's permissions are being retrieved.
-     * @param managerEmail The email of the manager whose permissions are being retrieved.
-     * @return A Result object containing the manager's permissions if successful, or an error message.
+     * @param sessionKey   The session key of the user performing the action.
+     * @param storeName    The name of the store where the manager's permissions are
+     *                     being retrieved.
+     * @param managerEmail The email of the manager whose permissions are being
+     *                     retrieved.
+     * @return A Result object containing the manager's permissions if successful,
+     *         or an error message.
      */
     public Result<List<String>> getManagerPermission(String sessionKey, String storeName, String managerEmail) {
         try {
             authenticationService.authenticate(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             return Result.success(storeRepository.getManagerPermissions(storeName,
                     authenticationService.getUserBySession(sessionKey), managerEmail));
         } catch (Exception e) {
+            LoggerWrapper.error("Error getting manager permissions: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.error("Error getting manager permissions: " + e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
@@ -887,10 +1084,12 @@ public class StoreService {
     /**
      * Retrieves a list of all owners for a store.
      *
-     * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the owners are being retrieved.
+     * @param sessionKey    The session key of the user performing the action.
+     * @param storeName     The name of the store where the owners are being
+     *                      retrieved.
      * @param operatorEmail The email of the operator performing the action.
-     * @return A Result object containing a list of all owners if successful, or an error message.
+     * @return A Result object containing a list of all owners if successful, or an
+     *         error message.
      */
     public Result<List<String>> getAllOwners(String sessionKey, String storeName, String operatorEmail) {
         try {
@@ -898,6 +1097,7 @@ public class StoreService {
             return Result.success(
                     storeRepository.getAllOwners(storeName, authenticationService.getUserBySession(sessionKey)));
         } catch (Exception e) {
+            LoggerWrapper.error("Error getting all owners: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.error("Error getting all owners: " + e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
@@ -906,10 +1106,12 @@ public class StoreService {
     /**
      * Retrieves a list of all managers for a store.
      *
-     * @param sessionKey The session key of the user performing the action.
-     * @param storeName The name of the store where the managers are being retrieved.
+     * @param sessionKey    The session key of the user performing the action.
+     * @param storeName     The name of the store where the managers are being
+     *                      retrieved.
      * @param operatorEmail The email of the operator performing the action.
-     * @return A Result object containing a list of all managers if successful, or an error message.
+     * @return A Result object containing a list of all managers if successful, or
+     *         an error message.
      */
     public Result<List<String>> getAllManagers(String sessionKey, String storeName, String operatorEmail) {
         try {
@@ -917,6 +1119,7 @@ public class StoreService {
             return Result.success(
                     storeRepository.getAllManagers(storeName, authenticationService.getUserBySession(sessionKey)));
         } catch (Exception e) {
+            LoggerWrapper.error("Error getting all managers: " + e.getMessage(), e); // Log error on failure
             LoggerWrapper.error("Error getting all managers: " + e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
@@ -929,6 +1132,15 @@ public class StoreService {
     /**
      * Starts an auction for a product in a store.
      *
+     * @param query         The search query to look for products.
+     * @param searchFilters The filters to apply to the search.
+     * @param storeName     The store to search in.
+     * @param categories    The categories of products to filter by.
+     * @return A Result object containing a list of found products if successful, or
+     *         an error message.
+     */
+    public Result<List<ShoppingProductDTO>> searchProducts(String query, List<String> searchFilters, String storeName,
+            List<String> categories) {
      * @param sessionKey The session key of the authenticated user
      * @param storeName The name of the store
      * @param productId The ID of the product to auction
@@ -965,6 +1177,10 @@ public class StoreService {
                     notificationCenter.sendSystemNotification(sessionKey, userId, msg);
                 }
             }
+            LoggerWrapper.info("Searched products in store: " + storeName + ", Query: " + query); // Log product search
+            return Result.success(searchResults);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error searching products: " + e.getMessage(), e); // Log error on failure
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -1011,6 +1227,7 @@ public class StoreService {
         }
     }
 
+    // 3.9
     /**
      * Gets information about an active auction.
      *
@@ -1044,11 +1261,24 @@ public class StoreService {
      * @return A Result indicating success or failure
      */
     public Result<Void> submitBidToShoppingItem(String sessionKey,
-                                                String storeName,
-                                                String productId,
-                                                double bidAmount) {
+            String storeName,
+            String productId,
+            double bidAmount,
+            Integer quantity) {
         try {
             authenticationService.authenticate(sessionKey);
+            String bidderEmail = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(bidderEmail);
+            storeRepository.submitBidToShoppingItem(bidderEmail, storeName,
+                    productId, bidAmount, quantity);
+            List<String> ownersAndManagers = storeRepository.getAllBidManagers(storeName);
+            for (String recipient : ownersAndManagers) {
+                notificationService.sendSystemNotification(
+                        recipient,
+                        "A new bid was submitted by " + bidderEmail +
+                                " on product '" + productId + "' in store '" + storeName +
+                                "' for amount: " + bidAmount);
+            }
             storeRepository.submitBidToShoppingItem(authenticationService.getUserBySession(sessionKey), storeName, productId, bidAmount);
             return Result.success(null);
         } catch (Exception e) {
@@ -1056,6 +1286,7 @@ public class StoreService {
         }
     }
 
+    // 3.11
     /**
      * Gets users who have placed bids on a product.
      *
@@ -1090,11 +1321,15 @@ public class StoreService {
      * @return A Result indicating success or failure
      */
     public Result<Void> sendAuctionOffer(String sessionKey,
-                                         String storeName,
-                                         String productId,
-                                         double bidAmount) {
+            String storeName,
+            String productId,
+            double bidAmount,
+            Integer quantity) {
         try {
             authenticationService.authenticate(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.sendAuctionOffer(authenticationService.getUserBySession(sessionKey), storeName, productId,
+                    bidAmount, quantity);
             storeRepository.sendAuctionOffer(authenticationService.getUserBySession(sessionKey), storeName, productId, bidAmount);
             return Result.success(null);
         } catch (Exception e) {
@@ -1102,6 +1337,32 @@ public class StoreService {
         }
     }
 
+    // 3.12
+    public Result<Void> sendMessageToStoreFounder(String sessionKey, String storeName, String messageContent) {
+        try {
+            authenticationService.authenticate(sessionKey);
+            String senderEmail = authenticationService.getUserBySession(sessionKey);
+
+            String founderEmail = storeRepository.getStoreFounder(storeName);
+
+            notificationService.sendUserNotification(
+                    sessionKey,
+                    founderEmail,
+                    messageContent,
+                    senderEmail);
+
+            LoggerWrapper.info("User " + senderEmail + " sent message to founder of store '" + storeName + "'");
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error sending message to store founder: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Integer> getProductQuantity(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getProductQuantity(storeName, productId));
     /**
      * Sorts stores by rating in descending order.
      *
@@ -1120,6 +1381,8 @@ public class StoreService {
 
     public Result<Void> createStore(String sessionKey, String storeName) {
         try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getProduct(storeName, productId));
             // Call the renamed method
             createStoreDirectly(sessionKey, storeName);
             return Result.success(null);
@@ -1128,4 +1391,63 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+    public Result<Void> startAuction(String sessionKey, String storeName, String productId, double minPrice,
+            Date endDate) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.startAuction(authenticationService.getUserBySession(sessionKey), storeName, productId,
+                    minPrice, endDate);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+
+    }
+
+    public Result<List<BidDTO>> getProductBids(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getProductBids(storeName, productId));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Date> getAuctionEndDate(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            Date endDate = storeRepository.getAuctionEndDate(storeName, productId);
+            return Result.success(endDate);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving auction end date for product: " + productId + " - " + e.getMessage(), e);  // Log error
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<List<BidDTO>> getAllBids(String sessionKey, String storeName) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getAllBids(authenticationService.getUserBySession(sessionKey),storeName));
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving all bids for store: " + storeName + " - " + e.getMessage(), e);  // Log error
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    public Result<BidDTO> getAuctionHighestBidByProduct(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getAuctionHighestBidByProduct(storeName, productId));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    
+
+}
 }

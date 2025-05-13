@@ -2,6 +2,7 @@ package com.SEGroup.acceptance;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,12 +17,15 @@ import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.UserRepository;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IUserRepository;
@@ -41,6 +45,10 @@ public class StoreServiceAcceptanceTests {
     private static final String STORE_NAME = "MyStore";
     private static final String CATALOG_ID = "catalog123";
     private static final String PRODUCT_ID = "product123";
+    private static final String ADMIN_EMAIL = "Admin@Admin.Admin";
+    private static final String ADMIN = "Admin";
+    private static final String ADMIN_PASS = "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS";
+    private static String defaultAdminSession;
     private PasswordEncoder passwordEncoder;
     StoreService storeService;
     StoreRepository storeRepository;
@@ -56,6 +64,23 @@ public class StoreServiceAcceptanceTests {
         NotificationEndpoint endpoint = new NotificationEndpoint();
         NotificationCenter nc = new NotificationCenter(authenticationService, endpoint);
         Security security = new Security();
+        // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
+        // create a key
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        security.setKey(key);
+        authenticationService = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
+        // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
+        // create a key
+        ((SecurityAdapter) authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+        userRepository = new UserRepository();
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,
+                new NotificationCenter(authenticationService));
+        userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository,
+                authenticationService);
+        VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS); // Register and login to get a valid
+                                                                               // session
+        defaultAdminSession = LoginAndGetSession(ADMIN_EMAIL, ADMIN);
+        Result r1 = userService.login(ADMIN_EMAIL, "Admin"); // Register and login to get a valid sessio לא טו
 
         // Create the key
         SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
@@ -108,6 +133,11 @@ public class StoreServiceAcceptanceTests {
         return sessionKey;
     }
 
+    public String LoginAndGetSession(String email, String password) throws Exception {
+        Result<String> Admin = userService.login(email, password);
+        return Admin.getData();
+    }
+
     @Test
     public void createStore_WithValidSession_ShouldSucceed() {
         Result<Void> result = storeService.createStore(VALID_SESSION, STORE_NAME);
@@ -125,19 +155,27 @@ public class StoreServiceAcceptanceTests {
     @Test
     public void addProductToStore_WithValidDetails_ShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
-        Result<String> res = storeService.addProductToCatalog(CATALOG_ID, "iphone13", "apple", "Desc", Collections.singletonList("phones"));
+        Result<String> res = storeService.addProductToCatalog(CATALOG_ID, "iphone13", "apple", "Desc",
+                Collections.singletonList("phones"));
 
+        Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName",
+                "Desc",
+                9.99, 5);
         Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
                 9.99, 5, "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
         assertTrue(result.isSuccess());
-        Result<List<ShoppingProductDTO>> productResult = storeService.searchProducts("iphone",Collections.emptyList(),null,null);
+        Result<List<ShoppingProductDTO>> productResult = storeService.searchProducts("iphone", Collections.emptyList(),
+                null, null);
         assertTrue(productResult.isSuccess());
-        assertEquals(productResult.getData().get(0).getName(),"ProdName");
+        assertEquals(productResult.getData().get(0).getName(), "ProdName");
 
     }
 
     @Test
     public void addProductToStore_WithNegativeQuantity_ShouldFail() {
+        Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName",
+                "Desc",
+                9.99, -1);
         Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc",
                 9.99, -1, "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
         assertFalse(result.isSuccess());
@@ -147,7 +185,8 @@ public class StoreServiceAcceptanceTests {
     public void appointOwner_WithValidData_ShouldSucceed() throws Exception {
         String newOwner = "newOwner";
         String newOwnerEmail = "newowner@example.com";
-        regLoginAndGetSession(newOwner, newOwnerEmail,  "newpass123"); // Register and login to get a valid session for the new owner
+        regLoginAndGetSession(newOwner, newOwnerEmail, "newpass123"); // Register and login to get a valid session for
+                                                                      // the new owner
         storeService.createStore(VALID_SESSION, STORE_NAME);
         Result<Void> result = storeService.appointOwner(VALID_SESSION, STORE_NAME, newOwnerEmail);
         assertTrue(result.isSuccess());
@@ -169,7 +208,8 @@ public class StoreServiceAcceptanceTests {
     public void removeOwner_WithValidData_ShouldSucceed() throws Exception {
         String toRemove = "remove";
         String toRemoveEmail = "remove@example.com";
-        regLoginAndGetSession(toRemove, toRemoveEmail, "removePass123"); // Register and login to get a valid session for the new owner
+        regLoginAndGetSession(toRemove, toRemoveEmail, "removePass123"); // Register and login to get a valid session
+                                                                         // for the new owner
         storeService.createStore(VALID_SESSION, STORE_NAME);
         storeService.appointOwner(VALID_SESSION, STORE_NAME, toRemoveEmail);
 
@@ -192,7 +232,8 @@ public class StoreServiceAcceptanceTests {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         String manager = "manager";
         String managerEmail = "manager@example.com";
-        regLoginAndGetSession(manager, managerEmail, "managerPass123"); // Register and login to get a valid session for the new manager
+        regLoginAndGetSession(manager, managerEmail, "managerPass123"); // Register and login to get a valid session for
+                                                                        // the new manager
         List<String> perms = Collections.singletonList("MANAGE_PRODUCTS");
 
         Result<Void> result = storeService.appointManager(VALID_SESSION, STORE_NAME, managerEmail, perms);
@@ -206,7 +247,8 @@ public class StoreServiceAcceptanceTests {
 
     @Test
     public void appointManager_WithInvalidSession_ShouldFail() {
-        Result<Void> result = storeService.appointManager(INVALID_SESSION, STORE_NAME, "mgr@example.com", Collections.emptyList());
+        Result<Void> result = storeService.appointManager(INVALID_SESSION, STORE_NAME, "mgr@example.com",
+                Collections.emptyList());
         assertFalse(result.isSuccess());
     }
 
@@ -214,7 +256,8 @@ public class StoreServiceAcceptanceTests {
     public void updateManagerPermissions_WithValidData_ShouldSucceed() {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         String manager = "mgr@example.com";
-        Result<Void> r = storeService.appointManager(VALID_SESSION, STORE_NAME, manager, Collections.singletonList("MANAGE_PRODUCTS"));
+        Result<Void> r = storeService.appointManager(VALID_SESSION, STORE_NAME, manager,
+                Collections.singletonList("MANAGE_PRODUCTS"));
         List<String> newPerms = Arrays.asList("MANAGE_PRODUCTS", "MANAGE_ROLES");
 
         Result<Void> result = storeService.updateManagerPermissions(VALID_SESSION, STORE_NAME, manager, newPerms);
@@ -288,8 +331,7 @@ public class StoreServiceAcceptanceTests {
         productCatalog.addCatalogProduct(CATALOG_ID, "ProdName", List.of("Clothes"));
         storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 5.0, 3, "somestring");
         Result<Void> result = storeService.rateProduct(VALID_SESSION, STORE_NAME,
-                storeService.viewStore(STORE_NAME).getData().getProducts().get(0).getProductId()
-                , 4, "Good");
+                storeService.viewStore(STORE_NAME).getData().getProducts().get(0).getProductId(), 4, "Good");
         assertTrue(result.isSuccess());
 
         StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
@@ -297,35 +339,202 @@ public class StoreServiceAcceptanceTests {
         assertFalse(products.isEmpty());
         assertEquals(4.0, products.get(0).getAvgRating());
     }
+
     @Test
     public void purchaseShoppingCart_WithAuctionBid_ShouldSucceed() {
         // Given: Customer bidding and winning an auction
-        //assert not implemented yet error:
-//        assertTrue(false, "Test not implemented yet");
+        // assert not implemented yet error:
+        // assertTrue(false, "Test not implemented yet");
     }
 
     @Test
     public void appointManager_WithTwoManagersOnlyOneShouldSucceed() throws Exception {
         String manager1 = "manager1@gmail.com";
         String manager1Name = "manager1";
-        String manager1_sk = regLoginAndGetSession(manager1Name, manager1, "manager1Pass123"); // Register and login to get a valid session for the new manager
+        String manager1_sk = regLoginAndGetSession(manager1Name, manager1, "manager1Pass123"); // Register and login to
+                                                                                               // get a valid session
+                                                                                               // for the new manager
         storeService.createStore(manager1_sk, STORE_NAME);
         String manager2 = "manager2@gmail.com";
         String manager2Name = "manager2";
-        String manager2_sk = regLoginAndGetSession(manager2Name, manager2, "manager2Pass123"); // Register and login to get a valid session for the new manager
+        String manager2_sk = regLoginAndGetSession(manager2Name, manager2, "manager2Pass123"); // Register and login to
+                                                                                               // get a valid session
+                                                                                               // for the new manager
         storeService.appointManager(VALID_SESSION, STORE_NAME, manager1, List.of("MANAGE_ROLES"));
         storeService.appointManager(VALID_SESSION, STORE_NAME, manager2, List.of("MANAGE_ROLES"));
 
         String manager3 = "manager3@gmail.com";
         String manager3Name = "manager3";
-        String manager3_sk = regLoginAndGetSession(manager3Name, manager3, "manager3Pass123"); // Register and login to get a valid session for the new manager
+        String manager3_sk = regLoginAndGetSession(manager3Name, manager3, "manager3Pass123"); // Register and login to
+                                                                                               // get a valid session
+                                                                                               // for the new manager
 
-        Result<Void> result1 = storeService.appointManager(manager1_sk,STORE_NAME, manager3, List.of("MANAGE_ROLES"));
-        //this one fails because currently the system allows only for owner to appoint a manager, it has to be changed
+        Result<Void> result1 = storeService.appointManager(manager1_sk, STORE_NAME, manager3, List.of("MANAGE_ROLES"));
+        // this one fails because currently the system allows only for owner to appoint
+        // a manager, it has to be changed
         assertTrue(result1.isSuccess());
 
-        Result<Void> result2 = storeService.appointManager(authenticationService.authenticate(manager2),STORE_NAME, manager3, List.of("MANAGE_ROLES"));
+        Result<Void> result2 = storeService.appointManager(authenticationService.authenticate(manager2), STORE_NAME,
+                manager3, List.of("MANAGE_ROLES"));
         assertFalse(result2.isSuccess());
     }
 
+    // admins tests
+    @Test
+    public void adminCanCloseStore_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        Result<Void> result = storeService.closeStore(defaultAdminSession, STORE_NAME);
+        assertTrue(result.isSuccess());
+        StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
+        assertFalse(dto.isActive());
+    }
+
+    @Test
+    public void adminCanReopenStore_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.closeStore(defaultAdminSession, STORE_NAME);
+        Result<Void> result = storeService.reopenStore(defaultAdminSession, STORE_NAME);
+        assertTrue(result.isSuccess());
+        StoreDTO dto = storeService.viewStore(STORE_NAME).getData();
+        assertTrue(dto.isActive());
+    }
+
+    @Test
+    public void adminCanAppointOwner_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        String newOwnerEmail = "newOwner1@example.com";
+        regLoginAndGetSession("newOwner1", newOwnerEmail, "pass");
+        Result<Void> result = storeService.appointOwner(defaultAdminSession, STORE_NAME, newOwnerEmail);
+        assertTrue(result.isSuccess());
+    }
+
+    @Test
+    public void adminCanRemoveOwner_ShouldSucceed() throws Exception {
+        String newOwnerEmail = "removableOwner@example.com";
+        regLoginAndGetSession("removableOwner", newOwnerEmail, "pass");
+
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.appointOwner(VALID_SESSION, STORE_NAME, newOwnerEmail);
+
+        Result<Void> result = storeService.removeOwner(defaultAdminSession, STORE_NAME, newOwnerEmail);
+        assertTrue(result.isSuccess());
+    }
+
+    // Bid and Auction tests
+
+    private void addProductsToStore() {
+        // Given: A store with an auction product
+        // When: A user sends a bid
+        // Then: The bid should be accepted and the auction should be update
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.addProductToCatalog(CATALOG_ID, "iphone13", "apple", "Desc", Collections.singletonList("phones"));
+        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 9.99, 5);
+        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 9.99, 5);
+    }
+
+    @Test
+    public void submitBid_WithValidData_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
+        Result<String> added = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName",
+                "Desc", 20.0, 5);
+        assertTrue(added.isSuccess());
+        String productId = added.getData();
+
+        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0, 1);
+
+        assertTrue(result.isSuccess());
+
+        // Check if the bid can be seen by the store owner
+        Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, "0");
+        assertTrue(productsResult.isSuccess());
+        List<BidDTO> bids = productsResult.getData();
+        assertFalse(bids.isEmpty());
+        assertEquals(productId, bids.get(0).getProductId());
+    }
+
+    @Test
+    public void submitBid_WithNegativeAmount_ShouldFail() throws Exception {
+    storeService.createStore(VALID_SESSION, STORE_NAME);
+    productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
+    String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5).getData();
+    Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, -5.0, 1);
+    assertFalse(result.isSuccess());
+    }
+    @Test
+    public void WhenBidSubmited_ThenAcceptBid_ShouldSucceed() throws Exception {
+        // Given: A store with an auction product
+        addProductsToStore();
+        productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
+        // When: A user sends a bid
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5).getData();
+        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0, 1);
+        assertTrue(result.isSuccess());
+        
+        Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, productId);
+        assertTrue(productsResult.isSuccess());
+        List<BidDTO> bids = productsResult.getData();
+        assertFalse(bids.isEmpty());
+        assertEquals(productId, bids.get(0).getProductId());
+    }
+    @Test
+    public void startAuction_WithValidData_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
+
+        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24); 
+
+        Result<Void> result = storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
+        assertTrue(result.isSuccess());
+    }
+    @Test
+    public void submitAuctionBid_WithValidData_ShouldSucceed() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
+
+        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+        storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
+
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0, 1);
+        assertTrue(result.isSuccess());
+    }
+    @Test
+    public void submitAuctionBid_TooLow_ShouldFail() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
+
+        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+        storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 40.0, endDate);
+
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 25.0, 1);
+        assertFalse(result.isSuccess());
+    }
+    @Test
+    public void submitAuctionBid_InvalidQuantity_ShouldFail() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
+
+        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+        storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
+
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0, -3);
+        assertFalse(result.isSuccess());
+    }
+    @Test
+    public void submitBid_AfterAuctionEnd_ShouldFail() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10).getData();
+
+        // End date in the past
+        Date endDate = new Date(System.currentTimeMillis() - 1000 * 60);
+        storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
+
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0, 1);
+        assertFalse(result.isSuccess());
+    }
 }

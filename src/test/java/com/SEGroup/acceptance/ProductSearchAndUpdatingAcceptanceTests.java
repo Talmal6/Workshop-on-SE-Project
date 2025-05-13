@@ -17,6 +17,7 @@ import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Service.SecurityAdapter;
 import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.UserService;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,10 @@ public class ProductSearchAndUpdatingAcceptanceTests {
         SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         security.setKey(key);
 
+        //
+        userRepository = new UserRepository();
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,new NotificationCenter(authenticationService));
+        su = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
         // Create a shared PasswordEncoder for consistent usage
 
 

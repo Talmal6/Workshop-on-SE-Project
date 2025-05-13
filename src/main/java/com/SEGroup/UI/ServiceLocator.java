@@ -3,6 +3,8 @@ package com.SEGroup.UI;
 import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Service.*;
+import com.SEGroup.Domain.*;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.NotificationCenter.*;
 
@@ -39,6 +41,9 @@ public class ServiceLocator {
     private static TransactionService transactionService;
     private static IShippingService shippingService;
 
+    // Notifaction
+    private static NotificationCenter notificationCenter;
+
     public static void initialize(IGuestRepository guests,
                                   IUserRepository users,
                                   ITransactionRepository transactions,
@@ -74,6 +79,12 @@ public class ServiceLocator {
         security.setKey(key);
 
         authService = new SecurityAdapter(security, passwordEncoder);
+        notificationCenter = new NotificationCenter(authService);
+        guestService = new GuestService(guestRepository, authService);
+        userService = new UserService(guestService, userRepository, authService);
+        storeService = new StoreService(storeRepository, productCatalog, authService, userRepository, notificationCenter);
+        shippingService = mock(IShippingService.class);
+        transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService,notificationCenter);
 
         NotificationEndpoint endpoint = new NotificationEndpoint();
 

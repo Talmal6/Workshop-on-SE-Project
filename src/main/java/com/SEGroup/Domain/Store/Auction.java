@@ -32,7 +32,7 @@ public class Auction {
      *
      * @return the remaining time in milliseconds.
      */
-    public boolean submitBid(String bidderEmail, double amount) {
+    public boolean submitBid(String bidderEmail, double amount , Integer quantity) {
         if (ended || isExpired()) {
             this.ended = true;
             return false;
@@ -40,7 +40,7 @@ public class Auction {
 
         double currentHighest = (highestBid != null) ? highestBid.getAmount() : startingPrice;
         if (amount > currentHighest) {
-            this.highestBid = new Bid(bidderEmail, amount);
+            this.highestBid = new Bid(bidderEmail, amount, quantity);
             return true;
         }
 

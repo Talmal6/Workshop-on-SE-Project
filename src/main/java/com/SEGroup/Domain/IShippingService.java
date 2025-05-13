@@ -10,4 +10,5 @@ public interface IShippingService {
      */
     String ship(BasketDTO basket , String userId) throws Exception;
     String cancelShipping(BasketDTO basket,String userId);
+    String ship(String storeName, String productId, String userId) throws Exception;
 }
