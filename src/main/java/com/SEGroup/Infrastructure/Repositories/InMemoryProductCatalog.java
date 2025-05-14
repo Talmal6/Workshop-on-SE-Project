@@ -11,12 +11,14 @@ import java.util.stream.Collectors;
 import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 /**
  * An in-memory implementation of the ProductCatalog interface.
  * This class manages catalog products, store product entries, and their relationships.
  */
-
+@Component
 public class InMemoryProductCatalog implements IProductCatalog {
 
     private final Map<String, CatalogProduct> catalogIDtoCatalogProduct = new HashMap<>();
@@ -226,5 +228,27 @@ public class InMemoryProductCatalog implements IProductCatalog {
         return result;
     }
 
+    /**
+     * Adds a store product entry with an image URL to the catalog.
+     *
+     * @param catalogID  The catalog ID of the product.
+     * @param storeName  The name of the store offering the product.
+     * @param productID  The unique identifier for the product in the store.
+     * @param price      The price of the product.
+     * @param quantity   The quantity of the product available.
+     * @param rating     The rating of the product.
+     * @param name       The name of the product.
+     * @param imageUrl   The URL of the product image.
+     */
+    @Override
+    public void addStoreProductEntryWithImage(String catalogID, String storeName, String productID, double price,
+                                              int quantity, double rating, String name, String imageUrl) {
+        StoreSearchEntry entry = new StoreSearchEntry(catalogID, storeName, productID, price, quantity, rating, name);
+        entry.setImageUrl(imageUrl); // Add this field to StoreSearchEntry class
+
+        // Add to both maps just like in addStoreProductEntry
+        catalogIdToStoreOffers.computeIfAbsent(catalogID, k -> new ArrayList<>()).add(entry);
+        storeNameToStoreOffers.computeIfAbsent(storeName, k -> new ArrayList<>()).add(entry);
+    }
 
 }

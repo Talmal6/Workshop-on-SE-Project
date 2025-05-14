@@ -12,13 +12,14 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import org.springframework.stereotype.Service;
 
 import javax.print.DocFlavor;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
  */
-
+@Service
 public class StoreService {
 
     private final IStoreRepository storeRepository;

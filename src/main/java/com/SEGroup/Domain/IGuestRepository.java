@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
  * Interface for managing guest users in the system.
  * It provides methods to create new guests and retrieve their shopping carts.
  */
-
 public interface IGuestRepository {
 
     /**

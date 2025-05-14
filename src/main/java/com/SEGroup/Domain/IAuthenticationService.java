@@ -62,5 +62,4 @@ public interface IAuthenticationService {
      */
     void matchPassword(String encryptedPassword, String userPassword) throws AuthenticationException;
 
-
 }

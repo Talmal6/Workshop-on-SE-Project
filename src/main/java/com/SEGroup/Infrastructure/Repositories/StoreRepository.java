@@ -19,6 +19,8 @@ import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Mapper.StoreMapper;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.RequestParam;
 ;
 
 //implement iStore
@@ -29,6 +31,7 @@ import com.SEGroup.Mapper.StoreMapper;
  * well as
  * manage store products, owners, and managers.
  */
+@Repository
 public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
     private StoreMapper storeMapper = new StoreMapper();

@@ -11,6 +11,7 @@ import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 /**
  * UserService handles user-related operations such as login, registration, cart
@@ -18,6 +19,7 @@ import com.SEGroup.Infrastructure.PasswordEncoder;
  * It interacts with the authentication service, user repository, and guest
  * service.
  */
+@Service
 public class UserService {
 
     private final GuestService guestService;

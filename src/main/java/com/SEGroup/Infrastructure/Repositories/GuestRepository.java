@@ -8,11 +8,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.User.Guest;
 import com.SEGroup.Domain.User.ShoppingCart;
+import org.springframework.stereotype.Repository;
 
 /**
  * Represents a repository for managing guest users.
  * It allows creating new guests and retrieving their shopping carts.
  */
+@Repository
 public class GuestRepository implements IGuestRepository {
 
     private final Map<String, Guest> guests = new ConcurrentHashMap<>();

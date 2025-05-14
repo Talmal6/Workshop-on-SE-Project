@@ -8,6 +8,7 @@ import com.SEGroup.Domain.User.User;
 import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
+import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
 import java.util.EnumSet;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
  * It provides methods to add, find, delete users, and manage their shopping
  * carts.
  */
+@Repository
 public class UserRepository implements IUserRepository {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
