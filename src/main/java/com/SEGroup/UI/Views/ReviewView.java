@@ -6,6 +6,8 @@ import com.SEGroup.Service.StoreService;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -13,13 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Route(value = "store/:storeName/roles", layout = MainLayout.class)
-public class ReviewView extends VerticalLayout {
+@Route(value = "store/:storeName/reviews", layout = MainLayout.class)
+public class ReviewView extends VerticalLayout implements BeforeEnterObserver {
 
     private final StoreService storeService;
-    private final Grid<StoreRatingDisplay> grid = new Grid<>(StoreRatingDisplay.class);
     private final StoreRepository storeRepository;
-
+    private final Grid<StoreRatingDisplay> grid = new Grid<>(StoreRatingDisplay.class);
     private String currentStoreName;
 
     @Autowired
@@ -34,8 +35,9 @@ public class ReviewView extends VerticalLayout {
         add(grid);
     }
 
-    public void setCurrentStore(String storeName) {
-        this.currentStoreName = storeName;
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        currentStoreName = event.getRouteParameters().get("storeName").orElse("Unknown Store");
 
         H2 title = new H2("Reviews for " + currentStoreName);
         add(title);
@@ -69,3 +71,4 @@ public class ReviewView extends VerticalLayout {
         public String getReviewText() { return reviewText; }
     }
 }
+
