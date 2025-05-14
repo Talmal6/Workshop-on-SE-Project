@@ -21,7 +21,7 @@ public class ServiceLocator {
     private static final Security security = new Security();
     private static final PasswordEncoder passwordEncoder = new PasswordEncoder();
     //io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to create a key
-    private static IAuthenticationService authService = new SecurityAdapter();
+    private static IAuthenticationService authService;
 
     // Repositories (These must be set externally or mocked for now)
     private static IUserRepository userRepository;
