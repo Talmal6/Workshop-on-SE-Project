@@ -392,7 +392,7 @@ public class StoreServiceAcceptanceTests {
         assertTrue(added.isSuccess());
         String productId = added.getData();
 
-        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0, 1);
+        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0);
 
         assertTrue(result.isSuccess());
 
@@ -409,7 +409,7 @@ public class StoreServiceAcceptanceTests {
     storeService.createStore(VALID_SESSION, STORE_NAME);
     productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
     String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5,"").getData();
-    Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, -5.0, 1);
+    Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, -5.0);
     assertFalse(result.isSuccess());
     }
     @Test
@@ -419,7 +419,7 @@ public class StoreServiceAcceptanceTests {
         productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
         // When: A user sends a bid
         String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5,"").getData();
-        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0, 1);
+        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0);
         assertTrue(result.isSuccess());
         
         Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, productId);

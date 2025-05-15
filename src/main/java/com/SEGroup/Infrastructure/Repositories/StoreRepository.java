@@ -519,10 +519,9 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount,
-                                        Integer quantity) {
+    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount) {
         Store store = findByName(storeName);
-        store.submitBidToShoppingItem(productId, bidAmount, Email, quantity);
+        store.submitBidToShoppingItem(productId, bidAmount, Email);
     }
 
     @Override
@@ -792,5 +791,18 @@ public class StoreRepository implements IStoreRepository {
         return dtoList;
     }
 
+    @Override
+    public List<RatingDto> getProductRatings(String storeName,String productId) {
+        Store store = findByName(storeName);
+
+        Map<String, Store.Rating> products_ratings = store.getAllRatings();
+
+        List<RatingDto> dtoList = new ArrayList<>();
+        for (Map.Entry<String, Store.Rating> entry : products_ratings.entrySet()) {
+            dtoList.add(new RatingDto(entry.getKey(), entry.getValue().getScore(), entry.getValue().getReview()));
+        }
+
+        return dtoList;
+    }
 }
 

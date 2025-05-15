@@ -608,14 +608,13 @@ public class StoreService {
     public Result<Void> submitBidToShoppingItem(String sessionKey,
             String storeName,
             String productId,
-            double bidAmount,
-            Integer quantity) {
+            double bidAmount) {
         try {
             authenticationService.authenticate(sessionKey);
             String bidderEmail = authenticationService.getUserBySession(sessionKey);
             userRepository.checkUserSuspension(bidderEmail);
             storeRepository.submitBidToShoppingItem(bidderEmail, storeName,
-                    productId, bidAmount, quantity);
+                    productId, bidAmount);
             List<String> ownersAndManagers = storeRepository.getAllBidManagers(storeName);
             for (String recipient : ownersAndManagers) {
                 notificationService.sendSystemNotification(
@@ -864,6 +863,20 @@ public class StoreService {
             userRepository.checkUserSuspension(email);
 
             List<RatingDto> ratings = storeRepository.getStoreRatings(storeName);
+            return Result.success(ratings);
+
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting store ratings for: " + storeName + " - " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+    public Result<List<RatingDto>> getProductRatings(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+
+            List<RatingDto> ratings = storeRepository.getProductRatings(storeName,productId);
             return Result.success(ratings);
 
         } catch (Exception e) {

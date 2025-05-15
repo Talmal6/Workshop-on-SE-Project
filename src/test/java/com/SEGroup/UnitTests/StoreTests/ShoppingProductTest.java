@@ -32,18 +32,18 @@ public class ShoppingProductTest {
 
     @Test
     void GivenValidBid_WhenAddBid_ThenBidIsAdded() {
-        shoppingProduct.addBid("user@gmail.com", 100.0,1);
+        shoppingProduct.addBid("user@gmail.com", 100.0);
         assertEquals(1, shoppingProduct.getBids().size());
     }
 
     @Test
     void GivenInvalidBidEmail_WhenAddBid_ThenFailsToAdd() {
-        shoppingProduct.addBid("u", 100.0,1);
+        shoppingProduct.addBid("u", 100.0);
     }
     @Test
     void GivenInvalidBidAmount_WhenAddBid_ThenFailsToAdd() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> 
-                shoppingProduct.addBid("user@gmail.com", -1,1));
+                shoppingProduct.addBid("user@gmail.com", -1));
         assertEquals("Bid amount must be positive", exception.getMessage());
     }
     @Test
@@ -53,9 +53,9 @@ public class ShoppingProductTest {
 
     @Test
     void GivenBids_WhenGetHighestBid_ThenReturnBidWithHighestAmount() {
-        shoppingProduct.addBid("user1@test.com", 50.0,1);
-        shoppingProduct.addBid("user2@test.com", 100.0,1);
-        shoppingProduct.addBid("user3@test.com", 75.0,1);
+        shoppingProduct.addBid("user1@test.com", 50.0);
+        shoppingProduct.addBid("user2@test.com", 100.0);
+        shoppingProduct.addBid("user3@test.com", 75.0);
         
         Optional<Bid> highestBid = shoppingProduct.getHighestBid();
         assertTrue(highestBid.isPresent());
@@ -76,7 +76,7 @@ public class ShoppingProductTest {
     void GivenInvalidAuctionDetails_WhenSubmitBid_ThenFails(){
         Date endTime = new Date(System.currentTimeMillis() + 10000); // +10 seconds
         shoppingProduct.startAuction(100.0, endTime);
-        shoppingProduct.addBid("User@gmail.com",99,1);
+        shoppingProduct.addBid("User@gmail.com",99);
         assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",99,1));
     }
 
@@ -84,7 +84,7 @@ public class ShoppingProductTest {
     void GivenInvalidAuctionDetails_WhenSubmitBid_ThenFails2(){
         Date endTime = new Date(System.currentTimeMillis() - 1000); // +10 seconds
         shoppingProduct.startAuction(100.0, endTime);
-        shoppingProduct.addBid("User@gmail.com",110,1);
+        shoppingProduct.addBid("User@gmail.com",110);
         assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",110,1));
     }
 

@@ -322,7 +322,7 @@ public class TransactionServiceAcceptanceTests {
                 String buyerAuth = regLoginAndGetSession("Buyer", USER_EMAIL, USER_PASSWORD);
                 // sending a big on ACTUAL_PRODUCT_ID
                 Result<Void> bidResult = storeService.submitBidToShoppingItem(
-                                buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 100.0, 1);
+                                buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 100.0);
 
                 assertTrue(bidResult.isSuccess(), "Failed to submit bid: " + bidResult.getErrorMessage());
                 // get the bid as an owner
@@ -343,7 +343,7 @@ public class TransactionServiceAcceptanceTests {
         @Test
         public void submitBid_WithInvalidSession_ShouldFail() {
                 Result<Void> result = storeService.submitBidToShoppingItem(
-                                "invalid-session", STORE_ID, ACTUAL_PRODUCT_ID, 50.0, 1);
+                                "invalid-session", STORE_ID, ACTUAL_PRODUCT_ID, 50.0);
                 assertFalse(result.isSuccess(), "Expected failure when session is invalid");
         }
 
@@ -351,7 +351,7 @@ public class TransactionServiceAcceptanceTests {
         public void submitBid_WithUnknownProduct_ShouldFail() throws Exception {
                 String buyerAuth = regLoginAndGetSession("BuyerX", "buyerx@example.com", "password123");
                 Result<Void> result = storeService.submitBidToShoppingItem(
-                                buyerAuth, STORE_ID, "kaki", 50.0, 1);
+                                buyerAuth, STORE_ID, "kaki", 50.0);
                 assertFalse(result.isSuccess(), "Expected failure when product does not exist");
         }
 
@@ -367,7 +367,7 @@ public class TransactionServiceAcceptanceTests {
         public void acceptBid_ByNonOwner_ShouldFail() throws Exception {
                 // Submit a bid so there's something to accept
                 String buyerAuth = regLoginAndGetSession("BuyerZ", "buyerz@example.com", "password123");
-                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 60.0, 1);
+                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 60.0);
 
                 BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
                 // Buyer (not seller) tries to accept
@@ -380,7 +380,7 @@ public class TransactionServiceAcceptanceTests {
         public void acceptBid_ShouldReduceStockAndCreateTransaction() throws Exception {
                 // Buyer submits a bid for 2 units
                 String buyerAuth = regLoginAndGetSession("BuyerStock", "buystock@example.com", "password123");
-                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 75.0, 2);
+                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 75.0);
 
                 BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
                 // Check initial stock
@@ -409,7 +409,7 @@ public class TransactionServiceAcceptanceTests {
         public void rejectBid_ShouldRemoveItFromList() throws Exception {
                 // Buyer submits a bid
                 String buyerAuth = regLoginAndGetSession("BuyerReject", "buyerrej@example.com", "password123");
-                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 85.0, 1);
+                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 85.0);
 
                 BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
                 // Seller rejects the bid

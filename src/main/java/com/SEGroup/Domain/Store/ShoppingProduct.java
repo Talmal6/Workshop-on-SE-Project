@@ -88,7 +88,7 @@ public class ShoppingProduct {
     }
 
     // Bidding logic
-    public void addBid(String bidderEmail, double amount, Integer quantity) {
+    public void addBid(String bidderEmail, double amount) {
         // prevent duplicate bid
         boolean exists = bids.stream()
             .anyMatch(bid -> bid.getBidderEmail().equals(bidderEmail)
@@ -169,5 +169,8 @@ public class ShoppingProduct {
     }
     public void removeBid(String bidderEmail) {
         this.bids.removeIf(b -> b.getBidderEmail().equals(bidderEmail));
+    }
+    public Map<String, Store.Rating> getAllRatings() {
+        return Collections.unmodifiableMap(ratings);
     }
 }
