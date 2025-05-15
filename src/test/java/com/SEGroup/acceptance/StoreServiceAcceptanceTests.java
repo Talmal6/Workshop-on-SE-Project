@@ -392,7 +392,7 @@ public class StoreServiceAcceptanceTests {
         assertTrue(added.isSuccess());
         String productId = added.getData();
 
-        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0, 1);
+        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0);
 
         assertTrue(result.isSuccess());
 
@@ -409,7 +409,7 @@ public class StoreServiceAcceptanceTests {
     storeService.createStore(VALID_SESSION, STORE_NAME);
     productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
     String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5,"").getData();
-    Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, -5.0, 1);
+    Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, -5.0);
     assertFalse(result.isSuccess());
     }
     @Test
@@ -419,7 +419,7 @@ public class StoreServiceAcceptanceTests {
         productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
         // When: A user sends a bid
         String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5,"").getData();
-        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0, 1);
+        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0);
         assertTrue(result.isSuccess());
         
         Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, productId);
@@ -448,7 +448,7 @@ public class StoreServiceAcceptanceTests {
         Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
         storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
 
-        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0, 1);
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0);
         assertTrue(result.isSuccess());
     }
     @Test
@@ -460,21 +460,10 @@ public class StoreServiceAcceptanceTests {
         Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
         storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 40.0, endDate);
 
-        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 25.0, 1);
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 25.0);
         assertFalse(result.isSuccess());
     }
-    @Test
-    public void submitAuctionBid_InvalidQuantity_ShouldFail() throws Exception {
-        storeService.createStore(VALID_SESSION, STORE_NAME);
-        productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10,"").getData();
 
-        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
-        storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
-
-        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0, -3);
-        assertFalse(result.isSuccess());
-    }
     @Test
     public void submitBid_AfterAuctionEnd_ShouldFail() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
@@ -485,7 +474,7 @@ public class StoreServiceAcceptanceTests {
         Date endDate = new Date(System.currentTimeMillis() - 1000 * 60);
         storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
 
-        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0, 1);
+        Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0);
         assertFalse(result.isSuccess());
     }
 }

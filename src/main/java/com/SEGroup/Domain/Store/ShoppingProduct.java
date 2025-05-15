@@ -88,20 +88,19 @@ public class ShoppingProduct {
     }
 
     // Bidding logic
-    public void addBid(String bidderEmail, double amount, Integer quantity) {
+    public void addBid(String bidderEmail, double amount) {
         // prevent duplicate bid
         boolean exists = bids.stream()
             .anyMatch(bid -> bid.getBidderEmail().equals(bidderEmail)
-                && bid.getAmount() == amount
-                && bid.getQuantity() == quantity);
+                && bid.getAmount() == amount);
         if (exists) {
             throw new IllegalArgumentException("Bid already exists");
         }
-        bids.add(new Bid(bidderEmail, amount, quantity));
+        bids.add(new Bid(bidderEmail, amount));
     }
 
-    public void removeBid(String bidderEmail, double amount, Integer quantity) {
-        boolean removed = bids.removeIf(bid -> bid.getBidderEmail().equals(bidderEmail) && bid.getAmount() == amount && bid.getQuantity() == quantity);
+    public void removeBid(String bidderEmail, double amount) {
+        boolean removed = bids.removeIf(bid -> bid.getBidderEmail().equals(bidderEmail) && bid.getAmount() == amount );
         if (!removed) {
             throw new IllegalArgumentException("Bid not found");
         }
@@ -169,5 +168,8 @@ public class ShoppingProduct {
     }
     public void removeBid(String bidderEmail) {
         this.bids.removeIf(b -> b.getBidderEmail().equals(bidderEmail));
+    }
+    public Map<String, Store.Rating> getAllRatings() {
+        return Collections.unmodifiableMap(ratings);
     }
 }

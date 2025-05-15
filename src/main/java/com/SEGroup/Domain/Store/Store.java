@@ -2,6 +2,7 @@ package com.SEGroup.Domain.Store;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.vaadin.pro.licensechecker.Product;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -166,7 +167,7 @@ public class Store {
         * @param bidderEmail The email of the bidder.
         * @return true if the bid was successfully submitted, false otherwise.
      */
-    public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail, Integer quantity) {
+    public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail) {
         ShoppingProduct product = products.get(itemName);
 
         if (product == null) {
@@ -177,7 +178,7 @@ public class Store {
             throw new IllegalArgumentException("Invalid bid amount or bidder email");
         }
 
-        product.addBid(bidderEmail, bidAmount, quantity);
+        product.addBid(bidderEmail, bidAmount);
         return true;
     }
 
@@ -189,7 +190,7 @@ public class Store {
         * @param bidderEmail The email of the bidder.
         * @return true if the offer was successfully submitted, false otherwise.
      */
-    public boolean submitAuctionOffer(String productId, double offerAmount, String bidderEmail, Integer quantity) {
+    public boolean submitAuctionOffer(String productId, double offerAmount, String bidderEmail) {
         ShoppingProduct product = products.get(productId);
         if (product == null || product.getAuction() == null) {
             return false;
@@ -197,7 +198,7 @@ public class Store {
 
 
         Auction auction = product.getAuction();
-        return auction.submitBid(bidderEmail, offerAmount, quantity);
+        return auction.submitBid(bidderEmail, offerAmount);
     }
     /*
      * checks if a given email is the owner of the store
@@ -478,7 +479,7 @@ public class Store {
         ShoppingProduct p = requireProduct(productId);
         if (p.getAuction() == null)
             throw new RuntimeException("No auction running");
-        return p.getAuction().submitBid(bidderEmail, amount, quantity);
+        return p.getAuction().submitBid(bidderEmail, amount);
     }
     /**
      * Get the current snapshot of this product's auction.
@@ -576,6 +577,15 @@ public class Store {
     }
     public Map<String, Rating> getAllRatings() {
         return Collections.unmodifiableMap(ratings);
+    }
+    public Map<String, Rating> getAllProductRatings(String productId) {
+        ShoppingProduct p = products.get(productId);
+        if (p != null) {
+            return p.getAllRatings();
+        }
+        else{
+            throw new RuntimeException("Product " + productId + " not found");
+        }
     }
 
 

@@ -41,20 +41,19 @@ public class BidUsersPresenter {
 
         if (r.isSuccess()) {
             List<BidRequest> requests = r.getData().stream()
-                    .map(dto -> new BidRequest(dto.getBidderEmail(), dto.getPrice(), dto.getQuantity()))
+                    .map(dto -> new BidRequest(dto.getBidderEmail(), dto.getPrice()))
                     .toList();
             view.displayBidUsers(requests);
         } else {
             view.showError("Failed to load bids: " + r.getErrorMessage());
         }
     }
-    public void acceptBid(String userEmail, double amount, Integer quantity) {
+    public void acceptBid(String userEmail, double amount) {
         Result<Void> res = storeService.submitBidToShoppingItem(
                 SecurityContextHolder.token(),
                 storeName,
                 productId,
-                amount,
-                quantity
+                amount
         );
         if (res.isSuccess()) {
             view.displayBidUsers(view.usersGrid.getDataProvider().fetch(new com.vaadin.flow.data.provider.Query<>())

@@ -231,10 +231,9 @@ public interface IStoreRepository {
          */
         ShoppingProductDTO getProduct(String storeName, String productID);
 
-        void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount,
-                        Integer quantity);
+        void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount);
 
-        void sendAuctionOffer(String Email, String storeName, String productId, double bidAmount, Integer quantity);
+        void sendAuctionOffer(String Email, String storeName, String productId, double bidAmount);
 
         Integer getProductQuantity(String storeName, String productId);
 
@@ -269,4 +268,6 @@ public interface IStoreRepository {
         Map<String, Store.Rating> findRatingsByStore(String storeName);
 
         List<RatingDto> getStoreRatings(String storeName);
+
+        List<RatingDto> getProductRatings(String storeName,String productId);
 }

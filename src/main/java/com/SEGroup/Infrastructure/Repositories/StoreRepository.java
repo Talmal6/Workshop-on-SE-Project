@@ -519,14 +519,13 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount,
-                                        Integer quantity) {
+    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount) {
         Store store = findByName(storeName);
-        store.submitBidToShoppingItem(productId, bidAmount, Email, quantity);
+        store.submitBidToShoppingItem(productId, bidAmount, Email);
     }
 
     @Override
-    public void sendAuctionOffer(String email, String storeName, String productId, double bidAmount, Integer quantity) {
+    public void sendAuctionOffer(String email, String storeName, String productId, double bidAmount) {
         Store store = findByName(storeName);
         ShoppingProduct product = store.getProduct(productId);
         if (product == null) {
@@ -545,7 +544,7 @@ public class StoreRepository implements IStoreRepository {
         if (auc.getStartingPrice() > bidAmount) {
             throw new RuntimeException("The bid amount is less than the Starting Price");
         }
-        store.submitAuctionOffer(productId, bidAmount, email, quantity);
+        store.submitAuctionOffer(productId, bidAmount, email);
     }
 
     @Override
@@ -590,8 +589,7 @@ public class StoreRepository implements IStoreRepository {
         return new BidDTO(
                 bid.getBidderEmail(),
                 productId,
-                bid.getAmount(),
-                bid.getQuantity());
+                bid.getAmount());
     }
 
     @Override
@@ -621,11 +619,8 @@ public class StoreRepository implements IStoreRepository {
         if (product == null) {
             throw new RuntimeException("Product not found in store ");
         }
-        if (product.getQuantity() < bidDTO.getQuantity()) {
-            throw new RuntimeException("Not enough quantity for product: " + productId);
-        }
 
-        product.setQuantity(product.getQuantity() - bidDTO.getQuantity());
+
         if (product.getQuantity() == 0) {
             store.removeProduct(productId);
         } else {
@@ -657,7 +652,7 @@ public class StoreRepository implements IStoreRepository {
         }
 
         if (auc.getHighestBid().getBidderEmail().equals(bidDTO.getBidderEmail())) {
-            product.setQuantity(product.getQuantity() - bidDTO.getQuantity());
+            product.setQuantity(product.getQuantity() - 1);
             if (product.getQuantity() == 0) {
                 store.removeProduct(bidDTO.getProductId());
             } else {
@@ -679,7 +674,7 @@ public class StoreRepository implements IStoreRepository {
         if (product == null) {
             throw new RuntimeException("Product not found in store ");
         }
-        product.setQuantity(product.getQuantity() + bidDTO.getQuantity());
+        product.setQuantity(product.getQuantity() + 1);
         store.updateProduct(bidDTO.getProductId(), product);
     }
 
@@ -745,7 +740,7 @@ public class StoreRepository implements IStoreRepository {
         if (product == null) {
             throw new RuntimeException("Product not found in store ");
         }
-        product.removeBid(bidDTO.getBidderEmail(), bidDTO.getPrice(), bidDTO.getQuantity());
+        product.removeBid(bidDTO.getBidderEmail(), bidDTO.getPrice());
     }
 
     @Override
@@ -792,5 +787,18 @@ public class StoreRepository implements IStoreRepository {
         return dtoList;
     }
 
+    @Override
+    public List<RatingDto> getProductRatings(String storeName,String productId) {
+        Store store = findByName(storeName);
+
+        Map<String, Store.Rating> products_ratings = store.getAllRatings();
+
+        List<RatingDto> dtoList = new ArrayList<>();
+        for (Map.Entry<String, Store.Rating> entry : products_ratings.entrySet()) {
+            dtoList.add(new RatingDto(entry.getKey(), entry.getValue().getScore(), entry.getValue().getReview()));
+        }
+
+        return dtoList;
+    }
 }
 
