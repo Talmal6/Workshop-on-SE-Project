@@ -859,10 +859,11 @@ public class StoreService {
     }
     public Result<List<RatingDto>> getStoreRatings(String sessionKey, String storeName) {
         try {
-            authenticationService.checkSessionKey(sessionKey);
-            String email = authenticationService.getUserBySession(sessionKey);
-            userRepository.checkUserSuspension(email);
-
+            if (sessionKey != null && !sessionKey.isEmpty()) {
+                authenticationService.checkSessionKey(sessionKey);
+                String email = authenticationService.getUserBySession(sessionKey);
+                userRepository.checkUserSuspension(email);
+            }
             List<RatingDto> ratings = storeRepository.getStoreRatings(storeName);
             return Result.success(ratings);
 
