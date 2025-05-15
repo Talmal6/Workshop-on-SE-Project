@@ -114,7 +114,7 @@ public class StoreTests {
     public void Given_Store_When_SubmitAuctionWithoutAuction_Then_False() {
         store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false,"");
         ShoppingProduct prod = store.getAllProducts().iterator().next();
-        assertFalse(store.submitAuctionOffer(prod.getProductId(), 20.0, "bidder@test.com",1 ));
+        assertFalse(store.submitAuctionOffer(prod.getProductId(), 20.0, "bidder@test.com"));
     }
 
     @Test

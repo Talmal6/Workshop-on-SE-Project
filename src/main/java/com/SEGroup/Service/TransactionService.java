@@ -193,7 +193,7 @@ public class TransactionService {
             authenticationService.checkSessionKey(sessionKey);
             String userEmail = authenticationService.getUserBySession(sessionKey);
             storeRepository.acceptBid(storeName, userEmail, bidDTO.getProductId(), bidDTO);
-            double cost = bidDTO.getPrice()*bidDTO.getQuantity();
+            double cost = bidDTO.getPrice()*1;
             try {
                 shippingService.ship(storeName, userEmail, bidDTO.getProductId());
 
@@ -236,7 +236,7 @@ public class TransactionService {
             authenticationService.checkSessionKey(sessionKey);
             String userEmail = authenticationService.getUserBySession(sessionKey);
             storeRepository.executeAuctionBid(userEmail, storeName, bidDTO);
-            double cost = bidDTO.getPrice()*bidDTO.getQuantity();
+            double cost = bidDTO.getPrice();
             try {
                 shippingService.ship(storeName, userEmail, bidDTO.getProductId());
 

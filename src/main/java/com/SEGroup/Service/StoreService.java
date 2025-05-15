@@ -633,13 +633,12 @@ public class StoreService {
     public Result<Void> sendAuctionOffer(String sessionKey,
             String storeName,
             String productId,
-            double bidAmount,
-            Integer quantity) {
+            double bidAmount) {
         try {
             authenticationService.authenticate(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             storeRepository.sendAuctionOffer(authenticationService.getUserBySession(sessionKey), storeName, productId,
-                    bidAmount, quantity);
+                    bidAmount);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
