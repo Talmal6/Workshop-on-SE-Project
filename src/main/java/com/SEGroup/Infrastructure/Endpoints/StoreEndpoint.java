@@ -147,7 +147,7 @@ public class StoreEndpoint {
 
     public void submitBid(String sessionKey, String storeName,
                           String productID, double bidAmount, int quantity) {
-        unwrap(storeService.submitBidToShoppingItem(sessionKey, storeName, productID, bidAmount , quantity));
+        unwrap(storeService.submitBidToShoppingItem(sessionKey, storeName, productID, bidAmount ));
     }
 
     public void sendAuctionOffer(String sessionKey, String storeName,

@@ -319,7 +319,7 @@ public class StoreController {
             @RequestParam int quentity
     ) {
         Result<Void> r = storeService.submitBidToShoppingItem(
-            sessionKey, storeName, productID, bidAmount, quentity
+            sessionKey, storeName, productID, bidAmount
         );
         return r.isSuccess()
                 ? ResponseEntity.ok().build()

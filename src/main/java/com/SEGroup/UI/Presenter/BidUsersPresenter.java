@@ -53,8 +53,7 @@ public class BidUsersPresenter {
                 SecurityContextHolder.token(),
                 storeName,
                 productId,
-                amount,
-                quantity
+                amount
         );
         if (res.isSuccess()) {
             view.displayBidUsers(view.usersGrid.getDataProvider().fetch(new com.vaadin.flow.data.provider.Query<>())

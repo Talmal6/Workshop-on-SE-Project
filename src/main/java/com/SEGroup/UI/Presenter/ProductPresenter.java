@@ -50,8 +50,7 @@ public class ProductPresenter {
                 SecurityContextHolder.token(),
                 storeName,
                 productId,
-                amount,
-                quantity
+                amount
         );
         if (r.isSuccess()) {
             if (Boolean.TRUE.equals(r.getData())) {
@@ -164,7 +163,7 @@ public class ProductPresenter {
     }
 
     public void bidBuy(double amount, Integer quantity){
-        Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount,quantity);
+        Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount);
         if (res.isSuccess()) {
             this.view.showSuccess("Buying well done..Good Luck");
         } else {
