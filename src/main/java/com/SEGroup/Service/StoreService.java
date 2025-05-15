@@ -857,5 +857,19 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    public Result<List<RatingDto>> getStoreRatings(String sessionKey, String storeName) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+
+            List<RatingDto> ratings = storeRepository.getStoreRatings(storeName);
+            return Result.success(ratings);
+
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting store ratings for: " + storeName + " - " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
 
 }
