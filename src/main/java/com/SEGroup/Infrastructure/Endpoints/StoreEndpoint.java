@@ -152,7 +152,7 @@ public class StoreEndpoint {
 
     public void sendAuctionOffer(String sessionKey, String storeName,
                                  String productID, double bidAmount, int quantity) {
-        unwrap(storeService.sendAuctionOffer(sessionKey, storeName, productID, bidAmount, quantity));
+        unwrap(storeService.sendAuctionOffer(sessionKey, storeName, productID, bidAmount));
     }
 
     /* ---------- 23‑24. Single‑product queries ---------- */

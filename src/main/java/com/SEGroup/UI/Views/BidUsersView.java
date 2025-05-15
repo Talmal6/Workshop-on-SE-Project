@@ -51,16 +51,14 @@ public class BidUsersView extends VerticalLayout implements BeforeEnterObserver 
                 .setHeader("Offer Amount")
                 .setAutoWidth(true);
 
-        usersGrid.addColumn(req -> String.format("%s", req.quantity()))
-                .setHeader("Offer Quantity")
-                .setAutoWidth(true);
+
 
         // actions column
         usersGrid.addComponentColumn(req -> {
             Button accept = new Button("Accept");
             accept.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             accept.addClickListener(e -> {
-                presenter.acceptBid(req.email(), req.amount(), req.quantity());
+                presenter.acceptBid(req.email(), req.amount());
 
             });
 

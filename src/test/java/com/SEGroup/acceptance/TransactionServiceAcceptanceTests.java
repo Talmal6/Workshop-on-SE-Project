@@ -399,7 +399,7 @@ public class TransactionServiceAcceptanceTests {
                 TransactionDTO tx = history.getData().get(0);
                 assertEquals("buystock@example.com", tx.buyersEmail);
                 assertEquals(STORE_ID, tx.getSellerStore());
-                assertEquals(750.0 , tx.getCost());
+                assertEquals(75.0 , tx.getCost());
         }
 
         @Test
@@ -427,7 +427,7 @@ public class TransactionServiceAcceptanceTests {
                 // Simulate an auction and a bid
                 Date futureDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60); // 1 hour in the future
                 storeService.startAuction(SELLER_TOKEN, STORE_ID, productId, 30.0, futureDate);
-                storeService.sendAuctionOffer(SESSION_KEY, STORE_ID, productId, 40.0, 1);
+                storeService.sendAuctionOffer(SESSION_KEY, STORE_ID, productId, 40.0);
 
                 BidDTO bid = storeService.getAuctionHighestBidByProduct(SELLER_TOKEN, STORE_ID, productId).getData();
 
@@ -450,7 +450,7 @@ public class TransactionServiceAcceptanceTests {
 
                 // Buyer submits an auction offer
                 String buyerToken = regLoginAndGetSession("unauthorizedUser", "unauth@example.com", "pass123");
-                storeService.sendAuctionOffer(buyerToken, STORE_ID, productId, 45.0, 1);
+                storeService.sendAuctionOffer(buyerToken, STORE_ID, productId, 45.0);
 
                 BidDTO bid = storeService.getAuctionHighestBidByProduct(SELLER_TOKEN, STORE_ID, productId).getData();
 

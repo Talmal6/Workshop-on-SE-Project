@@ -233,7 +233,7 @@ public interface IStoreRepository {
 
         void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount);
 
-        void sendAuctionOffer(String Email, String storeName, String productId, double bidAmount, Integer quantity);
+        void sendAuctionOffer(String Email, String storeName, String productId, double bidAmount);
 
         Integer getProductQuantity(String storeName, String productId);
 

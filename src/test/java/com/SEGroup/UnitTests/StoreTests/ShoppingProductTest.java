@@ -77,7 +77,7 @@ public class ShoppingProductTest {
         Date endTime = new Date(System.currentTimeMillis() + 10000); // +10 seconds
         shoppingProduct.startAuction(100.0, endTime);
         shoppingProduct.addBid("User@gmail.com",99);
-        assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",99,1));
+        assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",99));
     }
 
     @Test
@@ -85,7 +85,7 @@ public class ShoppingProductTest {
         Date endTime = new Date(System.currentTimeMillis() - 1000); // +10 seconds
         shoppingProduct.startAuction(100.0, endTime);
         shoppingProduct.addBid("User@gmail.com",110);
-        assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",110,1));
+        assertFalse(shoppingProduct.getAuction().submitBid("User@gmail.com",110));
     }
 
     @Test
