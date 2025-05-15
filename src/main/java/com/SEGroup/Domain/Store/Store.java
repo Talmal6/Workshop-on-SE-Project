@@ -574,6 +574,9 @@ public class Store {
         }
         return allBids;
     }
+    public Map<String, Rating> getAllRatings() {
+        return Collections.unmodifiableMap(ratings);
+    }
 
 
 
