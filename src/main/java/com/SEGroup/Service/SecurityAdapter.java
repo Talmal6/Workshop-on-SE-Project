@@ -1,29 +1,34 @@
 package com.SEGroup.Service;
 
 import javax.naming.AuthenticationException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
-import org.springframework.stereotype.Service;
 
 /**
  * SecurityAdapter class implements the IAuthenticationService interface.
  * It provides an adapter to interact with the Security and PasswordEncoder services
  * for user authentication, password encryption, session validation, and token generation.
  */
-@Service
 public class SecurityAdapter implements IAuthenticationService {
-    @Autowired
-    private final Security sec;
-    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
+
     public SecurityAdapter(Security sec, PasswordEncoder passwordEncoder) {
         this.sec = sec;
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Autowired
+    Security sec;  // Instance of the Security class to handle JWT operations
+
+    @Autowired
+    PasswordEncoder passwordEncoder;  // Instance of PasswordEncoder for password encryption and verification
+    public SecurityAdapter(){
+        passwordEncoder = new PasswordEncoder();
+    }
     /**
      * Checks if the provided session key (JWT token) is valid.
      * Throws an AuthenticationException if the token is invalid.
@@ -33,9 +38,6 @@ public class SecurityAdapter implements IAuthenticationService {
      */
     @Override
     public void checkSessionKey(String sessionKey) throws AuthenticationException {
-        if(sec==null){
-            System.out.println("sec is null");
-        }
         if (!sec.validateToken(sessionKey)) {
             throw new AuthenticationException("Token is Invalid!");
         }
@@ -79,6 +81,7 @@ public class SecurityAdapter implements IAuthenticationService {
         return sec.generateToken(email);
     }
 
+
     /**
      * Encrypts the provided password using the PasswordEncoder service.
      *
@@ -104,4 +107,9 @@ public class SecurityAdapter implements IAuthenticationService {
             throw new AuthenticationException("Wrong password.");
         }
     }
+
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+
 }
