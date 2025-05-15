@@ -237,17 +237,25 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         addToCartBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addToCartBtn.addClickListener(e -> presenter.addToCart());
 
-        TextField offer = new TextField("BID Offer Price");
+        TextField amount = new TextField("BID Offer Price");
+        TextField quantity = new TextField("BID Offer Quantity");
         Button bidBuyBtn = new Button("Enter", VaadinIcon.GAVEL.create());
         bidBuyBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
 
+        Button bidUsersBtn = new Button("BID requests", VaadinIcon.GAVEL.create());
+
+        bidUsersBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+        bidUsersBtn.setVisible(presenter.isOwner());
+        bidUsersBtn.addClickListener(e ->
+                getUI().ifPresent(ui ->
+                        ui.navigate(
+                                String.format("product/%s/%s/bids", getProductId(), getStoreName())
+                        )
+                )
+        );
+
         bidBuyBtn.addClickListener(e -> {
-            if(!offer.isEmpty()) {
-                presenter.bidBuy(offer.getValue());
-            }
-            else{
-                showError("Text is empty");
-            }
+            presenter.bidBuy(Double.parseDouble(amount.getValue()), Integer.parseInt(quantity.getValue()));
         });
 
         // Organize content in layouts
@@ -272,12 +280,12 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 navigationBar,
                 productLayout,
                 addToCartBtn,
-                offer,
-                bidBuyBtn
+                new HorizontalLayout(amount,quantity),
+                new HorizontalLayout(bidBuyBtn, bidUsersBtn)
         );
         content.setAlignSelf(FlexComponent.Alignment.START, navigationBar);
         content.setAlignSelf(FlexComponent.Alignment.START, addToCartBtn);
-
+        content.setAlignSelf(FlexComponent.Alignment.START, bidUsersBtn);
         productDetails.add(content);
     }
 

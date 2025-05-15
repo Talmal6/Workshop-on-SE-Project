@@ -163,9 +163,8 @@ public class ProductPresenter {
         }
     }
 
-    public void bidBuy(String amount1){
-        double amount = Double.parseDouble((amount1.trim()));
-        Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount,1);
+    public void bidBuy(double amount, Integer quantity){
+        Result<Void> res = this.storeService.submitBidToShoppingItem(SecurityContextHolder.token(), this.storeName, this.productId, amount,quantity);
         if (res.isSuccess()) {
             this.view.showSuccess("Buying well done..Good Luck");
         } else {
