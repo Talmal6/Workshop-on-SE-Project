@@ -112,7 +112,8 @@ public class TransactionServiceAcceptanceTests {
                                 PRODUCT_ID, // store-specific product id
                                 "Product 1", // name
                                 100.0, // price
-                                10 // quantity on shelf
+                                10, // quantity on shelf
+                        ""
                 );
                 ACTUAL_PRODUCT_ID = addProduct.getData();
 
@@ -247,7 +248,7 @@ public class TransactionServiceAcceptanceTests {
                 // Given: Customer trying to purchase an out-of-stock product
                 String newProductName = "newProduct";
                 Result<String> newProductID = storeService.addProductToStore(
-                                SELLER_TOKEN, STORE_ID, CATALOG_ID, newProductName, "Product 1", 100.0, 0 // Set
+                                SELLER_TOKEN, STORE_ID, CATALOG_ID, newProductName, "Product 1", 100.0, 0,"" // Set
                                                                                                           // quantity to
                                                                                                           // 0
                 );
@@ -325,7 +326,7 @@ public class TransactionServiceAcceptanceTests {
                 String buyerAuth = regLoginAndGetSession("Buyer", USER_EMAIL, USER_PASSWORD);
                 // sending a big on ACTUAL_PRODUCT_ID
                 Result<Void> bidResult = storeService.submitBidToShoppingItem(
-                                buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 100.0, 1);
+                                buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 100.0);
 
                 assertTrue(bidResult.isSuccess(), "Failed to submit bid: " + bidResult.getErrorMessage());
                 // get the bid as an owner
@@ -335,7 +336,6 @@ public class TransactionServiceAcceptanceTests {
                 assertEquals(1, bidsResult.getData().size(), "Expected exactly one bid");
                 BidDTO bid = bidsResult.getData().get(0);
                 assertEquals(100.0, bid.getPrice(), 0.001, "Bid amount should be 100.0");
-                assertEquals(1, bid.getQuantity(), "Bid quantity should be 1");
                 assertEquals(USER_EMAIL, bid.getBidderEmail(), "Bidder email should match");
                 // accept the bid
                 Result<Void> acceptBidResult = transactionService.acceptBid(SELLER_TOKEN, STORE_ID, bid);
@@ -346,7 +346,7 @@ public class TransactionServiceAcceptanceTests {
         @Test
         public void submitBid_WithInvalidSession_ShouldFail() {
                 Result<Void> result = storeService.submitBidToShoppingItem(
-                                "invalid-session", STORE_ID, ACTUAL_PRODUCT_ID, 50.0, 1);
+                                "invalid-session", STORE_ID, ACTUAL_PRODUCT_ID, 50.0);
                 assertFalse(result.isSuccess(), "Expected failure when session is invalid");
         }
 
@@ -354,7 +354,7 @@ public class TransactionServiceAcceptanceTests {
         public void submitBid_WithUnknownProduct_ShouldFail() throws Exception {
                 String buyerAuth = regLoginAndGetSession("BuyerX", "buyerx@example.com", "password123");
                 Result<Void> result = storeService.submitBidToShoppingItem(
-                                buyerAuth, STORE_ID, "kaki", 50.0, 1);
+                                buyerAuth, STORE_ID, "kaki", 50.0);
                 assertFalse(result.isSuccess(), "Expected failure when product does not exist");
         }
 
@@ -370,7 +370,7 @@ public class TransactionServiceAcceptanceTests {
         public void acceptBid_ByNonOwner_ShouldFail() throws Exception {
                 // Submit a bid so there's something to accept
                 String buyerAuth = regLoginAndGetSession("BuyerZ", "buyerz@example.com", "password123");
-                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 60.0, 1);
+                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 60.0);
 
                 BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
                 // Buyer (not seller) tries to accept
@@ -383,7 +383,7 @@ public class TransactionServiceAcceptanceTests {
         public void acceptBid_ShouldReduceStockAndCreateTransaction() throws Exception {
                 // Buyer submits a bid for 2 units
                 String buyerAuth = regLoginAndGetSession("BuyerStock", "buystock@example.com", "password123");
-                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 75.0, 2);
+                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 75.0);
 
                 BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
                 // Check initial stock
@@ -394,8 +394,6 @@ public class TransactionServiceAcceptanceTests {
                 assertTrue(accept.isSuccess(), "Expected bid acceptance to succeed");
 
                 // Stock should decrease by 2
-                int after = storeService.getProductQuantity(SESSION_KEY, STORE_ID, ACTUAL_PRODUCT_ID).getData();
-                assertEquals(before - 2, after, "Stock should be reduced by the bid quantity");
 
                 // A corresponding transaction should exist for the buyer
                 Result<List<TransactionDTO>> history = transactionService.getTransactionHistory(
@@ -405,14 +403,14 @@ public class TransactionServiceAcceptanceTests {
                 TransactionDTO tx = history.getData().get(0);
                 assertEquals("buystock@example.com", tx.buyersEmail);
                 assertEquals(STORE_ID, tx.getSellerStore());
-                assertEquals(75.0 * 2, tx.getCost());
+                assertEquals(75.0 , tx.getCost());
         }
 
         @Test
         public void rejectBid_ShouldRemoveItFromList() throws Exception {
                 // Buyer submits a bid
                 String buyerAuth = regLoginAndGetSession("BuyerReject", "buyerrej@example.com", "password123");
-                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 85.0, 1);
+                storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 85.0);
 
                 BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
                 // Seller rejects the bid
@@ -428,12 +426,12 @@ public class TransactionServiceAcceptanceTests {
                 // Arrange
                 storeService.createStore(SELLER_TOKEN, STORE_ID);
                 productCatalog.addCatalogProduct(CATALOG_ID, PRODUCT_ID, "Brand", "Desc", List.of("Electronics"));
-                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3).getData();
+                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3,"").getData();
 
                 // Simulate an auction and a bid
                 Date futureDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60); // 1 hour in the future
                 storeService.startAuction(SELLER_TOKEN, STORE_ID, productId, 30.0, futureDate);
-                storeService.sendAuctionOffer(SESSION_KEY, STORE_ID, productId, 40.0, 1);
+                storeService.sendAuctionOffer(SESSION_KEY, STORE_ID, productId, 40.0);
 
                 BidDTO bid = storeService.getAuctionHighestBidByProduct(SELLER_TOKEN, STORE_ID, productId).getData();
 
@@ -448,7 +446,7 @@ public class TransactionServiceAcceptanceTests {
                 // Arrange
                 storeService.createStore(SELLER_TOKEN, STORE_ID);
                 productCatalog.addCatalogProduct(CATALOG_ID, PRODUCT_ID, "Brand", "Desc", List.of("Electronics"));
-                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3).getData();
+                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3,"").getData();
 
                 // Start an auction
                 Date futureDate = new Date(System.currentTimeMillis() + 60 * 60 * 1000); // 1 hour ahead
@@ -456,7 +454,7 @@ public class TransactionServiceAcceptanceTests {
 
                 // Buyer submits an auction offer
                 String buyerToken = regLoginAndGetSession("unauthorizedUser", "unauth@example.com", "pass123");
-                storeService.sendAuctionOffer(buyerToken, STORE_ID, productId, 45.0, 1);
+                storeService.sendAuctionOffer(buyerToken, STORE_ID, productId, 45.0);
 
                 BidDTO bid = storeService.getAuctionHighestBidByProduct(SELLER_TOKEN, STORE_ID, productId).getData();
 

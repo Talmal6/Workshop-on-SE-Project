@@ -206,7 +206,7 @@ class UserServiceTests {
             store.createStore("S1", email);
             // initiate product catalog
             InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-            store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false);
+            store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false,"");
         }
 
         @Test
@@ -361,8 +361,8 @@ class UserServiceTests {
         store.createStore("S1", email);
         // initiate product catalog
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-        store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false);
-        store.addProductToStore(email, "S1", "P2", "Product 2", "someDesc", 5.7, 10, false);
+        store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false,"");
+        store.addProductToStore(email, "S1", "P2", "Product 2", "someDesc", 5.7, 10, false,"");
     }
 
     @Test

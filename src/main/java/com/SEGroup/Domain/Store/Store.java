@@ -2,14 +2,9 @@ package com.SEGroup.Domain.Store;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.vaadin.pro.licensechecker.Product;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /*
@@ -26,6 +21,7 @@ public class Store {
     private double balance;
     private int numOfitems;
     private final AtomicInteger inStoreProductId = new AtomicInteger(-1);
+    private String description="";
 
     //products and reviews
     private Map<String, ShoppingProduct> products = new java.util.concurrent.ConcurrentHashMap<>();
@@ -42,6 +38,12 @@ public class Store {
         final int score;
         final String review ;
         Rating (int s , String r ){score =s;review =r; }
+        public int getScore(){
+            return score;
+        }
+        public String getReview(){
+            return review;
+        }
     }
     // Disocunt and policy fields
     private PurchasePolicy purchasePolicy;
@@ -76,6 +78,7 @@ public class Store {
     public String getfounderEmail() { return founderEmail; }
     public boolean isActive() { return isActive; }
     public double getBalance() { return balance; }
+
 
     // Setters
     public void setName(String name) {
@@ -116,12 +119,12 @@ public class Store {
      * @param quantity     The quantity of the product.
      * @return The ID of the added product.
      */
-    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity,boolean isAdmin){
+    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity,boolean isAdmin, String imageURL){
         if(quantity == 0)
             throw new IllegalArgumentException("quantity cannot be 0 ");
         if (isOwnerOrHasManagerPermissions(email) || isAdmin) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
-            ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity);
+            ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity, imageURL);
             products.put(productId, product);
             return productId;
         }
@@ -164,7 +167,7 @@ public class Store {
         * @param bidderEmail The email of the bidder.
         * @return true if the bid was successfully submitted, false otherwise.
      */
-    public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail, Integer quantity) {
+    public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail) {
         ShoppingProduct product = products.get(itemName);
 
         if (product == null) {
@@ -175,7 +178,7 @@ public class Store {
             throw new IllegalArgumentException("Invalid bid amount or bidder email");
         }
 
-        product.addBid(bidderEmail, bidAmount, quantity);
+        product.addBid(bidderEmail, bidAmount);
         return true;
     }
 
@@ -187,7 +190,7 @@ public class Store {
         * @param bidderEmail The email of the bidder.
         * @return true if the offer was successfully submitted, false otherwise.
      */
-    public boolean submitAuctionOffer(String productId, double offerAmount, String bidderEmail, Integer quantity) {
+    public boolean submitAuctionOffer(String productId, double offerAmount, String bidderEmail) {
         ShoppingProduct product = products.get(productId);
         if (product == null || product.getAuction() == null) {
             return false;
@@ -195,7 +198,7 @@ public class Store {
 
 
         Auction auction = product.getAuction();
-        return auction.submitBid(bidderEmail, offerAmount, quantity);
+        return auction.submitBid(bidderEmail, offerAmount);
     }
     /*
      * checks if a given email is the owner of the store
@@ -450,6 +453,52 @@ public class Store {
                 ", products=" + products.keySet() +
                 '}';
     }
+    /**
+     * Gets the store description.
+     *
+     * @return The store description.
+     */
+    public String getDescription() {
+        return description;
+    }
+    /**
+     * Sets the store description.
+     *
+     * @param description The new description for the store.
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public Map<String,Rating> getRatings() {
+        return Collections.unmodifiableMap(ratings);
+    }
+    /**
+     * Place a bid on a live auction.
+     */
+    public boolean bidOnAuction(String productId, String bidderEmail, double amount, Integer quantity) {
+        ShoppingProduct p = requireProduct(productId);
+        if (p.getAuction() == null)
+            throw new RuntimeException("No auction running");
+        return p.getAuction().submitBid(bidderEmail, amount);
+    }
+    /**
+     * Get the current snapshot of this product's auction.
+     */
+    public Auction getAuctionInfo(String productId) {
+        ShoppingProduct p = requireProduct(productId);
+        return p.getAuction();
+    }
+    public void startAuction(String productId, double startingPrice, Date durationMillis) {
+        ShoppingProduct p = requireProduct(productId);
+        if (!isOwnerOrHasManagerPermissions(founderEmail))
+            throw new RuntimeException("Not authorized");
+        p.startAuction(startingPrice, durationMillis);
+    }
+    private ShoppingProduct requireProduct(String productId) {
+        ShoppingProduct p = products.get(productId);
+        if (p == null) throw new IllegalArgumentException("Unknown product " + productId);
+        return p;
+    }
 
     public void addDiscount(Discount discount) {
         if (discount == null) throw new IllegalArgumentException("Discount cannot be null");
@@ -525,6 +574,18 @@ public class Store {
             allBids.addAll(product.getBids());
         }
         return allBids;
+    }
+    public Map<String, Rating> getAllRatings() {
+        return Collections.unmodifiableMap(ratings);
+    }
+    public Map<String, Rating> getAllProductRatings(String productId) {
+        ShoppingProduct p = products.get(productId);
+        if (p != null) {
+            return p.getAllRatings();
+        }
+        else{
+            throw new RuntimeException("Product " + productId + " not found");
+        }
     }
 
 

@@ -10,6 +10,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -31,8 +32,11 @@ public class SuspensionView extends VerticalLayout implements AdminSection {
         // Initialize UI components
         users.setItems(presenter.getAllUserEmails());
 
+//        TextField reason = new TextField("Reason");
+
+
         Button suspend = new Button("Suspend", e -> {
-            presenter.suspendUser(users.getValue(), days.getValue().intValue());
+            presenter.suspendUser(users.getValue(), days.getValue().intValue(),"");
             presenter.loadSuspensions(); // Refresh the list after suspension
         });
         Button refresh = new Button("Refresh", e -> presenter.loadSuspensions());

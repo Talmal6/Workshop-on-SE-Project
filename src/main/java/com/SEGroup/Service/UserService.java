@@ -1,15 +1,19 @@
 package com.SEGroup.Service;
 
 import java.util.List;
+import java.util.Set;
 
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.UserSuspensionDTO;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Domain.Report.Report;
 import com.SEGroup.Domain.Report.ReportCenter;
+import org.springframework.stereotype.Service;
 
 /**
  * UserService handles user-related operations such as login, registration, cart
@@ -17,6 +21,7 @@ import com.SEGroup.Domain.Report.ReportCenter;
  * It interacts with the authentication service, user repository, and guest
  * service.
  */
+@Service
 public class UserService {
 
     private final GuestService guestService;
@@ -526,4 +531,14 @@ public class UserService {
         }
     }
 
+    public List<String> allUsersEmails() {
+        return userRepository.getAllEmails(); // or return List.of();
+    }
+
+    public Set<Role> rolesOf(String email) {
+        return userRepository.getGlobalRoles(email);
+    }
+    public List<UserSuspensionDTO> allSuspensions() {
+        return userRepository.getAllSuspendedUsers();
+    }
 }

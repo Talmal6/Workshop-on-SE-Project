@@ -75,7 +75,7 @@ public class DiscountAcceptanceTest {
         storeService.addProductToCatalog(CATALOG_ID, "Shoes", "Nike", "Comfortable running shoes",
                 Collections.singletonList("Footwear"));
         String productId = storeService
-                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "Shoes", "Nike running", 200.0, 1).getData();
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "Shoes", "Nike running", 200.0, 1,"").getData();
 
         // Add 10% discount on this product
         Store store = storeRepository.findByName(STORE_NAME);
@@ -97,10 +97,10 @@ public class DiscountAcceptanceTest {
         storeService.addProductToCatalog("cat1", "Tomato", "FreshCo", "Fresh tomatoes", List.of("Vegetables"));
         storeService.addProductToCatalog("cat2", "Cucumber", "FreshCo", "Fresh cucumbers", List.of("Vegetables"));
 
-        String tomatoId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Tomato", "Fresh", 100.0, 2)
+        String tomatoId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Tomato", "Fresh", 100.0, 2,"")
                 .getData();
         String cucumberId = storeService
-                .addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Cucumber", "Fresh", 50.0, 2).getData();
+                .addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Cucumber", "Fresh", 50.0, 2,"").getData();
 
         // Prepare conditional discount: if total purchase > 200, 10% discount on
         // tomatoes
@@ -137,11 +137,11 @@ public class DiscountAcceptanceTest {
         productCatalog.addCatalogProduct("c2", "Pasta B", "Barilla", "Spaghetti", List.of("pasta"));
         productCatalog.addCatalogProduct("c3", "Milk", "Tnuva", "1L", List.of("dairy"));
 
-        String p1 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c1", "Pasta A", "desc", 20.0, 10)
+        String p1 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c1", "Pasta A", "desc", 20.0, 10,"")
                 .getData();
-        String p2 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c2", "Pasta B", "desc", 25.0, 10)
+        String p2 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c2", "Pasta B", "desc", 25.0, 10,"")
                 .getData();
-        String p3 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c3", "Milk", "desc", 10.0, 10).getData();
+        String p3 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c3", "Milk", "desc", 10.0, 10,"").getData();
 
         Basket userBasket = new Basket(STORE_NAME);
         userBasket.add(p1, 2); // 2 x 20 = 40

@@ -2,6 +2,7 @@ package com.SEGroup.UI.Presenter;
 
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.UserService;
+import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.SuspensionView;
 
@@ -21,20 +22,22 @@ public class SuspensionPresenter {
         return userService.allUsersEmails();
     }
 
-    public void suspendUser(String email, int days) {
-        Result<?> result = userService.suspendUser(email, days);
+    public void suspendUser(String email, int days, String reason) {
+        //put session key and reason !!
+        Result<?> result = userService.suspendUser(SecurityContextHolder.token(),email, days, reason);
         handleResult(result);
     }
 
     public void unsuspendUser(String email) {
-        Result<?> result = userService.unsuspendUser(email);
+        //put session key !!!
+        Result<?> result = userService.unsuspendUser(SecurityContextHolder.token(),email);
         handleResult(result);
     }
 
     public void loadSuspensions() {
         var suspensions = userService.allSuspensions()
                 .stream()
-                .map(dto -> new SuspensionView.Susp(dto.email(), dto.since(), dto.until()))
+                .map(dto -> new SuspensionView.Susp(dto.getUserEmail(),(dto.getStartTime()).toString(), (dto.getEndTime()).toString()))
                 .collect(Collectors.toList());
         view.showSuspensions(suspensions);
     }

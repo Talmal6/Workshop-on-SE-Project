@@ -81,4 +81,7 @@ public interface IProductCatalog {
      *
      */
     void isProductExist(String catalogID) throws Exception;
+
+    void addStoreProductEntryWithImage(String catalogID, String storeName, String productID, double price,
+                                       int quantity, double rating, String name, String imageUrl);
 }

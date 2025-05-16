@@ -22,6 +22,7 @@ import org.springframework.web.servlet.View;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Date;
 
 /**
  * View for displaying a single product's details.
@@ -35,7 +36,6 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
     private String productId;
     private String storeName;
     private boolean isOwner;
-    private boolean isBidStarted;
     private final DecimalFormat ratingFormat = new DecimalFormat("0.0");
 
     public ProductView(View view) {
@@ -103,10 +103,14 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
 
         Button bidBtn = new Button("Place Bid", VaadinIcon.GAVEL.create());
         bidBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        TextField quantityField = new TextField("Your quantity");
+        quantityField.setWidth("150px");
         bidBtn.addClickListener(e -> {
             try {
                 double amt = Double.parseDouble(bidField.getValue());
-                presenter.placeBid(amt);
+                Integer qu = Integer.parseInt((quantityField.getValue()));
+                presenter.placeBid(amt, qu);
             } catch (NumberFormatException ex) {
                 showError("Please enter a valid number");
             }
@@ -117,6 +121,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 endsAtSpan,
                 remainSpan,
                 bidField,
+                quantityField,
                 bidBtn
         );
         auctionBar.getStyle()
@@ -232,17 +237,25 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         addToCartBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addToCartBtn.addClickListener(e -> presenter.addToCart());
 
-        TextField offer = new TextField("BID Offer Price");
+        TextField amount = new TextField("BID Offer Price");
+        TextField quantity = new TextField("BID Offer Quantity");
         Button bidBuyBtn = new Button("Enter", VaadinIcon.GAVEL.create());
         bidBuyBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
 
+        Button bidUsersBtn = new Button("BID requests", VaadinIcon.GAVEL.create());
+
+        bidUsersBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+        bidUsersBtn.setVisible(presenter.isOwner());
+        bidUsersBtn.addClickListener(e ->
+                getUI().ifPresent(ui ->
+                        ui.navigate(
+                                String.format("product/%s/%s/bids", getProductId(), getStoreName())
+                        )
+                )
+        );
+
         bidBuyBtn.addClickListener(e -> {
-            if(!offer.isEmpty()) {
-                presenter.bidBuy(offer.getValue());
-            }
-            else{
-                showError("Text is empty");
-            }
+            presenter.bidBuy(Double.parseDouble(amount.getValue()), Integer.parseInt(quantity.getValue()));
         });
 
         // Organize content in layouts
@@ -267,12 +280,12 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 navigationBar,
                 productLayout,
                 addToCartBtn,
-                offer,
-                bidBuyBtn
+                new HorizontalLayout(amount,quantity),
+                new HorizontalLayout(bidBuyBtn, bidUsersBtn)
         );
         content.setAlignSelf(FlexComponent.Alignment.START, navigationBar);
         content.setAlignSelf(FlexComponent.Alignment.START, addToCartBtn);
-
+        content.setAlignSelf(FlexComponent.Alignment.START, bidUsersBtn);
         productDetails.add(content);
     }
 
@@ -421,8 +434,9 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         Button ok = new Button("Start", e -> {
             try {
                 double sp = startPrice.getValue();
-                long durMs = (long)(duration.getValue() * 60_000);
-                presenter.startAuction(sp, durMs);
+                long durMs = (long) (duration.getValue() * 60000);
+                Date endDate = new Date(System.currentTimeMillis() + durMs);  // <-- פה השינוי
+                presenter.startAuction(sp, endDate);
                 dlg.close();
             } catch (Exception ex) {
                 showError("Invalid values");

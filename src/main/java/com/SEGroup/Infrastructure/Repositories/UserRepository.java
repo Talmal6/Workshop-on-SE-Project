@@ -8,6 +8,7 @@ import com.SEGroup.Domain.User.User;
 import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
+import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
 import java.util.EnumSet;
@@ -17,12 +18,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * UserRepository is responsible for managing user accounts in the system.
  * It provides methods to add, find, delete users, and manage their shopping
  * carts.
  */
+@Repository
 public class UserRepository implements IUserRepository {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
@@ -321,6 +324,24 @@ public class UserRepository implements IUserRepository {
                 .toList();
     }
 
-    
-
+    @Override
+    public List<String> getAllEmails() {
+        return users.keySet().stream().toList();
+    }
+    /**
+     * Gets all global roles for a user.
+     *
+     * @param email The email of the user
+     * @return Set of roles the user has
+     */
+    @Override
+    public Set<Role> getGlobalRoles(String email) {
+        User u = requireUser(email);
+        // union of all role sets (store-specific + system)
+        return u.snapshotRoles()
+                .values()
+                .stream()
+                .flatMap(EnumSet::stream)
+                .collect(Collectors.toSet());
+    }
 }

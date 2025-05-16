@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.SEGroup.DTO.BidDTO;
-import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.IStoreRepository;
@@ -14,11 +12,14 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import org.springframework.stereotype.Service;
+
+import javax.print.DocFlavor;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
  */
-
+@Service
 public class StoreService {
 
     private final IStoreRepository storeRepository;
@@ -228,7 +229,7 @@ public class StoreService {
      * @return A Result object indicating the success or failure of the operation.
      */
     public Result<String> addProductToStore(String sessionKey, String storeName, String catalogID, String productName,
-            String description, double price, int quantity) {
+            String description, double price, int quantity, String imageURL) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
@@ -236,7 +237,7 @@ public class StoreService {
             String email = authenticationService.getUserBySession(sessionKey);
             boolean isAdmin = userRepository.userIsAdmin(email);
             String productID = storeRepository.addProductToStore(email, storeName, catalogID,
-                    productName, description, price, quantity, isAdmin);
+                    productName, description, price, quantity, isAdmin, imageURL);
             productCatalog.addStoreProductEntry(catalogID, storeName, productID, price, quantity, 0, productName);
             LoggerWrapper.info("Added product to store: " + storeName + ", Product ID: " + productID); // Log the
                                                                                                        // product
@@ -524,6 +525,16 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    /**
+     * Checks if a user is an owner of a store.
+     *
+     * @param email The email of the user
+     * @param storeName The name of the store
+     * @return True if the user is an owner, false otherwise
+     */
+    public boolean isOwner(String email, String storeName) {
+        return storeRepository.getAllOwners(storeName, email).contains(email);
+    }
 
     /**
      * Retrieves a list of all owners for a store.
@@ -597,14 +608,13 @@ public class StoreService {
     public Result<Void> submitBidToShoppingItem(String sessionKey,
             String storeName,
             String productId,
-            double bidAmount,
-            Integer quantity) {
+            double bidAmount) {
         try {
             authenticationService.authenticate(sessionKey);
             String bidderEmail = authenticationService.getUserBySession(sessionKey);
             userRepository.checkUserSuspension(bidderEmail);
             storeRepository.submitBidToShoppingItem(bidderEmail, storeName,
-                    productId, bidAmount, quantity);
+                    productId, bidAmount);
             List<String> ownersAndManagers = storeRepository.getAllBidManagers(storeName);
             for (String recipient : ownersAndManagers) {
                 notificationService.sendSystemNotification(
@@ -623,13 +633,12 @@ public class StoreService {
     public Result<Void> sendAuctionOffer(String sessionKey,
             String storeName,
             String productId,
-            double bidAmount,
-            Integer quantity) {
+            double bidAmount) {
         try {
             authenticationService.authenticate(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             storeRepository.sendAuctionOffer(authenticationService.getUserBySession(sessionKey), storeName, productId,
-                    bidAmount, quantity);
+                    bidAmount);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -690,6 +699,25 @@ public class StoreService {
 
     }
 
+    /**
+     * Gets all products for a specific store.
+     *
+     * @param storeName The name of the store to get products for.
+     * @return A Result object containing a list of products in the store if successful, or an error message.
+     */
+    public Result<List<ShoppingProductDTO>> getStoreProducts(String storeName) {
+        try {
+            LoggerWrapper.info("Fetching products for store: " + storeName);
+
+            // Use the existing searchProducts method with empty query and filters
+
+            return searchProducts("", List.of(), storeName, (List<String>) null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting store products: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
     public Result<List<BidDTO>> getProductBids(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -730,7 +758,130 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    public Result<List<ShoppingProductDTO>> getAllProducts() {
+        try {
+            LoggerWrapper.info("Fetching all products from all stores");
 
-    
+            List<ShoppingProductDTO> allProducts = new ArrayList<>();
+
+            // Get all stores
+            List<StoreDTO> stores = storeRepository.getAllStores();
+
+            // For each store, get its products
+            for (StoreDTO store : stores) {
+                allProducts.addAll(store.getProducts());
+            }
+            for (ShoppingProductDTO p : allProducts) {
+                List<StoreSearchEntry> entries = productCatalog.search(
+                        p.getName(), List.of(), p.getStoreName(), null);
+
+                for (StoreSearchEntry e : entries) {
+                    if (e.getProductID().equals(p.getProductId()) &&
+                            e.getStoreName().equals(p.getStoreName()) &&
+                            e.getImageUrl() != null && !e.getImageUrl().isBlank()) {
+
+                        p.setImageUrl(e.getImageUrl());
+                        break;                 // picture found → stop inner loop
+                    }
+                }
+            }
+
+            return Result.success(allProducts);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting all products: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    /**
+     * Lists stores owned by a specific user for display in the card view.
+     *
+     * @param ownerEmail Email of the store owner
+     * @return List of store card DTOs for stores owned by the specified user
+     */
+    public List<StoreCardDto> listStoresOwnedBy(String ownerEmail) {
+        return storeRepository.getStoresOwnedBy(ownerEmail)
+                .stream()
+                .map(this::toCard)
+                .toList();
+    }
+    /**
+     * Helper method to convert StoreDTO to StoreCardDto
+     */
+    public StoreCardDto toCard(StoreDTO dto) {
+        return new StoreCardDto(
+                dto.getName(),
+                dto.getFounderEmail(),
+                dto.getAvgRating(),
+                dto.getDescription());
+    }
+    /**
+     * Lists all stores for display in the card view.
+     *
+     * @return List of store card DTOs for all stores
+     */
+    public List<StoreCardDto> listAllStores() {
+        return storeRepository.getAllStores()
+                .stream()
+                .map(this::toCard)
+                .toList();
+    }
+    /**
+     * Fetches a single catalog product by its catalog ID.
+     *
+     * @param catalogId the unique ID of the catalog product
+     * @return a Result containing a CatalogProductDTO on success, or an error message on failure
+     */
+    public Result<CatalogProductDTO> getCatalogProduct(String catalogId) {
+        try {
+            LoggerWrapper.info("Fetching catalog product: " + catalogId);
+            List<CatalogProduct> allProducts = productCatalog.getAllProducts();
+            List<String> categories = new ArrayList<>();
+            for (CatalogProduct cp : allProducts) {
+                if (cp.getCatalogID().equals(catalogId)) {
+                    categories.add(cp.getBrand());
+                    CatalogProductDTO dto = new CatalogProductDTO(
+                            cp.getCatalogID(),
+                            cp.getName(),
+                            categories
+                    );
+                    return Result.success(dto);
+                }
+            }
+
+            return Result.failure("Catalog product not found: " + catalogId);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error fetching catalog product: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+    public Result<List<RatingDto>> getStoreRatings(String sessionKey, String storeName) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+
+            List<RatingDto> ratings = storeRepository.getStoreRatings(storeName);
+            return Result.success(ratings);
+
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting store ratings for: " + storeName + " - " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+    public Result<List<RatingDto>> getProductRatings(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+
+            List<RatingDto> ratings = storeRepository.getProductRatings(storeName,productId);
+            return Result.success(ratings);
+
+        } catch (Exception e) {
+            LoggerWrapper.error("Error getting store ratings for: " + storeName + " - " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
 
 }

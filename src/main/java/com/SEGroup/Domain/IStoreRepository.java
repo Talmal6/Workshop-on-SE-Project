@@ -4,11 +4,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.SEGroup.DTO.BasketDTO;
-import com.SEGroup.DTO.BidDTO;
-import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.Store.Bid;
+import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.UI.Views.AddProductDialog;
 
 /**
  * Interface representing a repository for managing stores.
@@ -68,11 +67,12 @@ public interface IStoreRepository {
          * @param description  A description of the product.
          * @param price        The price of the product.
          * @param quantity     The quantity of the product.
+         * @param imageURL     The URL of an image
          * @return The ID of the added product.
          */
         String addProductToStore(String email, String storeName, String catalogID, String product_name,
                         String description,
-                        double price, int quantity, boolean isAdmin);
+                        double price, int quantity, boolean isAdmin, String imageURL);
 
         /**
          * Updates the details of a shopping product.
@@ -121,7 +121,8 @@ public interface IStoreRepository {
 
         // Ownership and manager operations with operator email authorization
 
-        /**
+
+    /**
          * Appoints a new owner for a store.
          *
          * @param storeName     The name of the store.
@@ -230,10 +231,9 @@ public interface IStoreRepository {
          */
         ShoppingProductDTO getProduct(String storeName, String productID);
 
-        void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount,
-                        Integer quantity);
+        void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount);
 
-        void sendAuctionOffer(String Email, String storeName, String productId, double bidAmount, Integer quantity);
+        void sendAuctionOffer(String Email, String storeName, String productId, double bidAmount);
 
         Integer getProductQuantity(String storeName, String productId);
 
@@ -259,4 +259,15 @@ public interface IStoreRepository {
 
         void rejectBid(String owner, String storeName, BidDTO bidDTO);
 
+        void updateStoreDescription(String storeName, String operatorEmail, String description);
+
+        List<StoreDTO> getStoresOwnedBy(String ownerEmail);
+
+        List<ShoppingProductDTO> getStoreProducts(String storeName);
+
+        Map<String, Store.Rating> findRatingsByStore(String storeName);
+
+        List<RatingDto> getStoreRatings(String storeName);
+
+        List<RatingDto> getProductRatings(String storeName,String productId);
 }

@@ -9,6 +9,8 @@ import com.SEGroup.Service.MockShippingService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -79,7 +81,7 @@ class BootstrapData {
     @PostConstruct
     void initDemoData() {
         PasswordEncoder encoder = new PasswordEncoder();
-        UserRepository users = new UserRepository(encoder);
+        UserRepository users = new UserRepository();
         StoreRepository stores = new StoreRepository();
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
@@ -107,7 +109,7 @@ class BootstrapData {
         // Demo Store
         String demoStore = "Demo Store";
         stores.createStore(demoStore, "owner@demo.com");
-        stores.appointOwner(demoStore, "owner@demo.com", "co-owner@demo.com");
+        stores.appointOwner(demoStore, "owner@demo.com", "co-owner@demo.com",false);
         stores.updateStoreDescription(demoStore, "owner@demo.com",
                 "Your one-stop shop for all premium electronics, fashion, and home goods. We offer the best prices and quality service.");
 
@@ -115,7 +117,7 @@ class BootstrapData {
         String techStore = "Tech Gadgets";
         stores.createStore(techStore, "tech@demo.com");
         stores.appointManager(techStore, "tech@demo.com", "user@demo.com",
-                List.of("VIEW_ONLY", "MANAGE_PRODUCTS"));
+                List.of("VIEW_ONLY", "MANAGE_PRODUCTS"),false);
         stores.updateStoreDescription(techStore, "tech@demo.com",
                 "Cutting-edge technology at affordable prices. From smartphones to laptops, we have everything a tech enthusiast needs.");
 
@@ -135,39 +137,39 @@ class BootstrapData {
         System.out.println("Adding catalog products...");
 
         // Technology products - simplified catalog product with just ID, name, and categories
-        catalog.addCatalogProduct("TECH-001", "Smartphone X",
+        catalog.addCatalogProduct("TECH-001", "Smartphone X","IPHONE","Flagship smartphone with 6.1\" OLED display, 12 MP camera system, 5G connectivity, and all-day battery life.",
                 List.of("Electronics", "Phones"));
-        catalog.addCatalogProduct("TECH-002", "Laptop Pro",
+        catalog.addCatalogProduct("TECH-002", "Laptop Pro", "DELL","",
                 List.of("Electronics", "Computers"));
-        catalog.addCatalogProduct("TECH-003", "Wireless Earbuds",
+        catalog.addCatalogProduct("TECH-003", "Wireless Earbuds","Acme Audio","",
                 List.of("Electronics", "Audio"));
-        catalog.addCatalogProduct("TECH-004", "Smart Watch Elite",
+        catalog.addCatalogProduct("TECH-004", "Smart Watch Elite","","",
                 List.of("Electronics", "Wearables"));
-        catalog.addCatalogProduct("TECH-005", "4K Gaming Monitor",
+        catalog.addCatalogProduct("TECH-005", "4K Gaming Monitor","","",
                 List.of("Electronics", "Displays"));
 
         // Fashion products - simplified catalog product with just ID, name, and categories
-        catalog.addCatalogProduct("FASH-001", "Designer T-Shirt",
+        catalog.addCatalogProduct("FASH-001", "Designer T-Shirt","","",
                 List.of("Clothing", "T-Shirts"));
-        catalog.addCatalogProduct("FASH-002", "Leather Jacket",
+        catalog.addCatalogProduct("FASH-002", "Leather Jacket","","",
                 List.of("Clothing", "Outerwear"));
-        catalog.addCatalogProduct("FASH-003", "Running Shoes",
+        catalog.addCatalogProduct("FASH-003", "Running Shoes","","",
                 List.of("Footwear", "Sports"));
-        catalog.addCatalogProduct("FASH-004", "Designer Handbag",
+        catalog.addCatalogProduct("FASH-004", "Designer Handbag","","",
                 List.of("Accessories", "Bags"));
-        catalog.addCatalogProduct("FASH-005", "Silk Scarf",
+        catalog.addCatalogProduct("FASH-005", "Silk Scarf","","",
                 List.of("Accessories", "Scarves"));
 
         // Home products - simplified catalog product with just ID, name, and categories
-        catalog.addCatalogProduct("HOME-001", "Coffee Maker Deluxe",
+        catalog.addCatalogProduct("HOME-001", "Coffee Maker Deluxe","","",
                 List.of("Home", "Kitchen"));
-        catalog.addCatalogProduct("HOME-002", "Smart Vacuum Robot",
+        catalog.addCatalogProduct("HOME-002", "Smart Vacuum Robot","","",
                 List.of("Home", "Cleaning"));
-        catalog.addCatalogProduct("HOME-003", "Luxury Bedding Set",
+        catalog.addCatalogProduct("HOME-003", "Luxury Bedding Set","","",
                 List.of("Home", "Bedroom"));
-        catalog.addCatalogProduct("HOME-004", "Chef's Knife Set",
+        catalog.addCatalogProduct("HOME-004", "Chef's Knife Set","","",
                 List.of("Home", "Kitchen"));
-        catalog.addCatalogProduct("HOME-005", "Smart Home Hub",
+        catalog.addCatalogProduct("HOME-005", "Smart Home Hub","","",
                 List.of("Home", "Smart Home"));
 
         /* STORE PRODUCTS ------------------------------------- */
@@ -176,21 +178,21 @@ class BootstrapData {
         // Demo Store products - with descriptions and URL parameter
         System.out.println("Adding Demo Store products...");
         String p1 = stores.addProductToStore("owner@demo.com", demoStore, "TECH-001",
-                "Smartphone X Pro", "Flagship smartphone with 6.7-inch AMOLED display, 108MP camera system, 5G connectivity, and all-day battery life. Includes 1-year warranty and premium accessories.", 999.99, 10, "phone-url");
+                "Smartphone X Pro", "Flagship smartphone with 6.7-inch AMOLED display, 108MP camera system, 5G connectivity, and all-day battery life. Includes 1-year warranty and premium accessories.", 999.99, 10, true,"phone-url");
                // 🔨 start a quick demo auction on that first product:
              // ownerEmail, storeName, productId, startingPrice, durationMillis
-        stores.startAuction(
+        stores.startAuction("owner@demo.com",
                 demoStore,       // ← use the variable, not the string literal
                 p1,
                 100.0,
-                5 * 60_000L
+                new Date(System.currentTimeMillis() + 5 * 60_000L)
         );
         String p2 = stores.addProductToStore("owner@demo.com", demoStore, "TECH-002",
-                "Laptop Pro Max", "High-performance laptop featuring the latest processor, 32GB RAM, 1TB SSD, and dedicated graphics. Perfect for professionals, designers, and gamers.", 1499.99, 5, "laptop-url");
+                "Laptop Pro Max", "High-performance laptop featuring the latest processor, 32GB RAM, 1TB SSD, and dedicated graphics. Perfect for professionals, designers, and gamers.", 1499.99, 5,true, "laptop-url");
         String p3 = stores.addProductToStore("owner@demo.com", demoStore, "HOME-001",
-                "Coffee Maker Deluxe", "Fully automatic coffee maker with built-in grinder, programmable timer, and thermal carafe. Enjoy barista-quality coffee at home.", 129.99, 20, "coffee-url");
+                "Coffee Maker Deluxe", "Fully automatic coffee maker with built-in grinder, programmable timer, and thermal carafe. Enjoy barista-quality coffee at home.", 129.99, 20, true,"coffee-url");
         String p4 = stores.addProductToStore("owner@demo.com", demoStore, "FASH-002",
-                "Premium Leather Jacket", "Handcrafted genuine leather jacket with quilted lining and premium hardware. Classic style that never goes out of fashion.", 349.99, 8, "jacket-url");
+                "Premium Leather Jacket", "Handcrafted genuine leather jacket with quilted lining and premium hardware. Classic style that never goes out of fashion.", 349.99, 8, true,"jacket-url");
 
         // Add store products to catalog with images and initial ratings
         System.out.println("Adding Demo Store product images...");
@@ -206,15 +208,15 @@ class BootstrapData {
         // Tech Store products - with descriptions and URL parameter
         System.out.println("Adding Tech Store products...");
         String p5 = stores.addProductToStore("tech@demo.com", techStore, "TECH-001",
-                "Smartphone X Limited Edition", "Exclusive version with extended warranty, premium case, and screen protector. Features enhanced storage and special color options.", 1049.99, 15, "smartphone-limited-url");
+                "Smartphone X Limited Edition", "Exclusive version with extended warranty, premium case, and screen protector. Features enhanced storage and special color options.", 1049.99, 15, true,"smartphone-limited-url");
         String p6 = stores.addProductToStore("tech@demo.com", techStore, "TECH-002",
-                "Laptop Pro Developer Edition", "Specially configured for developers with Linux pre-installed, extended battery, and free carrying case.", 1649.99, 8, "laptop-dev-url");
+                "Laptop Pro Developer Edition", "Specially configured for developers with Linux pre-installed, extended battery, and free carrying case.", 1649.99, 8, true,"laptop-dev-url");
         String p7 = stores.addProductToStore("tech@demo.com", techStore, "TECH-003",
-                "Wireless Earbuds Pro", "Premium wireless earbuds with active noise cancellation, transparency mode, and wireless charging case.", 179.99, 30, "earbuds-url");
+                "Wireless Earbuds Pro", "Premium wireless earbuds with active noise cancellation, transparency mode, and wireless charging case.", 179.99, 30, true,"earbuds-url");
         String p8 = stores.addProductToStore("tech@demo.com", techStore, "TECH-004",
-                "Smart Watch Elite GPS", "Advanced smartwatch with cellular connectivity, ECG monitoring, and premium band options.", 349.99, 12, "smartwatch-url");
+                "Smart Watch Elite GPS", "Advanced smartwatch with cellular connectivity, ECG monitoring, and premium band options.", 349.99, 12, true,"smartwatch-url");
         String p9 = stores.addProductToStore("tech@demo.com", techStore, "TECH-005",
-                "Ultra Gaming Monitor", "34-inch ultra-wide curved gaming monitor with 165Hz refresh rate and G-Sync support.", 699.99, 7, "monitor-url");
+                "Ultra Gaming Monitor", "34-inch ultra-wide curved gaming monitor with 165Hz refresh rate and G-Sync support.", 699.99, 7, true,"monitor-url");
 
         // Add Tech Store products to catalog with images and ratings
         System.out.println("Adding Tech Store product images...");
@@ -232,15 +234,15 @@ class BootstrapData {
         // Fashion Store products - with descriptions and URL parameter
         System.out.println("Adding Fashion Store products...");
         String p10 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-001",
-                "Designer Graphic Tee", "Limited edition designer t-shirt with exclusive print. Made from organic cotton for maximum comfort and style.", 59.99, 100, "tshirt-url");
+                "Designer Graphic Tee", "Limited edition designer t-shirt with exclusive print. Made from organic cotton for maximum comfort and style.", 59.99, 100, true,"tshirt-url");
         String p11 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-002",
-                "Vintage Leather Jacket", "Classic leather jacket with distressed finish and premium hardware. Timeless style that gets better with age.", 329.99, 15, "vintage-jacket-url");
+                "Vintage Leather Jacket", "Classic leather jacket with distressed finish and premium hardware. Timeless style that gets better with age.", 329.99, 15, true,"vintage-jacket-url");
         String p12 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-003",
-                "Performance Running Shoes", "Engineered for maximum comfort and performance with responsive cushioning and breathable materials.", 149.99, 50, "shoes-url");
+                "Performance Running Shoes", "Engineered for maximum comfort and performance with responsive cushioning and breathable materials.", 149.99, 50, true,"shoes-url");
         String p13 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-004",
-                "Signature Tote Bag", "Spacious designer tote with premium leather trim and durable canvas construction. Perfect for work or weekend.", 199.99, 25, "tote-url");
+                "Signature Tote Bag", "Spacious designer tote with premium leather trim and durable canvas construction. Perfect for work or weekend.", 199.99, 25, true,"tote-url");
         String p14 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-005",
-                "Designer Silk Scarf", "Luxurious silk scarf with hand-painted design. Versatile accessory to elevate any outfit.", 89.99, 40, "scarf-url");
+                "Designer Silk Scarf", "Luxurious silk scarf with hand-painted design. Versatile accessory to elevate any outfit.", 89.99, 40, true,"scarf-url");
 
         // Add Fashion Store products to catalog with images and ratings
         System.out.println("Adding Fashion Store product images...");
@@ -258,15 +260,15 @@ class BootstrapData {
         // Home Store products - with descriptions and URL parameter
         System.out.println("Adding Home Store products...");
         String p15 = stores.addProductToStore("home@demo.com", homeStore, "HOME-001",
-                "Barista Coffee Maker", "Professional-grade coffee maker with built-in grinder, pressure control, and milk frother. Make cafe-quality coffee at home.", 199.99, 18, "barista-coffee-url");
+                "Barista Coffee Maker", "Professional-grade coffee maker with built-in grinder, pressure control, and milk frother. Make cafe-quality coffee at home.", 199.99, 18, true,"barista-coffee-url");
         String p16 = stores.addProductToStore("home@demo.com", homeStore, "HOME-002",
-                "Smart Robot Vacuum", "AI-powered vacuum with mapping technology, scheduling, and app control. Keep your home clean with minimal effort.", 299.99, 10, "vacuum-url");
+                "Smart Robot Vacuum", "AI-powered vacuum with mapping technology, scheduling, and app control. Keep your home clean with minimal effort.", 299.99, 10, true,"vacuum-url");
         String p17 = stores.addProductToStore("home@demo.com", homeStore, "HOME-003",
-                "Premium Egyptian Cotton Bedding", "Luxurious 1000 thread count Egyptian cotton sheets, duvet cover, and pillowcases for the ultimate sleep experience.", 249.99, 25, "bedding-url");
+                "Premium Egyptian Cotton Bedding", "Luxurious 1000 thread count Egyptian cotton sheets, duvet cover, and pillowcases for the ultimate sleep experience.", 249.99, 25, true,"bedding-url");
         String p18 = stores.addProductToStore("home@demo.com", homeStore, "HOME-004",
-                "Professional Knife Collection", "Hand-forged chef's knives with premium steel blades and ergonomic handles. Essential tools for any serious cook.", 179.99, 15, "knife-set-url");
+                "Professional Knife Collection", "Hand-forged chef's knives with premium steel blades and ergonomic handles. Essential tools for any serious cook.", 179.99, 15, true,"knife-set-url");
         String p19 = stores.addProductToStore("home@demo.com", homeStore, "HOME-005",
-                "Smart Home Control Center", "Central hub for all your smart home devices with voice control, automation, and security features.", 159.99, 20, "smart-home-url");
+                "Smart Home Control Center", "Central hub for all your smart home devices with voice control, automation, and security features.", 159.99, 20, true,"smart-home-url");
 
         // Add Home Store products to catalog with images and ratings
         System.out.println("Adding Home Store product images...");
@@ -339,34 +341,34 @@ class BootstrapData {
         System.out.println("Adding enhanced catalog products with rich categorization...");
 
         // Technology products with expanded categories - simplified catalog product structure
-        catalog.addCatalogProduct("TECH-006", "Noise-Cancelling Headphones",
+        catalog.addCatalogProduct("TECH-006", "Noise-Cancelling Headphones","","",
                 List.of("Electronics", "Audio", "Headphones", "Over-Ear", "Noise Cancelling", "Wireless", "Premium", "Studio Quality"));
 
-        catalog.addCatalogProduct("TECH-007", "Professional DSLR Camera",
+        catalog.addCatalogProduct("TECH-007", "Professional DSLR Camera","","",
                 List.of("Electronics", "Cameras", "DSLR", "Professional", "Full-Frame", "4K Video", "High Resolution", "Photography"));
 
-        catalog.addCatalogProduct("TECH-008", "Gaming Console Pro",
+        catalog.addCatalogProduct("TECH-008", "Gaming Console Pro","","",
                 List.of("Electronics", "Gaming", "Consoles", "Next-Gen", "Ray Tracing", "8K", "Entertainment", "High Performance"));
 
-        catalog.addCatalogProduct("FASH-006", "Designer Sunglasses",
+        catalog.addCatalogProduct("FASH-006", "Designer Sunglasses","","",
                 List.of("Accessories", "Eyewear", "Sunglasses", "Designer", "Polarized", "UV Protection", "Fashion", "Summer"));
 
-        catalog.addCatalogProduct("FASH-007", "Waterproof Hiking Boots",
+        catalog.addCatalogProduct("FASH-007", "Waterproof Hiking Boots","","",
                 List.of("Footwear", "Outdoor", "Hiking", "Waterproof", "Durable", "Adventure", "All-Terrain", "Rugged"));
 
-        catalog.addCatalogProduct("HOME-006", "Air Purifier Premium",
+        catalog.addCatalogProduct("HOME-006", "Air Purifier Premium","","",
                 List.of("Home", "Appliances", "Air Purifiers", "HEPA", "UV Sterilization", "Health", "Smart", "Quiet"));
 
-        catalog.addCatalogProduct("HOME-007", "Smart Refrigerator",
+        catalog.addCatalogProduct("HOME-007", "Smart Refrigerator","","",
                 List.of("Home", "Kitchen", "Appliances", "Refrigerators", "Smart", "Energy Efficient", "Connected", "Premium"));
 
-        catalog.addCatalogProduct("SPORT-001", "Carbon Fiber Road Bike",
+        catalog.addCatalogProduct("SPORT-001", "Carbon Fiber Road Bike","","",
                 List.of("Sports", "Cycling", "Bikes", "Road Bikes", "Carbon Fiber", "Professional", "Racing", "Lightweight"));
 
-        catalog.addCatalogProduct("SPORT-002", "Smart Fitness Tracker",
+        catalog.addCatalogProduct("SPORT-002", "Smart Fitness Tracker","","",
                 List.of("Electronics", "Wearables", "Fitness", "Health", "Heart Rate Monitor", "GPS", "Tracking", "Coaching"));
 
-        catalog.addCatalogProduct("BEAUTY-001", "Premium Skincare Set",
+        catalog.addCatalogProduct("BEAUTY-001", "Premium Skincare Set","","",
                 List.of("Beauty", "Skincare", "Anti-Aging", "Premium", "Facial Care", "Moisturizers", "Serums", "Sets"));
 
         /* Initialize services -------------------------------- */
@@ -381,8 +383,8 @@ class BootstrapData {
                 new TransactionRepository(),      // transactions
                 stores,                           // stores
                 catalog,                          // catalog
-                new MockPaymentGateway(),         // payment
-                shippingService                   // shipping service
+                new MockPaymentGateway()         // payment
+//                shippingService                   // shipping service
         );
 
         System.out.println("Bootstrap data initialization complete!");

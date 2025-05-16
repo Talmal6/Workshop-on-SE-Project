@@ -8,10 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.SEGroup.DTO.BasketDTO;
-import com.SEGroup.DTO.BidDTO;
-import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.DTO.StoreDTO;
+import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.Store.Auction;
 import com.SEGroup.Domain.Store.Bid;
@@ -19,7 +16,9 @@ import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Mapper.StoreMapper;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.RequestParam;
+;
 
 //implement iStore
 /**
@@ -29,13 +28,14 @@ import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;;
  * well as
  * manage store products, owners, and managers.
  */
+@Repository
 public class StoreRepository implements IStoreRepository {
     private final List<Store> stores = new ArrayList<>();
     private StoreMapper storeMapper = new StoreMapper();
 
     /**
      * Retrieves all stores in the system.
-     * 
+     *
      * @return A list of StoreDTO objects representing all stores.
      */
     @Override
@@ -44,9 +44,15 @@ public class StoreRepository implements IStoreRepository {
         return storeDTOs;
     }
 
+    @Override
+    public Map<String, Store.Rating> findRatingsByStore(String storeName) {
+        Store store = findByName(storeName);
+        return store.getRatings();
+    }
+
     /**
      * Retrieves a specific store by its name.
-     * 
+     *
      * @param storeName The name of the store to retrieve.
      * @return A StoreDTO object representing the store.
      */
@@ -58,7 +64,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Creates a new store with the specified name and founder's email.
-     * 
+     *
      * @param storeName    The name of the store to create.
      * @param founderEmail The email of the store's founder.
      */
@@ -72,7 +78,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Closes a store, making it inactive.
-     * 
+     *
      * @param storeName    The name of the store to close.
      * @param founderEmail The email of the store's founder.
      */
@@ -89,7 +95,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Reopens a closed store.
-     * 
+     *
      * @param storeName    The name of the store to reopen.
      * @param founderEmail The email of the store's founder.
      */
@@ -106,7 +112,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Updates the details of a shopping product in the store.
-     * 
+     *
      * @param email       The email of the user requesting the update.
      * @param storeName   The name of the store containing the product.
      * @param catalogID   The catalog ID of the product to update.
@@ -116,7 +122,7 @@ public class StoreRepository implements IStoreRepository {
      */
     @Override
     public ShoppingProductDTO updateShoppingProduct(String email, String storeName, String catalogID, double price,
-            String description) {
+                                                    String description) {
         Store store = findByName(storeName);
         if (!store.isOwnerOrHasManagerPermissions(email)) {
             throw new RuntimeException("User is not authorized to update product");
@@ -133,7 +139,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Adds a product to the store.
-     * 
+     *
      * @param email        The email of the user adding the product.
      * @param storeName    The name of the store to add the product to.
      * @param catalogID    The catalog ID of the product.
@@ -145,12 +151,12 @@ public class StoreRepository implements IStoreRepository {
      */
     @Override
     public String addProductToStore(String email, String storeName, String catalogID, String product_name,
-            String description, double price,
-            int quantity, boolean isAdmin) {
+                                    String description, double price,
+                                    int quantity, boolean isAdmin, String imageURL) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
             return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity,
-                    isAdmin);
+                    isAdmin, imageURL);
         }
         return null;
 
@@ -158,7 +164,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Finds a store by its name.
-     * 
+     *
      * @param name The name of the store to find.
      * @return The Store object representing the store.
      */
@@ -175,7 +181,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Checks if a store with the specified name exists.
-     * 
+     *
      * @param name The name of the store to check.
      * @throws RuntimeException if the store does not exist.
      */
@@ -188,7 +194,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Checks if a store with the specified name exists.
-     * 
+     *
      * @param name The name of the store to check.
      * @return true if the store exists, false otherwise.
      */
@@ -198,7 +204,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Appoints a new owner to a store.
-     * 
+     *
      * @param storeName      The name of the store.
      * @param appointerEmail The email of the current owner appointing the new
      *                       owner.
@@ -212,7 +218,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Removes an owner from a store.
-     * 
+     *
      * @param storeName     The name of the store.
      * @param removerEmail  The email of the current owner removing the owner.
      * @param ownerToRemove The email of the owner to remove.
@@ -225,7 +231,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Resigns ownership of a store.
-     * 
+     *
      * @param storeName  The name of the store.
      * @param ownerEmail The email of the owner resigning.
      */
@@ -237,7 +243,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Appoints a manager to a store with specified permissions.
-     * 
+     *
      * @param storeName    The name of the store.
      * @param ownerEmail   The email of the owner appointing the manager.
      * @param managerEmail The email of the manager to appoint.
@@ -245,7 +251,7 @@ public class StoreRepository implements IStoreRepository {
      */
     @Override
     public void appointManager(String storeName, String ownerEmail, String managerEmail, List<String> permissions,
-            boolean isAdmin) {
+                               boolean isAdmin) {
         Store store = findByName(storeName);
         Set<ManagerPermission> permissionSet = new HashSet<>();
         for (String perm : permissions) {
@@ -257,7 +263,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Updates the permissions of a store manager.
-     * 
+     *
      * @param storeName      The name of the store.
      * @param ownerEmail     The email of the owner updating the permissions.
      * @param managerEmail   The email of the manager whose permissions are being
@@ -266,7 +272,7 @@ public class StoreRepository implements IStoreRepository {
      */
     @Override
     public void updateManagerPermissions(String storeName, String ownerEmail, String managerEmail,
-            List<String> newPermissions) {
+                                         List<String> newPermissions) {
         Store store = findByName(storeName);
         Set<ManagerPermission> permissionSet = new HashSet<>();
         for (String perm : newPermissions) {
@@ -277,7 +283,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Retrieves the permissions of a store manager.
-     * 
+     *
      * @param storeName     The name of the store.
      * @param operatorEmail The email of the user requesting the permissions.
      * @param managerEmail  The email of the manager whose permissions are being
@@ -299,7 +305,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Retrieves all owners of a store.
-     * 
+     *
      * @param storeName     The name of the store.
      * @param operatorEmail The email of the user requesting the list of owners.
      * @return A list of emails of all owners of the store.
@@ -318,7 +324,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Retrieves all managers of a store.
-     * 
+     *
      * @param storeName     The name of the store.
      * @param operatorEmail The email of the user requesting the list of managers.
      * @return A list of emails of all managers of the store.
@@ -337,7 +343,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Deletes a shopping product from a store.
-     * 
+     *
      * @param email     The email of the user performing the deletion.
      * @param storeName The name of the store.
      * @param productID The ID of the product to delete.
@@ -355,7 +361,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Rates a product in a store.
-     * 
+     *
      * @param email     The email of the user rating the product.
      * @param storeName The name of the store.
      * @param productID The ID of the product to rate.
@@ -381,7 +387,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Rates a store.
-     * 
+     *
      * @param email     The email of the user rating the store.
      * @param storeName The name of the store.
      * @param rating    The rating given to the store (1-5).
@@ -398,7 +404,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Adds an amount to the store's balance.
-     * 
+     *
      * @param operatorEmail The email of the user performing the operation.
      * @param storeName     The name of the store.
      * @param amount        The amount to add to the balance.
@@ -406,8 +412,8 @@ public class StoreRepository implements IStoreRepository {
 
     @Override
     public void addToBalance(String operatorEmail,
-            String storeName,
-            double amount) {
+                             String storeName,
+                             double amount) {
 
         if (amount <= 0)
             throw new IllegalArgumentException("Amount must be positive");
@@ -423,7 +429,7 @@ public class StoreRepository implements IStoreRepository {
 
     /**
      * Converts a ShoppingProduct object to a ShoppingProductDTO object.
-     * 
+     *
      * @param product The ShoppingProduct object to convert.
      * @return A ShoppingProductDTO object representing the product.
      */
@@ -437,7 +443,8 @@ public class StoreRepository implements IStoreRepository {
                 product.getDescription(),
                 product.getPrice(),
                 product.getQuantity(),
-                product.averageRating());
+                product.averageRating(),
+                product.getImageUrl());
     }
 
     private List<ShoppingProductDTO> convertProductsToDTO(List<ShoppingProduct> products) {
@@ -512,14 +519,13 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount,
-            Integer quantity) {
+    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount) {
         Store store = findByName(storeName);
-        store.submitBidToShoppingItem(productId, bidAmount, Email, quantity);
+        store.submitBidToShoppingItem(productId, bidAmount, Email);
     }
 
     @Override
-    public void sendAuctionOffer(String email, String storeName, String productId, double bidAmount, Integer quantity) {
+    public void sendAuctionOffer(String email, String storeName, String productId, double bidAmount) {
         Store store = findByName(storeName);
         ShoppingProduct product = store.getProduct(productId);
         if (product == null) {
@@ -538,7 +544,7 @@ public class StoreRepository implements IStoreRepository {
         if (auc.getStartingPrice() > bidAmount) {
             throw new RuntimeException("The bid amount is less than the Starting Price");
         }
-        store.submitAuctionOffer(productId, bidAmount, email, quantity);
+        store.submitAuctionOffer(productId, bidAmount, email);
     }
 
     @Override
@@ -583,8 +589,7 @@ public class StoreRepository implements IStoreRepository {
         return new BidDTO(
                 bid.getBidderEmail(),
                 productId,
-                bid.getAmount(),
-                bid.getQuantity());
+                bid.getAmount());
     }
 
     @Override
@@ -614,11 +619,8 @@ public class StoreRepository implements IStoreRepository {
         if (product == null) {
             throw new RuntimeException("Product not found in store ");
         }
-        if (product.getQuantity() < bidDTO.getQuantity()) {
-            throw new RuntimeException("Not enough quantity for product: " + productId);
-        }
 
-        product.setQuantity(product.getQuantity() - bidDTO.getQuantity());
+
         if (product.getQuantity() == 0) {
             store.removeProduct(productId);
         } else {
@@ -650,7 +652,7 @@ public class StoreRepository implements IStoreRepository {
         }
 
         if (auc.getHighestBid().getBidderEmail().equals(bidDTO.getBidderEmail())) {
-            product.setQuantity(product.getQuantity() - bidDTO.getQuantity());
+            product.setQuantity(product.getQuantity() - 1);
             if (product.getQuantity() == 0) {
                 store.removeProduct(bidDTO.getProductId());
             } else {
@@ -672,7 +674,7 @@ public class StoreRepository implements IStoreRepository {
         if (product == null) {
             throw new RuntimeException("Product not found in store ");
         }
-        product.setQuantity(product.getQuantity() + bidDTO.getQuantity());
+        product.setQuantity(product.getQuantity() + 1);
         store.updateProduct(bidDTO.getProductId(), product);
     }
 
@@ -738,7 +740,65 @@ public class StoreRepository implements IStoreRepository {
         if (product == null) {
             throw new RuntimeException("Product not found in store ");
         }
-        product.removeBid(bidDTO.getBidderEmail(), bidDTO.getPrice(), bidDTO.getQuantity());
+        product.removeBid(bidDTO.getBidderEmail(), bidDTO.getPrice());
     }
 
+    @Override
+    public void updateStoreDescription(String storeName, String operatorEmail, String description) {
+        // Use findByName instead of stores.get(storeName)
+        Store store = findByName(storeName);
+
+        if (!store.isOwner(operatorEmail)) {
+            throw new IllegalArgumentException("User is not authorized to update store description");
+        }
+
+        store.setDescription(description);
+    }
+
+    @Override
+    public List<StoreDTO> getStoresOwnedBy(String ownerEmail) {
+        return stores.stream()                      // iterate over the list
+                .filter(s -> s.isOwner(ownerEmail)) // or s.getAllOwners().contains(ownerEmail)
+                .map(storeMapper::toDTO)       // convert to DTO
+                .toList();                     // Java 16 +  (Collectors.toList() for older)
+    }
+
+    @Override
+    public List<ShoppingProductDTO> getStoreProducts(String storeName) {
+        Store store = findByName(storeName);
+        List<ShoppingProductDTO> dtos = new ArrayList<>();
+        for (ShoppingProduct product : store.getAllProducts()) {
+            dtos.add(convertProductToDTO(product));
+        }
+        return dtos;
+    }
+
+    @Override
+    public List<RatingDto> getStoreRatings(String storeName) {
+        Store store = findByName(storeName);
+
+        Map<String, Store.Rating> ratings = store.getAllRatings();
+
+        List<RatingDto> dtoList = new ArrayList<>();
+        for (Map.Entry<String, Store.Rating> entry : ratings.entrySet()) {
+            dtoList.add(new RatingDto(entry.getKey(), entry.getValue().getScore(), entry.getValue().getReview()));
+        }
+
+        return dtoList;
+    }
+
+    @Override
+    public List<RatingDto> getProductRatings(String storeName,String productId) {
+        Store store = findByName(storeName);
+
+        Map<String, Store.Rating> products_ratings = store.getAllRatings();
+
+        List<RatingDto> dtoList = new ArrayList<>();
+        for (Map.Entry<String, Store.Rating> entry : products_ratings.entrySet()) {
+            dtoList.add(new RatingDto(entry.getKey(), entry.getValue().getScore(), entry.getValue().getReview()));
+        }
+
+        return dtoList;
+    }
 }
+

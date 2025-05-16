@@ -27,7 +27,7 @@ public class SecurityAdapter implements IAuthenticationService {
     @Autowired
     PasswordEncoder passwordEncoder;  // Instance of PasswordEncoder for password encryption and verification
     public SecurityAdapter(){
-        passwordEncoder = new PasswordEncoder();    
+        passwordEncoder = new PasswordEncoder();
     }
     /**
      * Checks if the provided session key (JWT token) is valid.

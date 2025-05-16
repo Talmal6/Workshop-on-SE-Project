@@ -17,6 +17,7 @@ import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.IShippingService;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import org.springframework.stereotype.Service;
 
 /**
  * TransactionService handles the operations related to transactions, including
@@ -25,6 +26,7 @@ import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
  * It interacts with authentication, payment gateway, transaction repository,
  * store repository, and user repository.
  */
+@Service
 public class TransactionService {
     private final IAuthenticationService authenticationService;
     private final IPaymentGateway paymentGateway;
@@ -191,7 +193,7 @@ public class TransactionService {
             authenticationService.checkSessionKey(sessionKey);
             String userEmail = authenticationService.getUserBySession(sessionKey);
             storeRepository.acceptBid(storeName, userEmail, bidDTO.getProductId(), bidDTO);
-            double cost = bidDTO.getPrice()*bidDTO.getQuantity();
+            double cost = bidDTO.getPrice()*1;
             try {
                 shippingService.ship(storeName, userEmail, bidDTO.getProductId());
 
@@ -234,7 +236,7 @@ public class TransactionService {
             authenticationService.checkSessionKey(sessionKey);
             String userEmail = authenticationService.getUserBySession(sessionKey);
             storeRepository.executeAuctionBid(userEmail, storeName, bidDTO);
-            double cost = bidDTO.getPrice()*bidDTO.getQuantity();
+            double cost = bidDTO.getPrice();
             try {
                 shippingService.ship(storeName, userEmail, bidDTO.getProductId());
 

@@ -16,6 +16,7 @@ public class StoreDTO {
     public double balance;
     private final double avgRating;
     public List<ShoppingProductDTO> products;
+    private String description;
 
     /**
      * Constructs a new StoreDTO with the specified details.
@@ -27,9 +28,10 @@ public class StoreDTO {
      * @param balance The balance of the store.
      * @param products The list of products available in the store.
      * @param avgRating The average rating of the store.
+     * @param description The description of the store.
      */
     public StoreDTO(int id, String name, String founderEmail, boolean isActive, double balance,
-                    List<ShoppingProductDTO> products, double avgRating) {
+                    List<ShoppingProductDTO> products, double avgRating, String description) {
         this.id = id;
         this.name = name;
         this.founderEmail = founderEmail;
@@ -37,6 +39,7 @@ public class StoreDTO {
         this.balance = balance;
         this.products = products;
         this.avgRating = avgRating;
+        this.description = description;
     }
 
     /**
@@ -100,5 +103,22 @@ public class StoreDTO {
      */
     public List<ShoppingProductDTO> getProducts() {
         return products;
+    }
+    /**
+     * Gets the description of the store.
+     *
+     * @return The description of the store.
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the description of the store.
+     *
+     * @param description The description to set.
+     */
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

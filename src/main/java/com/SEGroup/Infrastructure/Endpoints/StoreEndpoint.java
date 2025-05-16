@@ -70,9 +70,9 @@ public class StoreEndpoint {
     @Nonnull
     public String addProductToStore(String sessionKey, String storeName,
                                     String catalogID, String productName,
-                                    String description, double price, int quantity) {
+                                    String description, double price, int quantity, String imageURL) {
         return unwrap(storeService.addProductToStore(
-                sessionKey, storeName, catalogID, productName, description, price, quantity));
+                sessionKey, storeName, catalogID, productName, description, price, quantity, imageURL));
     }
 
     public void updateShoppingProduct(String sessionKey, String storeName,
@@ -147,12 +147,12 @@ public class StoreEndpoint {
 
     public void submitBid(String sessionKey, String storeName,
                           String productID, double bidAmount, int quantity) {
-        unwrap(storeService.submitBidToShoppingItem(sessionKey, storeName, productID, bidAmount , quantity));
+        unwrap(storeService.submitBidToShoppingItem(sessionKey, storeName, productID, bidAmount ));
     }
 
     public void sendAuctionOffer(String sessionKey, String storeName,
                                  String productID, double bidAmount, int quantity) {
-        unwrap(storeService.sendAuctionOffer(sessionKey, storeName, productID, bidAmount, quantity));
+        unwrap(storeService.sendAuctionOffer(sessionKey, storeName, productID, bidAmount));
     }
 
     /* ---------- 23‑24. Single‑product queries ---------- */

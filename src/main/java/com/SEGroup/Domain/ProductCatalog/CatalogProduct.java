@@ -1,5 +1,8 @@
 package com.SEGroup.Domain.ProductCatalog;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a product in the catalog with details such as ID, name, brand, and description.
  */
@@ -8,6 +11,7 @@ public class CatalogProduct {
     private final String name; // Example: Iphone 13
     private final String brand; // Example: Apple
     private final String description; // IOS PHONE
+    private final List<String> categories;;
 
     /**
      * Constructs a new CatalogProduct instance.
@@ -22,6 +26,8 @@ public class CatalogProduct {
         this.name = name;
         this.brand = brand;
         this.description = description;
+        this.categories = new ArrayList<>();
+        this.categories.add(brand);
     }
 
     /**
@@ -59,5 +65,7 @@ public class CatalogProduct {
     public String getDescription() {
         return description;
     }
-
+    public List<String> getCategories() {
+        return categories;
+    }
 }
