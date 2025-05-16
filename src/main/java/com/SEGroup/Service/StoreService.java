@@ -11,6 +11,7 @@ import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Domain.Store.Review;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import org.springframework.stereotype.Service;
 
@@ -880,6 +881,46 @@ public class StoreService {
 
         } catch (Exception e) {
             LoggerWrapper.error("Error getting store ratings for: " + storeName + " - " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+    public Result<Void> reviewStore(String sessionKey, String storeName, String reviewText, String rating) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.giveStoreReview(authenticationService.getUserBySession(sessionKey), storeName, reviewText, rating);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<List<Review>> getStoreReviews(String sessionKey, String storeName) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getStoreReviews(storeName));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Review> getReviewById(String sessionKey, String storeName, String reviewId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            return Result.success(storeRepository.getReviewById(storeName, reviewId));
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Void> giveStoreCommentOnReview(String sessionKey, String storeName, String reviewId, String comment) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.giveStoreComment(authenticationService.getUserBySession(sessionKey), storeName, reviewId,
+                    comment);
+            return Result.success(null);
+        } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }

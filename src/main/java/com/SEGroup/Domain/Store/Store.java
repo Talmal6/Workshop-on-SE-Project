@@ -25,7 +25,7 @@ public class Store {
 
     //products and reviews
     private Map<String, ShoppingProduct> products = new java.util.concurrent.ConcurrentHashMap<>();
-    private final List<String> reviews = Collections.synchronizedList(new ArrayList<>());
+    private final Map<String, Review> reviewIdToReview = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<String, Rating> ratings = new java.util.concurrent.ConcurrentHashMap<>();
 
 
@@ -65,8 +65,7 @@ public class Store {
         //product and reviews
         this.products = new java.util.concurrent.ConcurrentHashMap<>();
         this.ratings.clear();
-        this.reviews.clear();
-
+        this.reviewIdToReview.clear();
         // Disocunt and policy fields
         this.purchasePolicy = new PurchasePolicy(0,0);
         this.discounts = new ArrayList<>();
@@ -586,6 +585,38 @@ public class Store {
         else{
             throw new RuntimeException("Product " + productId + " not found");
         }
+    }
+    public void giveManagementComment(String reviewerId,String reviewId, String comment) {
+        if(isOwner(reviewerId)) {
+            Review review = reviewIdToReview.get(reviewId);
+            if (review != null) {
+                review.setStoreComment(comment);
+            } else {
+                throw new IllegalArgumentException("Review not found for the given reviewer ID");
+            }
+        } else {
+            throw new IllegalArgumentException("Only owners can give management comments");
+        }
+    }
+    public List<Review> getStoreReviewsByUser(String userId) {
+        List<Review> userReviews = new ArrayList<>();
+        for (Review review : reviewIdToReview.values()) {
+            if (review.getReviewerId().equals(userId)) {
+                userReviews.add(review);
+            }
+        }
+        return userReviews;
+    }
+    public List<Review> getAllStoreReviews() {
+        return new ArrayList<>(reviewIdToReview.values());
+    }
+    public void giveStoreReview(String reviewerName, String reviewText, int rating) {
+        String reviewerId = String.valueOf(inStoreProductId.incrementAndGet());
+        Review review = new Review(reviewerId, reviewerName, reviewText, rating);
+        reviewIdToReview.put(reviewerId, review);
+    }
+    public Review getStoreReviewById(String reviewId) {
+        return reviewIdToReview.get(reviewId);
     }
 
 
