@@ -26,7 +26,7 @@ import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IUserRepository;
-
+import com.SEGroup.Domain.Report.ReportCenter;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 
@@ -52,6 +52,7 @@ public class StoreServiceAcceptanceTests {
     InMemoryProductCatalog productCatalog;
     IUserRepository userRepository;
     UserService userService;
+    ReportCenter reportCenter;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -68,11 +69,12 @@ public class StoreServiceAcceptanceTests {
         // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
         // create a key
         ((SecurityAdapter) authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+        reportCenter = new ReportCenter();
         userRepository = new UserRepository();
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,
                 new NotificationCenter(authenticationService));
         userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository,
-                authenticationService);
+                authenticationService, reportCenter);
         VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS); // Register and login to get a valid
                                                                                // session
         defaultAdminSession = LoginAndGetSession(ADMIN_EMAIL, ADMIN);

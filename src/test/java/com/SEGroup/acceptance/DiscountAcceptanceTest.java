@@ -13,6 +13,7 @@ import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Domain.User.Basket;
 import com.SEGroup.Infrastructure.Repositories.*;
+import com.SEGroup.Domain.Report.ReportCenter;
 
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Service.*;
@@ -41,6 +42,7 @@ public class DiscountAcceptanceTest {
     IUserRepository userRepository;
     UserService userService;
     NotificationCenter notificationService;
+    ReportCenter reportCenter;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -53,10 +55,11 @@ public class DiscountAcceptanceTest {
         ((SecurityAdapter) authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
         notificationService = new NotificationCenter(authenticationService);
         userRepository = new UserRepository();
+        reportCenter = new ReportCenter();
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,
                 notificationService);
         userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository,
-                authenticationService);
+                authenticationService, reportCenter);
         VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS);
     }
 

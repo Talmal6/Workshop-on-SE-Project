@@ -11,6 +11,8 @@ import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
+import com.SEGroup.Domain.Report.Report;
+import com.SEGroup.Domain.Report.ReportCenter;
 import org.springframework.stereotype.Service;
 
 /**
@@ -26,6 +28,7 @@ public class UserService {
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
     private PasswordEncoder passwordEncoder;
+    private final ReportCenter reportCenter;
 
     /**
      * Constructs a new UserService instance with the provided dependencies.
@@ -36,10 +39,11 @@ public class UserService {
      * @param authenticationService The service responsible for user authentication.
      */
     public UserService(GuestService guestService, IUserRepository userRepository,
-            IAuthenticationService authenticationService) {
+            IAuthenticationService authenticationService, ReportCenter reportCenter) {
         this.guestService = guestService;
         this.userRepository = userRepository;
         this.authenticationService = authenticationService;
+        this.reportCenter = reportCenter;
         passwordEncoder = new PasswordEncoder();
 
     }
@@ -360,18 +364,19 @@ public class UserService {
             return Result.failure(e.getMessage());
         }
     }
-    //merge crazy
+
+    // merge crazy
     /**
      * Adds a product to the cart for both users and guests.
      *
      * @param sessionKey The session key
-     * @param productId The product ID
-     * @param storeName The store name
+     * @param productId  The product ID
+     * @param storeName  The store name
      * @return Result object with success or failure
      */
     public Result<String> addToCart(String sessionKey,
-                                    String productId,
-                                    String storeName) {
+            String productId,
+            String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             String owner = authenticationService.getUserBySession(sessionKey);
@@ -393,13 +398,13 @@ public class UserService {
      * Logs the removal of the product from the cart.
      *
      * @param sessionKey The session key of the authenticated user.
-     * @param productId The ID of the product to remove from the cart.
-     * @param storeName The name of the store where the product is located.
+     * @param productId  The ID of the product to remove from the cart.
+     * @param storeName  The name of the store where the product is located.
      * @return A Result object indicating success or failure of the operation.
      */
     public Result<String> removeFromCart(String sessionKey,
-                                         String productId,
-                                         String storeName) {
+            String productId,
+            String storeName) {
         return changeCartQuantity(sessionKey, productId, storeName, 0);
     }
 
@@ -408,15 +413,15 @@ public class UserService {
      * Logs the modification of the product quantity.
      *
      * @param sessionKey The session key of the authenticated user.
-     * @param productId The ID of the product to modify.
-     * @param storeName The name of the store where the product is located.
-     * @param newQty The new quantity of the product.
+     * @param productId  The ID of the product to modify.
+     * @param storeName  The name of the store where the product is located.
+     * @param newQty     The new quantity of the product.
      * @return A Result object indicating success or failure of the operation.
      */
     public Result<String> changeCartQuantity(String sessionKey,
-                                             String productId,
-                                             String storeName,
-                                             int newQty) {
+            String productId,
+            String storeName,
+            int newQty) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             String owner = authenticationService.getUserBySession(sessionKey);
@@ -434,6 +439,98 @@ public class UserService {
             return Result.failure("Cannot update cart: " + e.getMessage());
         }
     }
+
+    public Result<Void> isAdmin(String sessionKey) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String Admin = authenticationService.getUserBySession(sessionKey);
+
+            if (userRepository.userIsAdmin(Admin)) {
+                return Result.success(null);
+            } else {
+                return Result.failure("User is not an admin");
+            }
+        } catch (Exception e) {
+            return Result.failure("Error checking admin status: " + e.getMessage());
+        }
+    }
+
+    public Result<Void> isSuspended(String sessionKey) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String owner = authenticationService.getUserBySession(sessionKey);
+
+            userRepository.checkUserSuspension(owner);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Error checking suspension status: " + e.getMessage());
+        }
+    }
+
+    public Result<Void> makeSystemReport(String sessionKey, String reportContent) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            String userId = authenticationService.getUserBySession(sessionKey);
+            reportCenter.makeSystemReport(userId, reportContent);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Error making system report: " + e.getMessage());
+        }
+    }
+
+    public Result<Void> makeUserReport(String sessionKey, String reportContent, String reportOnUserId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            String userId = authenticationService.getUserBySession(sessionKey);
+            reportCenter.makeUserReport(userId, reportContent, reportOnUserId);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Error making user report: " + e.getMessage());
+        }
+    }
+
+    public Result<List<Report>> getReports(String sessionKey) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            if (userRepository.userIsAdmin(authenticationService.getUserBySession(sessionKey))) {
+                return Result.failure("User is not an admin");
+            }
+
+            return Result.success(reportCenter.getReportIdToReport());
+        } catch (Exception e) {
+            return Result.failure("Error retrieving reports: " + e.getMessage());
+        }
+    }
+
+    public Result<Report> getReportById(String sessionKey, String reportId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            if (userRepository.userIsAdmin(authenticationService.getUserBySession(sessionKey))) {
+                return Result.failure("User is not an admin");
+            }
+
+            return Result.success(reportCenter.getReportById(reportId));
+        } catch (Exception e) {
+            return Result.failure("Error retrieving report: " + e.getMessage());
+        }
+    }
+
+    public Result<Void> handleReport(String sessionKey, String reportId) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            if (userRepository.userIsAdmin(authenticationService.getUserBySession(sessionKey))) {
+                return Result.failure("User is not an admin");
+            }
+
+            reportCenter.handleReport(reportId);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Error handling report: " + e.getMessage());
+        }
+    }
+
     public List<String> allUsersEmails() {
         return userRepository.getAllEmails(); // or return List.of();
     }

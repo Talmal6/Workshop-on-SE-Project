@@ -4,6 +4,7 @@ import com.SEGroup.Domain.*;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.TransactionDTO;
+import com.SEGroup.Domain.Report.ReportCenter;
 
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
@@ -57,6 +58,7 @@ public class TransactionServiceAcceptanceTests {
         private UserService userService;
         private IShippingService shippingService;
         private NotificationCenter notificationService;
+        private ReportCenter reportCenter;
 
         @BeforeEach
         public void setUp() throws Exception {
@@ -76,10 +78,12 @@ public class TransactionServiceAcceptanceTests {
                                 .setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
                 notificationService = new NotificationCenter(authenticationService);
                 userRepository = new UserRepository();
+                reportCenter = new ReportCenter();
                 storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,
                                 notificationService);
+                
                 userService = new UserService(new GuestService(new GuestRepository(), authenticationService),
-                                userRepository, authenticationService);
+                                userRepository, authenticationService, reportCenter);
                 SESSION_KEY = regLoginAndGetSession(USER, USER_EMAIL, "password123"); // Register and login to get a
                                                                                       // valid session
                 SELLER_TOKEN = regLoginAndGetSession(SELLER, SELLER_EMAIL, "password123"); // Register and login to get
