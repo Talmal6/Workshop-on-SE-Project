@@ -25,20 +25,13 @@ public class RatingStorePresenter {
     public RatingStorePresenter(StoreView storeView,
                                 String storeName) {
         this.storeName = storeName;
-        bind(storeView);
+        this.storeView = storeView;
     }
 
-    private void bind(StoreView storeView) {
-        storeView.ratingView.addClickListener(evt -> {
-            int score = storeView.ratingView.getScore();
-            String comment = storeView.getComment();
-            Result<Void> res = storeService.rateStore(SecurityContextHolder.token(),storeName, score,comment);
-            if(res.isSuccess()) {
-                storeView.showSuccess("Review is collected");
-            }
-            else{
-                storeView.showError("Review failed");
-            }
-        });
+    public void bind() {
+        int score = storeView.ratingView.getScore();
+        String comment = storeView.getComment();
+        Result<Void> res = storeService.rateStore(SecurityContextHolder.token(),storeName, score,comment);
+
     }
 }

@@ -37,16 +37,6 @@ public class ReviewView extends VerticalLayout implements HasUrlParameter<String
         reviewPresenter.loadReviews(storeName);
     }
 
-//    private void loadReviews(String storeName) {
-//
-//        Map<String, Store.Rating> ratings = storeRepository.findRatingsByStore(storeName);
-//
-//        List<StoreRatingDisplay> displayList = ratings.entrySet().stream()
-//                .map(entry -> new StoreRatingDisplay(entry.getKey(), entry.getValue().getScore(), entry.getValue().getReview()))
-//                .collect(Collectors.toList());
-//
-//        grid.setItems(displayList);
-//    }
 
     public static class StoreRatingDisplay {
         private String reviewerEmail;

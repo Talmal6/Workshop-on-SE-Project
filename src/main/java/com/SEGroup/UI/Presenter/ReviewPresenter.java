@@ -24,7 +24,6 @@ public class ReviewPresenter {
     }
 
     public void loadReviews(String storeName) {
-
             List<RatingDto> ratings = storeService.getStoreRatings(SecurityContextHolder.token(),storeName).getData();
 
             List<ReviewView.StoreRatingDisplay> displayList = ratings.stream()
