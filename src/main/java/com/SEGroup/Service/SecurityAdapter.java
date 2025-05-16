@@ -7,12 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
-
+import org.springframework.stereotype.Component;
 /**
  * SecurityAdapter class implements the IAuthenticationService interface.
  * It provides an adapter to interact with the Security and PasswordEncoder services
  * for user authentication, password encryption, session validation, and token generation.
  */
+@Component
 public class SecurityAdapter implements IAuthenticationService {
 
 

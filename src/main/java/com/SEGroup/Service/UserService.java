@@ -13,6 +13,7 @@ import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Domain.Report.Report;
 import com.SEGroup.Domain.Report.ReportCenter;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 /**
@@ -440,13 +441,13 @@ public class UserService {
         }
     }
 
-    public Result<Void> isAdmin(String sessionKey) {
+    public Result<Boolean> isAdmin(String sessionKey) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             String Admin = authenticationService.getUserBySession(sessionKey);
 
             if (userRepository.userIsAdmin(Admin)) {
-                return Result.success(null);
+                return Result.success(true);
             } else {
                 return Result.failure("User is not an admin");
             }
