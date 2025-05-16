@@ -126,17 +126,17 @@ public interface IUserRepository {
      * @param email The email of the user to set as admin.
      */
 
-    void setAsAdmin(String assignee, String email);
+    void setAsAdmin(String assignee, String username);
 
-    void removeAdmin(String assignee, String email);
+    void removeAdmin(String assignee, String username);
 
-    boolean userIsAdmin(String email);
+    boolean userIsAdmin(String username);
 
-    void suspendUser(String email, float suspensionTime, String reason);
+    void suspendUser(String username, float suspensionTime, String reason);
 
-    void unsuspendUser(String email);
+    void unsuspendUser(String username);
 
-    void checkUserSuspension(String email) throws Exception;
+    void checkUserSuspension(String username) throws Exception;
 
     List<UserSuspensionDTO> getAllSuspendedUsers();
 

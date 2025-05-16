@@ -27,6 +27,7 @@ import javax.crypto.SecretKey;
 import javax.naming.AuthenticationException;
 import java.util.List;
 import java.util.Map;
+import com.SEGroup.Domain.Report.ReportCenter;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -48,6 +49,7 @@ class UserServiceTests {
     private IAuthenticationService auth;
     private IUserRepository users;
     private IGuestRepository guests;
+    private ReportCenter reportCenter;
 
     /* real services wired with mocks */
     private GuestService guestSvc;
@@ -75,9 +77,9 @@ class UserServiceTests {
 
         users = new UserRepository();
         guests = new GuestRepository();
-
+        reportCenter = new ReportCenter();
         guestSvc = new GuestService(guests, auth);
-        sut = new UserService(guestSvc, users, auth);
+        sut = new UserService(guestSvc, users, auth, reportCenter);
         jwt = regLoginAndGetSession("owner", email, pw); // register & login to get a session key
         Result<String> adminSeshKeyR = sut.login("Admin@Admin.Admin", "Admin");
         adminSeshKey = adminSeshKeyR.getData();
@@ -111,7 +113,7 @@ class UserServiceTests {
             guests = new GuestRepository();
 
             guestSvc = new GuestService(guests, auth);
-            sut = new UserService(guestSvc, users, auth);
+            sut = new UserService(guestSvc, users, auth, reportCenter);
         }
 
         @Test

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import com.SEGroup.Domain.Report.ReportCenter;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Domain.IUserRepository;
@@ -41,6 +42,7 @@ public class ProductSearchAndUpdatingAcceptanceTests {
     InMemoryProductCatalog productCatalog;
     IAuthenticationService authenticationService;
     IUserRepository userRepository;
+    ReportCenter reportCenter;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -55,11 +57,11 @@ public class ProductSearchAndUpdatingAcceptanceTests {
         security.setKey(key);
         authenticationService   = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
         (( SecurityAdapter)authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
-
+        reportCenter = new ReportCenter();
         //
         userRepository = new UserRepository();
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,new NotificationCenter(authenticationService));
-        su = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService);
+        su = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository, authenticationService, reportCenter);
         VALID_SESSION = regLoginAndGetSession("owner", OWNER_EMAIL, "password");
         // Basic authentication stubs
 
