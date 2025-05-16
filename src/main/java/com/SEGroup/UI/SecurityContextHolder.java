@@ -1,6 +1,7 @@
 package com.SEGroup.UI;
 
 import com.SEGroup.Domain.User.Role;
+import com.SEGroup.Service.Result;
 import com.vaadin.flow.server.VaadinSession;
 
 import java.util.EnumSet;
@@ -41,7 +42,12 @@ public final class SecurityContextHolder {
     }
 
     public static boolean isAdmin() {
-        return hasRole(Role.SYSTEM_MANAGER);
+        boolean ans = false;
+        Result<Boolean> isAdminResult = ServiceLocator.getUserService().isAdmin(KEY);
+        if (isAdminResult.isSuccess() && isAdminResult.getData()) {
+            ans = true;
+        }
+        return ans;
     }
 
     public static boolean hasRole(Role r) {

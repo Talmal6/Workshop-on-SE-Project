@@ -505,7 +505,7 @@ public class MainLayout extends AppLayout {
                 // 5) Base Catalog tab only for admins or store-owners (global or per-store)
                 baseCatalogTab.setVisible(isAdmin || isGlobalOwner || ownsStore);
                 //todo: when isadmin will work properly we shell change to: tabs.getTabAt(7).setVisible(isadmin);
-                tabs.getTabAt(7).setVisible(true);
+                tabs.getTabAt(7).setVisible(isAdmin);
                 // Notifications always once logged in
                 notificationBtn.setVisible(true);
 

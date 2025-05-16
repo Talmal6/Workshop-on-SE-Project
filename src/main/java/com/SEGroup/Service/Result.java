@@ -85,4 +85,13 @@ public class Result<T> {
     public String getErrorMessage() {
         return errorMessage;
     }
+
+    @Override
+    public String toString() {
+        if (success) {
+            return "Result{success=" + success + ", data=" + data + "}";
+        } else {
+            return "Result{success=" + success + ", errorMessage='" + errorMessage + "'}";
+        }
+    }
 }
