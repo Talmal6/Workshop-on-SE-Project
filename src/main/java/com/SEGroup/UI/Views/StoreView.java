@@ -73,7 +73,10 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
     private final NumberField minPriceFilter = new NumberField("Min");
     private final NumberField maxPriceFilter = new NumberField("Max");
     private final ComboBox<String> ratingFilter = new ComboBox<>("Rating");
+    private final Button reviewButton = new Button("Review", VaadinIcon.PLUS.create());
+
     private HorizontalLayout header = new HorizontalLayout();
+    public String comment;
 
     private List<ShoppingProductDTO> allStoreProducts = new ArrayList<>();
     private final Div catalogContainer = new Div();
@@ -107,7 +110,18 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         add(new Span("Your rating:"));
         ratingView = new RatingView();
         add(ratingView);
-        ratingView.addClickListener(evt -> new RatingStorePresenter(this, storeName));
+        // Add comment review
+        add(new Span("Your comment:"));
+        TextField commentField = new TextField();
+        add(commentField);
+        comment = commentField.getValue();
+
+        reviewButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        add(reviewButton);
+        reviewButton.addClickListener(evt -> new RatingStorePresenter(this, storeName));
+
+
+
 
         // Search and filter bar
         HorizontalLayout searchAndFilterBar = createSearchAndFilterBar();
@@ -181,8 +195,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
 
         showReviewsBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         showReviewsBtn.addClickListener(e ->
-                UI.getCurrent().navigate("store/" + storeName + "/reviews")
-        );
+                UI.getCurrent().navigate(ReviewView.class, URLEncoder.encode(storeName, StandardCharsets.UTF_8)));
 
         // 4) Leave the adminButtons container for legacy use, but *don't* add it here:
         adminButtons.setVisible(false); // you'll still use its children in displayStore()
@@ -693,5 +706,9 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
     public void showInfo(String message) {
         Notification notification = Notification.show(message, 3000, Notification.Position.TOP_END);
         notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+    }
+
+    public String getComment(){
+        return comment;
     }
 }
