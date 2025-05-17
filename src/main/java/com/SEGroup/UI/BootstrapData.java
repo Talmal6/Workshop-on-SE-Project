@@ -1,4 +1,3 @@
-
 package com.SEGroup.UI;
 
 import com.SEGroup.Domain.*;
@@ -17,68 +16,60 @@ import java.util.List;
 @Component
 class BootstrapData {
 
-    // Enhanced Base64 image templates for different product categories
-    private static final String PHONE_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3QgeD0iNjUiIHk9IjIwIiB3aWR0aD0iNzAiIGhlaWdodD0iMTYwIiByeD0iMTAiIHJ5PSIxMCIgZmlsbD0iIzMzMzMzMyIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSI3MCIgeT0iMzAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiM2NmY5ZmYiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNjAiIHI9IjEwIiBmaWxsPSIjZTBlMGUwIi8+PGNpcmNsZSBjeD0iODUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxyZWN0IHg9Ijk1IiB5PSI0MCIgd2lkdGg9IjI1IiBoZWlnaHQ9IjUiIHJ4PSIyIiByeT0iMiIgZmlsbD0iIzMzMyIvPjwvc3ZnPg==";
-    private static final String LAPTOP_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3QgeD0iMjAiIHk9IjQwIiB3aWR0aD0iMTYwIiBoZWlnaHQ9IjEwMCIgcng9IjUiIHJ5PSI1IiBmaWxsPSIjMzMzMzMzIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMSIvPjxyZWN0IHg9IjI1IiB5PSI0NSIgd2lkdGg9IjE1MCIgaGVpZ2h0PSI5MCIgZmlsbD0iIzY2ZjlmZiIvPjxyZWN0IHg9IjEwIiB5PSIxNDAiIHdpZHRoPSIxODAiIGhlaWdodD0iMjAiIHJ4PSI1IiByeT0iNSIgZmlsbD0iIzU1NTU1NSIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjE1MCIgcj0iNSIgZmlsbD0iI2UwZTBlMCIvPjxsaW5lIHgxPSI2MCIgeTE9IjYwIiB4Mj0iMTQwIiB5Mj0iNjAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxIi8+PGxpbmUgeDE9IjYwIiB5MT0iNzAiIHgyPSIxNDAiIHkyPSI3MCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiLz48bGluZSB4MT0iNjAiIHkxPSI4MCIgeDI9IjE0MCIgeTI9IjgwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==";
-    private static final String HEADPHONE_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHBhdGggZD0iTTEwMCAzMEMxNDAgMzAgMTcwIDYwIDE3MCAxMDBMMTcwIDE0MEwxNTAgMTQwTDE1MCAxMDBDMTUwIDcwIDEzMCA1MCAxMDAgNTBDNzAgNTAgNTAgNzAgNTAgMTAwTDUwIDE0MEwzMCAxNDBMMzAgMTAwQzMwIDYwIDYwIDMwIDEwMCAzMFoiIGZpbGw9IiM1NTU1NTUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cmVjdCB4PSIzMCIgeT0iMTIwIiB3aWR0aD0iMjAiIGhlaWdodD0iNTAiIHJ4PSI4IiByeT0iOCIgZmlsbD0iIzMzMzMzMyIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSIxNTAiIHk9IjEyMCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjUwIiByeD0iOCIgcnk9IjgiIGZpbGw9IiMzMzMzMzMiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSIxNDAiIHI9IjYiIGZpbGw9IiM2NmY5ZmYiLz48Y2lyY2xlIGN4PSIxNjAiIGN5PSIxNDAiIHI9IjYiIGZpbGw9IiM2NmY5ZmYiLz48L3N2Zz4=";
-    private static final String WATCH_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI1MCIgZmlsbD0iIzQ0NDQ0NCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjQ1IiBmaWxsPSIjNjZmOWZmIi8+PHJlY3QgeD0iOTciIHk9IjYwIiB3aWR0aD0iNiIgaGVpZ2h0PSI0MCIgZmlsbD0iIzMzMzMzMyIvPjxyZWN0IHg9Ijk3IiB5PSI0MCIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIGZpbGw9IiM1NTU1NTUiLz48cmVjdCB4PSI5NyIgeT0iMTUwIiB3aWR0aD0iNiIgaGVpZ2h0PSIxMCIgZmlsbD0iIzU1NTU1NSIvPjxsaW5lIHgxPSIxMDAiIHkxPSIxMDAiIHgyPSIxMjAiIHkyPSIxMDAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIzIi8+PGxpbmUgeDE9IjEwMCIgeTE9IjEwMCIgeDI9IjEwMCIgeTI9IjgwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iMyIgZmlsbD0iI2ZmMzMzMyIvPjwvc3ZnPg==";
-    private static final String MONITOR_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3QgeD0iMjAiIHk9IjQwIiB3aWR0aD0iMTYwIiBoZWlnaHQ9IjEwMCIgcng9IjUiIHJ5PSI1IiBmaWxsPSIjMzMzMzMzIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMSIvPjxyZWN0IHg9IjI1IiB5PSI0NSIgd2lkdGg9IjE1MCIgaGVpZ2h0PSI5MCIgZmlsbD0iIzY2ZjlmZiIvPjxyZWN0IHg9IjgwIiB5PSIxNDAiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzU1NTU1NSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjAuNSIvPjxyZWN0IHg9IjYwIiB5PSIxNjAiIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzU1NTU1NSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjAuNSIvPjxyZWN0IHg9IjQwIiB5PSI1NSIgd2lkdGg9IjEyMCIgaGVpZ2h0PSI3MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjAuNSIvPjwvc3ZnPg==";
-    private static final String CLOTHING_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHBhdGggZD0iTTgwIDQwTDYwIDYwTDQwIDUwTDQwIDE2MEwxNjAgMTYwTDE2MCA1MEwxNDAgNjBMMTIwIDQwWiIgZmlsbD0iI2M4NTAzZCIgc3Ryb2tlPSIjODgzMDJiIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxyZWN0IHg9IjgwIiB5PSI0MCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjZThjNGI4IiBzdHJva2U9IiNjOGEyOTgiIHN0cm9rZS13aWR0aD0iMC41Ii8+PGxpbmUgeDE9IjYwIiB5MT0iODAiIHgyPSIxNDAiIHkyPSI4MCIgc3Ryb2tlPSIjYmI0MDMzIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxsaW5lIHgxPSI2MCIgeTE9IjExMCIgeDI9IjE0MCIgeTI9IjExMCIgc3Ryb2tlPSIjYmI0MDMzIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg==";
-    private static final String JACKET_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHBhdGggZD0iTTgwIDQwTDYwIDYwTDQwIDUwTDQwIDE2MEwxNjAgMTYwTDE2MCA1MEwxNDAgNjBMMTIwIDQwWiIgZmlsbD0iIzkyNjI0MyIgc3Ryb2tlPSIjNjQzZjI1IiBzdHJva2Utd2lkdGg9IjIiLz48cmVjdCB4PSI4MCIgeT0iNDAiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2E4NzU1OSIgc3Ryb2tlPSIjODg1YzQwIiBzdHJva2Utd2lkdGg9IjAuNSIvPjxyZWN0IHg9IjYwIiB5PSI4MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZGRkIiBzdHJva2U9IiNhYWEiIHN0cm9rZS13aWR0aD0iMC41Ii8+PHJlY3QgeD0iMTIwIiB5PSI4MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZGRkIiBzdHJva2U9IiNhYWEiIHN0cm9rZS13aWR0aD0iMC41Ii8+PHBhdGggZD0iTTkwIDYwQzkwIDYwIDk1IDcwIDEwMCA3NUMxMDUgNzAgMTEwIDYwIDExMCA2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNzI0YTMxIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg==";
-    private static final String SHOES_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHBhdGggZD0iTTQwIDEyMEM0MCAxMDAgNTAgODAgOTAgODBDMTMwIDgwIDE0MCAxMDAgMTQwIDEyMEwxNjAgMTIwTDE2MCAxNDBMNDAgMTQwWiIgZmlsbD0iIzMzNjZmZiIgc3Ryb2tlPSIjMDAzM2NjIiBzdHJva2Utd2lkdGg9IjIiLz48cmVjdCB4PSI0MCIgeT0iMTIwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iI2RkZCIgc3Ryb2tlLXdpZHRoPSIwLjUiLz48cGF0aCBkPSJNODAgOTBDODAgOTAgOTAgOTUgMTAwIDk1QzExMCA5NSAxMjAgOTAgMTIwIDkwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHBhdGggZD0iTTYwIDEwMEw3MCAxMTBMOTAgMTEwTDEwMCAxMDBMOTAgOTBMNzAgOTBMNjAgMTAwWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAzM2NjIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg==";
-    private static final String BAG_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3QgeD0iNDAiIHk9IjgwIiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Q0OTQ1YyIgc3Ryb2tlPSIjYjI3YzRjIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNNjAgNTBDNjAgNTAgNzAgMzAgMTAwIDMwQzEzMCAzMCAxNDAgNTAgMTQwIDUwTDE0MCA4MEw2MCA4MFoiIGZpbGw9IiNkNDk0NWMiIHN0cm9rZT0iI2IyN2M0YyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHJlY3QgeD0iNjAiIHk9IjUwIiB3aWR0aD0iODAiIGhlaWdodD0iMzAiIGZpbGw9IiNkNDk0NWMiLz48cmVjdCB4PSI3MCIgeT0iMzAiIHdpZHRoPSIxMCIgaGVpZ2h0PSI0MCIgZmlsbD0iI2JjNmMzMiIgc3Ryb2tlPSIjOWQ1YzJhIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSIxMjAiIHk9IjMwIiB3aWR0aD0iMTAiIGhlaWdodD0iNDAiIGZpbGw9IiNiYzZjMzIiIHN0cm9rZT0iIzlkNWMyYSIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTIwIiByPSIxNSIgZmlsbD0iI2NiOGM1NyIgc3Ryb2tlPSIjYTc3MzQ2IiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=";
-    private static final String SCARF_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHBhdGggZD0iTTMwIDMwQzMwIDMwIDYwIDQwIDEwMCA0MEMxNDAgNDAgMTcwIDMwIDE3MCAzMEwxNzAgNTBDMTcwIDUwIDE0MCA2MCAxMDAgNjBDNjAgNjAgMzAgNTAgMzAgNTBaIiBmaWxsPSIjZmY5OWNjIiBzdHJva2U9IiNmZjY2YWEiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHBhdGggZD0iTTMwIDUwQzMwIDUwIDMwIDExMCA1MCAxMzBDNzAgMTUwIDkwIDE3MCAxMDAgMTcwQzExMCAxNzAgMTMwIDE1MCAxNTAgMTMwQzE3MCAxMTAgMTcwIDUwIDE3MCA1MEMxNzAgNTAgMTQwIDYwIDEwMCA2MEM2MCA2MCAzMCA1MCAzMCA1MFoiIGZpbGw9IiNmZjY2YWEiIHN0cm9rZT0iI2ZmMzM4OCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNNTAgNjBMNjAgNzBMNTAgODBMNjAgOTBMNTAgMTAwTDYwIDExMEw1MCAxMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtZGFzaGFycmF5PSIyLDIiLz48cGF0aCBkPSJNMTUwIDYwTDE0MCA3MEwxNTAgODBMMTQwIDkwTDE1MCAxMDBMMTQwIDExMEwxNTAgMTIwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWRhc2hhcnJheT0iMiwyIi8+PC9zdmc+";
-    private static final String COFFEE_MAKER_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3QgeD0iNjAiIHk9IjQwIiB3aWR0aD0iODAiIGhlaWdodD0iMTIwIiBmaWxsPSIjNTU1NTU1IiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxyZWN0IHg9IjcwIiB5PSI1MCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjZmZmIiBzdHJva2U9IiNlZWUiIHN0cm9rZS13aWR0aD0iMC41Ii8+PHJlY3QgeD0iNzAiIHk9IjgwIiB3aWR0aD0iNjAiIGhlaWdodD0iNDAiIGZpbGw9IiNiYmIiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLXdpZHRoPSIwLjUiLz48cmVjdCB4PSI4MCIgeT0iMTMwIiB3aWR0aD0iNDAiIGhlaWdodD0iMTAiIGZpbGw9IiNiYmIiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLXdpZHRoPSIwLjUiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iI2ZmMzMzMyIvPjxwYXRoIGQ9Ik03NSA1NUgxMjVNNzUgNjBIMTI1TTc1IDY1SDEyNSIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjEiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjE1IiBmaWxsPSIjNDQ0IiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMSIvPjxwYXRoIGQ9Ik0xNDAgNjBDMTUwIDYwIDE1MCA5MCAxNDAgOTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzc3NyIgc3Ryb2tlLXdpZHRoPSI1Ii8+PHJlY3QgeD0iMTQwIiB5PSI3MCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjNDQ0Ii8+PC9zdmc+";
-    private static final String VACUUM_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI2MCIgZmlsbD0iIzc3Nzc3NyIgc3Ryb2tlPSIjNTU1IiBzdHJva2Utd2lkdGg9IjIiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjUwIiBmaWxsPSIjOTk5OTk5IiBzdHJva2U9IiM3NzciIHN0cm9rZS13aWR0aD0iMSIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iMTAiIGZpbGw9IiMzMzMzMzMiLz48Y2lyY2xlIGN4PSIxMzAiIGN5PSI3MCIgcj0iMTAiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNODAgNjBMODAgMTQwIiBzdHJva2U9IiM2NjYiIHN0cm9rZS13aWR0aD0iMiIvPjxwYXRoIGQ9Ik0xMjAgNjBMMTIwIDE0MCIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNNjAgODBMMTQwIDgwIiBzdHJva2U9IiM2NjYiIHN0cm9rZS13aWR0aD0iMiIvPjxwYXRoIGQ9Ik02MCAxMjBMMTQwIDEyMCIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMTAwIDQwQzE0MCA0MCAxNjAgNjAgMTYwIDEwMEMxNjAgMTQwIDE0MCAxNjAgMTAwIDE2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTU1IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjUsNSIvPjwvc3ZnPg==";
-    private static final String BEDDING_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3QgeD0iMzAiIHk9IjgwIiB3aWR0aD0iMTQwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiNkZGQiIHN0cm9rZS13aWR0aD0iMiIvPjxyZWN0IHg9IjMwIiB5PSI4MCIgd2lkdGg9IjE0MCIgaGVpZ2h0PSI0MCIgZmlsbD0iI2IzZTVmYyIgc3Ryb2tlPSIjOTBjYWYyIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgZmlsbD0iI2IzZTVmYyIgc3Ryb2tlPSIjOTBjYWYyIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSIxMjAiIHk9IjQwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNiM2U1ZmMiIHN0cm9rZT0iIzkwY2FmMiIgc3Ryb2tlLXdpZHRoPSIxIi8+PHBhdGggZD0iTTQwIDEwMEw1MCAxMTBMNjAgMTAwTDcwIDExMEw4MCAxMDBMOTAgMTEwTDEwMCAxMDBMMTEwIDExMEwxMjAgMTAwTDEzMCAxMTBMMTQwIDEwMEwxNTAgMTEwTDE2MCAxMDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzc1YjFlMSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTUwIDUwTDYwIDYwTDcwIDUwIiBmaWxsPSJub25lIiBzdHJva2U9IiM3NWIxZTEiIHN0cm9rZS13aWR0aD0iMiIvPjxwYXRoIGQ9Ik0xMzAgNTBMMTQwIDYwTDE1MCA1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNzViMWUxIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=";
-    private static final String KNIFE_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHBhdGggZD0iTTE2MCA0MEw0MCAxNjBMNjAgMTYwTDE4MCA0MFoiIGZpbGw9IiNlMGUwZTAiIHN0cm9rZT0iI2JiYiIgc3Ryb2tlLXdpZHRoPSIxIi8+PHJlY3QgeD0iMTYwIiB5PSI0MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjOTk5OTk5IiBzdHJva2U9IiM3NzciIHN0cm9rZS13aWR0aD0iMSIvPjxsaW5lIHgxPSI0MCIgeTE9IjE2MCIgeDI9IjE4MCIgeTI9IjQwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMC41Ii8+PHJlY3QgeD0iMTYyIiB5PSI0NSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjUiIGZpbGw9IiM3NzciIHJ4PSIyIiByeT0iMiIvPjxyZWN0IHg9IjE2MiIgeT0iNTUiIHdpZHRoPSIxNiIgaGVpZ2h0PSI1IiBmaWxsPSIjNzc3IiByeD0iMiIgcnk9IjIiLz48cmVjdCB4PSIxNjIiIHk9IjY1IiB3aWR0aD0iMTYiIGhlaWdodD0iNSIgZmlsbD0iIzc3NyIgcng9IjIiIHJ5PSIyIi8+PC9zdmc+";
-    private static final String SMARTHOME_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3QgeD0iNjAiIHk9IjYwIiB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSIxMCIgcnk9IjEwIiBmaWxsPSIjMzMzMzMzIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iMjUiIGZpbGw9IiM2NmY5ZmYiIHN0cm9rZT0iIzMzZDZlOCIgc3Ryb2tlLXdpZHRoPSIxIi8+PHBhdGggZD0iTTgwIDUwTDUwIDgwTDYwIDgwTDkwIDUwWiIgZmlsbD0iIzk5OTk5OSIgc3Ryb2tlPSIjNzc3IiBzdHJva2Utd2lkdGg9IjEiLz48cGF0aCBkPSJNMTIwIDUwTDE1MCA4MEwxNDAgODBMMTEwIDUwWiIgZmlsbD0iIzk5OTk5OSIgc3Ryb2tlPSIjNzc3IiBzdHJva2Utd2lkdGg9IjEiLz48cGF0aCBkPSJNMTAwIDQwTDUwIDkwSDcwVjE0MEgxMzBWOTBIMTUwTDEwMCA0MFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtZGFzaGFycmF5PSI1LDUiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjEwIiBmaWxsPSIjNDRkNmY4Ii8+PHBhdGggZD0iTTkwIDEwMEwxMTAgMTAwTTEwMCA5MEwxMDAgMTEwIiBzdHJva2U9IiMwMDgiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==";
+    private String getProductImage(String keyword) {
+        String key = (keyword == null) ? "" : keyword.toLowerCase();
 
-    private String getProductImage(String category) {
-        if (category.contains("Phone") || category.contains("Smartphone")) {
-            return PHONE_IMAGE;
-        } else if (category.contains("Laptop") || category.contains("Computer") || category.contains("Notebook")) {
-            return LAPTOP_IMAGE;
-        } else if (category.contains("Audio") || category.contains("Earbuds") || category.contains("Headphone")) {
-            return HEADPHONE_IMAGE;
-        } else if (category.contains("Watch") || category.contains("Wearable")) {
-            return WATCH_IMAGE;
-        } else if (category.contains("Monitor") || category.contains("Display") || category.contains("Screen")) {
-            return MONITOR_IMAGE;
-        } else if (category.contains("Clothing") || category.contains("T-Shirt") || category.contains("Apparel")) {
-            return CLOTHING_IMAGE;
-        } else if (category.contains("Jacket") || category.contains("Coat") || category.contains("Outerwear")) {
-            return JACKET_IMAGE;
-        } else if (category.contains("Shoes") || category.contains("Footwear") || category.contains("Boots")) {
-            return SHOES_IMAGE;
-        } else if (category.contains("Bag") || category.contains("Handbag") || category.contains("Purse")) {
-            return BAG_IMAGE;
-        } else if (category.contains("Scarf") || category.contains("Accessory")) {
-            return SCARF_IMAGE;
-        } else if (category.contains("Coffee") || category.contains("Brewer")) {
-            return COFFEE_MAKER_IMAGE;
-        } else if (category.contains("Vacuum") || category.contains("Cleaner")) {
-            return VACUUM_IMAGE;
-        } else if (category.contains("Bedding") || category.contains("Sheets") || category.contains("Bedroom")) {
-            return BEDDING_IMAGE;
-        } else if (category.contains("Knife") || category.contains("Cutlery") || category.contains("Kitchen Tool")) {
-            return KNIFE_IMAGE;
-        } else if (category.contains("Smart Home") || category.contains("IoT") || category.contains("Connected")) {
-            return SMARTHOME_IMAGE;
-        } else if (category.contains("Camera") || category.contains("DSLR") || category.contains("Photography")) {
-            return PHONE_IMAGE; // Repurpose phone image for camera
-        } else if (category.contains("Gaming") || category.contains("Console")) {
-            return MONITOR_IMAGE; // Repurpose monitor image for gaming
-        } else if (category.contains("Fitness") || category.contains("Sports")) {
-            return WATCH_IMAGE; // Repurpose watch image for fitness
-        } else if (category.contains("Beauty") || category.contains("Skincare")) {
-            return BAG_IMAGE; // Repurpose bag image for beauty products
-        } else {
-            // Default image if no category matches
-            return "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlMGUwZTAiIHN0cm9rZT0iI2JiYiIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMTAwIiB5PSIxMDAiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjNDQ0IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiPlByb2R1Y3Q8L3RleHQ+PC9zdmc+";
-        }
+        /* ---------- ELECTRONICS ---------- */
+        if (key.contains("phone"))
+            return "https://images.unsplash.com/photo-1512499617640-c2f999098c63?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("laptop"))
+            return "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("earbud") || key.contains("audio") || key.contains("headphone"))
+            return "https://images.unsplash.com/photo-1585386959984-a41552231617?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("watch"))
+            return "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("monitor"))
+            return "https://images.unsplash.com/photo-1587825140708-030e382b97c8?auto=format&fit=crop&w=400&h=400&q=80";
+
+        /* ---------- FASHION -------------- */
+        if (key.contains("jacket"))
+            return "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("shirt") || key.contains("tee") || key.contains("graphic"))
+            return "https://images.unsplash.com/photo-1523289333742-bea4fa21c8f8?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("shoe"))
+            return "https://images.unsplash.com/photo-1511974035430-5de47d3b95da?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("bag") || key.contains("tote"))
+            return "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("scarf"))
+            return "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&h=400&q=80";
+
+        /* ---------- HOME ----------------- */
+        if (key.contains("coffee"))
+            return "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("vacuum") || key.contains("robot"))
+            return "https://images.unsplash.com/photo-1615540122321-9b9371bd3432?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("bedding") || key.contains("sheet"))
+            return "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("knife"))
+            return "https://images.unsplash.com/photo-1526040652367-ac003a0475fe?auto=format&fit=crop&w=400&h=400&q=80";
+
+        if (key.contains("smart") && key.contains("home"))
+            return "https://images.unsplash.com/photo-1518444024084-31c5455b03d7?auto=format&fit=crop&w=400&h=400&q=80";
+
+        /* ---------- DEFAULT -------------- */
+        return "https://images.unsplash.com/photo-1585386959984-a41552231617?auto=format&fit=crop&w=400&h=400&q=80";
     }
-
     @PostConstruct
     void initDemoData() {
         PasswordEncoder encoder = new PasswordEncoder();
@@ -177,10 +168,10 @@ class BootstrapData {
         /* STORE PRODUCTS ------------------------------------- */
         System.out.println("Adding store products...");
 
-        // Demo Store products - with descriptions and URL parameter
+        // Demo Store products - with descriptions and real image URLs
         System.out.println("Adding Demo Store products...");
         String p1 = stores.addProductToStore("owner@demo.com", demoStore, "TECH-001",
-                "Smartphone X Pro", "Flagship smartphone with 6.7-inch AMOLED display, 108MP camera system, 5G connectivity, and all-day battery life. Includes 1-year warranty and premium accessories.", 999.99, 10, true,"phone-url");
+                "Smartphone X Pro", "Flagship smartphone with 6.7-inch AMOLED display, 108MP camera system, 5G connectivity, and all-day battery life. Includes 1-year warranty and premium accessories.", 999.99, 10, true, getProductImage("Phone"));
         // 🔨 start a quick demo auction on that first product:
         // ownerEmail, storeName, productId, startingPrice, durationMillis
         stores.startAuction("owner@demo.com",
@@ -190,11 +181,11 @@ class BootstrapData {
                 new Date(System.currentTimeMillis() + 5 * 60_000L)
         );
         String p2 = stores.addProductToStore("owner@demo.com", demoStore, "TECH-002",
-                "Laptop Pro Max", "High-performance laptop featuring the latest processor, 32GB RAM, 1TB SSD, and dedicated graphics. Perfect for professionals, designers, and gamers.", 1499.99, 5,true, "laptop-url");
+                "Laptop Pro Max", "High-performance laptop featuring the latest processor, 32GB RAM, 1TB SSD, and dedicated graphics. Perfect for professionals, designers, and gamers.", 1499.99, 5, true, getProductImage("Laptop"));
         String p3 = stores.addProductToStore("owner@demo.com", demoStore, "HOME-001",
-                "Coffee Maker Deluxe", "Fully automatic coffee maker with built-in grinder, programmable timer, and thermal carafe. Enjoy barista-quality coffee at home.", 129.99, 20, true,"coffee-url");
+                "Coffee Maker Deluxe", "Fully automatic coffee maker with built-in grinder, programmable timer, and thermal carafe. Enjoy barista-quality coffee at home.", 129.99, 20, true, getProductImage("Coffee"));
         String p4 = stores.addProductToStore("owner@demo.com", demoStore, "FASH-002",
-                "Premium Leather Jacket", "Handcrafted genuine leather jacket with quilted lining and premium hardware. Classic style that never goes out of fashion.", 349.99, 8, true,"jacket-url");
+                "Premium Leather Jacket", "Handcrafted genuine leather jacket with quilted lining and premium hardware. Classic style that never goes out of fashion.", 349.99, 8, true, getProductImage("Jacket"));
 
         // Add store products to catalog with images and initial ratings
         System.out.println("Adding Demo Store product images...");
@@ -207,18 +198,18 @@ class BootstrapData {
         catalog.addStoreProductEntryWithImage("FASH-002", demoStore, p4, 349.99, 8, 4.7, "Premium Leather Jacket",
                 getProductImage("Jacket"));
 
-        // Tech Store products - with descriptions and URL parameter
+        // Tech Store products - with descriptions and real image URLs
         System.out.println("Adding Tech Store products...");
         String p5 = stores.addProductToStore("tech@demo.com", techStore, "TECH-001",
-                "Smartphone X Limited Edition", "Exclusive version with extended warranty, premium case, and screen protector. Features enhanced storage and special color options.", 1049.99, 15, true,"smartphone-limited-url");
+                "Smartphone X Limited Edition", "Exclusive version with extended warranty, premium case, and screen protector. Features enhanced storage and special color options.", 1049.99, 15, true, getProductImage("Phone"));
         String p6 = stores.addProductToStore("tech@demo.com", techStore, "TECH-002",
-                "Laptop Pro Developer Edition", "Specially configured for developers with Linux pre-installed, extended battery, and free carrying case.", 1649.99, 8, true,"laptop-dev-url");
+                "Laptop Pro Developer Edition", "Specially configured for developers with Linux pre-installed, extended battery, and free carrying case.", 1649.99, 8, true, getProductImage("Laptop"));
         String p7 = stores.addProductToStore("tech@demo.com", techStore, "TECH-003",
-                "Wireless Earbuds Pro", "Premium wireless earbuds with active noise cancellation, transparency mode, and wireless charging case.", 179.99, 30, true,"earbuds-url");
+                "Wireless Earbuds Pro", "Premium wireless earbuds with active noise cancellation, transparency mode, and wireless charging case.", 179.99, 30, true, getProductImage("Audio"));
         String p8 = stores.addProductToStore("tech@demo.com", techStore, "TECH-004",
-                "Smart Watch Elite GPS", "Advanced smartwatch with cellular connectivity, ECG monitoring, and premium band options.", 349.99, 12, true,"smartwatch-url");
+                "Smart Watch Elite GPS", "Advanced smartwatch with cellular connectivity, ECG monitoring, and premium band options.", 349.99, 12, true, getProductImage("Watch"));
         String p9 = stores.addProductToStore("tech@demo.com", techStore, "TECH-005",
-                "Ultra Gaming Monitor", "34-inch ultra-wide curved gaming monitor with 165Hz refresh rate and G-Sync support.", 699.99, 7, true,"monitor-url");
+                "Ultra Gaming Monitor", "34-inch ultra-wide curved gaming monitor with 165Hz refresh rate and G-Sync support.", 699.99, 7, true, getProductImage("Monitor"));
 
         // Add Tech Store products to catalog with images and ratings
         System.out.println("Adding Tech Store product images...");
@@ -233,18 +224,18 @@ class BootstrapData {
         catalog.addStoreProductEntryWithImage("TECH-005", techStore, p9, 699.99, 7, 4.9, "Ultra Gaming Monitor",
                 getProductImage("Monitor"));
 
-        // Fashion Store products - with descriptions and URL parameter
+        // Fashion Store products - with descriptions and real image URLs
         System.out.println("Adding Fashion Store products...");
         String p10 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-001",
-                "Designer Graphic Tee", "Limited edition designer t-shirt with exclusive print. Made from organic cotton for maximum comfort and style.", 59.99, 100, true,"tshirt-url");
+                "Designer Graphic Tee", "Limited edition designer t-shirt with exclusive print. Made from organic cotton for maximum comfort and style.", 59.99, 100, true, getProductImage("Clothing"));
         String p11 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-002",
-                "Vintage Leather Jacket", "Classic leather jacket with distressed finish and premium hardware. Timeless style that gets better with age.", 329.99, 15, true,"vintage-jacket-url");
+                "Vintage Leather Jacket", "Classic leather jacket with distressed finish and premium hardware. Timeless style that gets better with age.", 329.99, 15, true, getProductImage("Jacket"));
         String p12 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-003",
-                "Performance Running Shoes", "Engineered for maximum comfort and performance with responsive cushioning and breathable materials.", 149.99, 50, true,"shoes-url");
+                "Performance Running Shoes", "Engineered for maximum comfort and performance with responsive cushioning and breathable materials.", 149.99, 50, true, getProductImage("Shoe"));
         String p13 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-004",
-                "Signature Tote Bag", "Spacious designer tote with premium leather trim and durable canvas construction. Perfect for work or weekend.", 199.99, 25, true,"tote-url");
+                "Signature Tote Bag", "Spacious designer tote with premium leather trim and durable canvas construction. Perfect for work or weekend.", 199.99, 25, true, getProductImage("Bag"));
         String p14 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-005",
-                "Designer Silk Scarf", "Luxurious silk scarf with hand-painted design. Versatile accessory to elevate any outfit.", 89.99, 40, true,"scarf-url");
+                "Designer Silk Scarf", "Luxurious silk scarf with hand-painted design. Versatile accessory to elevate any outfit.", 89.99, 40, true, getProductImage("Scarf"));
 
         // Add Fashion Store products to catalog with images and ratings
         System.out.println("Adding Fashion Store product images...");
@@ -253,24 +244,24 @@ class BootstrapData {
         catalog.addStoreProductEntryWithImage("FASH-002", fashionStore, p11, 329.99, 15, 4.8, "Vintage Leather Jacket",
                 getProductImage("Jacket"));
         catalog.addStoreProductEntryWithImage("FASH-003", fashionStore, p12, 149.99, 50, 4.6, "Performance Running Shoes",
-                getProductImage("Shoes"));
+                getProductImage("Shoe"));
         catalog.addStoreProductEntryWithImage("FASH-004", fashionStore, p13, 199.99, 25, 4.7, "Signature Tote Bag",
                 getProductImage("Bag"));
         catalog.addStoreProductEntryWithImage("FASH-005", fashionStore, p14, 89.99, 40, 4.4, "Designer Silk Scarf",
                 getProductImage("Scarf"));
 
-        // Home Store products - with descriptions and URL parameter
+        // Home Store products - with descriptions and real image URLs
         System.out.println("Adding Home Store products...");
         String p15 = stores.addProductToStore("home@demo.com", homeStore, "HOME-001",
-                "Barista Coffee Maker", "Professional-grade coffee maker with built-in grinder, pressure control, and milk frother. Make cafe-quality coffee at home.", 199.99, 18, true,"barista-coffee-url");
+                "Barista Coffee Maker", "Professional-grade coffee maker with built-in grinder, pressure control, and milk frother. Make cafe-quality coffee at home.", 199.99, 18, true, getProductImage("Coffee"));
         String p16 = stores.addProductToStore("home@demo.com", homeStore, "HOME-002",
-                "Smart Robot Vacuum", "AI-powered vacuum with mapping technology, scheduling, and app control. Keep your home clean with minimal effort.", 299.99, 10, true,"vacuum-url");
+                "Smart Robot Vacuum", "AI-powered vacuum with mapping technology, scheduling, and app control. Keep your home clean with minimal effort.", 299.99, 10, true, getProductImage("Vacuum"));
         String p17 = stores.addProductToStore("home@demo.com", homeStore, "HOME-003",
-                "Premium Egyptian Cotton Bedding", "Luxurious 1000 thread count Egyptian cotton sheets, duvet cover, and pillowcases for the ultimate sleep experience.", 249.99, 25, true,"bedding-url");
+                "Premium Egyptian Cotton Bedding", "Luxurious 1000 thread count Egyptian cotton sheets, duvet cover, and pillowcases for the ultimate sleep experience.", 249.99, 25, true, getProductImage("Bedding"));
         String p18 = stores.addProductToStore("home@demo.com", homeStore, "HOME-004",
-                "Professional Knife Collection", "Hand-forged chef's knives with premium steel blades and ergonomic handles. Essential tools for any serious cook.", 179.99, 15, true,"knife-set-url");
+                "Professional Knife Collection", "Hand-forged chef's knives with premium steel blades and ergonomic handles. Essential tools for any serious cook.", 179.99, 15, true, getProductImage("Knife"));
         String p19 = stores.addProductToStore("home@demo.com", homeStore, "HOME-005",
-                "Smart Home Control Center", "Central hub for all your smart home devices with voice control, automation, and security features.", 159.99, 20, true,"smart-home-url");
+                "Smart Home Control Center", "Central hub for all your smart home devices with voice control, automation, and security features.", 159.99, 20, true, getProductImage("Smart Home"));
 
         // Add Home Store products to catalog with images and ratings
         System.out.println("Adding Home Store product images...");

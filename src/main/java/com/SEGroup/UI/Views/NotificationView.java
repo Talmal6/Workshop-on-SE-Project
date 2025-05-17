@@ -1,369 +1,311 @@
 package com.SEGroup.UI.Views;
 
-import com.SEGroup.Infrastructure.NotificationCenter.Notification;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationWithSender;
-import com.SEGroup.Infrastructure.NotificationCenter.RichNotification;
-import com.SEGroup.UI.MainLayout;
-import com.SEGroup.UI.NotificationBroadcastService;
-import com.SEGroup.UI.SecurityContextHolder;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import com.SEGroup.Infrastructure.NotificationCenter.*;
+import com.SEGroup.UI.*;
+import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.button.*;
+import com.vaadin.flow.component.grid.*;
+import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.*;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.orderedlayout.*;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.shared.Registration;
 import org.springframework.beans.factory.annotation.Autowired;
+import reactor.core.Disposable;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
- * View for displaying user notifications.
- * This view shows all notifications received by the current user.
+ * Unified "Notifications" page: purchase-offers + auction activity.
  */
 @Route(value = "notifications", layout = MainLayout.class)
 @PageTitle("Notifications")
 public class NotificationView extends VerticalLayout {
 
-    private final Grid<NotificationItem> grid = new Grid<>();
-    private final List<NotificationItem> notifications = new ArrayList<>();
-    private final Span emptyMessage = new Span("You have no notifications");
-    private final NotificationEndpoint notificationEndpoint;
-    private final NotificationBroadcastService broadcastService;
-    private Registration broadcasterRegistration;
-    private ScheduledExecutorService refreshExecutor;
+    /* ─── infra ─────────────────────────────────────────────────────── */
+    private static final Logger log = Logger.getLogger(NotificationView.class.getName());
+    private final NotificationEndpoint          endpoint;
+    private final NotificationBroadcastService  broadcast;
+    private final DirectNotificationSender      sender;
 
+    /* ─── ui elements ───────────────────────────────────────────────── */
+    private final Grid<Item> offerGrid   = new Grid<>();
+    private final Grid<Item> auctionGrid = new Grid<>();
+    private final List<Item> offers      = new ArrayList<>();
+    private final List<Item> auctions    = new ArrayList<>();
+    private final Span badge             = new Span("0");
+    private final Span emptyMsg          = new Span("You have no notifications");
+
+    private Registration broadcastReg;
+    private Disposable   endpointSub;
+
+    /* ─── ctor ──────────────────────────────────────────────────────── */
     @Autowired
-    public NotificationView(NotificationEndpoint notificationEndpoint, NotificationBroadcastService broadcastService) {
-        this.notificationEndpoint = notificationEndpoint;
-        this.broadcastService = broadcastService;
+    public NotificationView(NotificationEndpoint ep,
+                            NotificationBroadcastService bc){
+        this.endpoint  = ep;
+        this.broadcast = bc;
+        this.sender    = ServiceLocator.getDirectNotificationSender();
 
-        setSizeFull();
-        setPadding(true);
-        setSpacing(true);
+        setSizeFull(); setPadding(true); setSpacing(true);
 
-        // Title with notification count badge
+        /* header with badge */
+        badge.getElement().getThemeList().add("badge primary pill");
+        badge.getStyle().set("margin-left","8px");
         H2 title = new H2("Notifications");
-        HorizontalLayout headerLayout = new HorizontalLayout(title);
-        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        add(headerLayout);
+        add(new HorizontalLayout(title,badge));
 
-        // Add test button for debugging
-        Button testButton = new Button("Test Notification", e -> {
-            if (SecurityContextHolder.isLoggedIn()) {
-                String currentUser = SecurityContextHolder.email();
-                NotificationItem testItem = new NotificationItem(
-                        "Test notification at " + LocalDateTime.now(),
-                        "System",
-                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-                );
-                notifications.add(0, testItem);
-                updateGrid();
-                System.out.println("Added test notification to grid");
-            }
-        });
-        testButton.getStyle().set("margin-bottom", "10px");
-        headerLayout.add(testButton);
+        /* tabs */
+        Tab t1 = new Tab("Purchase offers");
+        Tab t2 = new Tab("Auctions");
+        Tabs tabs = new Tabs(t1,t2);
 
-        // Configure empty state message
-        emptyMessage.getStyle()
-                .set("color", "var(--lumo-secondary-text-color)")
-                .set("display", "flex")
-                .set("justify-content", "center")
-                .set("padding", "2em");
+        Div box1 = new Div(offerGrid);   box1.setSizeFull();
+        Div box2 = new Div(auctionGrid); box2.setSizeFull();
+        Map<Tab,Div> map = Map.of(t1,box1,t2,box2);
+        map.values().forEach(v -> v.setVisible(false));
+        box1.setVisible(true);
+        tabs.addSelectedChangeListener(e ->
+                map.forEach((k,v)->v.setVisible(k==tabs.getSelectedTab())));
 
-        // Configure grid
-        configureNotificationsGrid();
-        add(grid);
+        /* grids */
+        configOfferGrid();
+        configAuctionGrid();
 
-        // Button to clear all notifications
-        Button clearAllButton = new Button("Clear All Notifications", event -> {
-            notifications.clear();
-            updateGrid();
-
-            // Reset the notification badge in MainLayout
-            if (MainLayout.getInstance() != null) {
-                MainLayout.getInstance().resetNotificationCount();
-            }
-        });
-        clearAllButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-
-        // Add clear button
-        add(clearAllButton);
-
-        // Add empty message
-        add(emptyMessage);
-
-        // Initially show/hide components based on notifications
-        updateGrid();
+        add(tabs, box1, box2, emptyMsg);
+        updateGrids();      // initial state
     }
 
+    /* ───────────────── grid builders ──────────────────────────────── */
+    private void configOfferGrid(){
+        commonColumns(offerGrid);
+        offerGrid.addColumn(it -> it.price>0? f$(it.price):"")
+                .setHeader("Amount").setWidth("100px").setFlexGrow(0);
+        offerGrid.addComponentColumn(this::actionButtons)
+                .setHeader("Actions").setWidth("200px").setFlexGrow(0);
+        offerGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        offerGrid.setHeight("450px");
+    }
+    private void configAuctionGrid(){
+        commonColumns(auctionGrid);
+        auctionGrid.addColumn(it -> it.price>0? f$(it.price):"")
+                .setHeader("Bid").setWidth("90px").setFlexGrow(0);
+        auctionGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        auctionGrid.setHeight("450px");
+    }
+    private void commonColumns(Grid<Item> g){
+        g.addColumn(Item::ts).setHeader("Time").setWidth("120px").setFlexGrow(0);
+        g.addColumn(it -> it.sender==null || it.sender.isBlank() ? "System": it.sender)
+                .setHeader("From").setWidth("150px").setFlexGrow(0);
+        g.addColumn(Item::msg).setHeader("Message").setFlexGrow(1);
+    }
 
+    /* ───────────────── attach / detach ────────────────────────────── */
+    @Override
+    protected void onAttach(AttachEvent e) {
+        if (!SecurityContextHolder.isLoggedIn()) {
+            emptyMsg.setText("Please log in to view your notifications");
+            return;
+        }
 
-    /**
-     * Configures the notifications grid with columns for timestamp, sender, message, and actions.
-     */
-    private void configureNotificationsGrid() {
-        grid.addColumn(NotificationItem::getTimestamp)
-                .setHeader("Time")
-                .setWidth("150px")
-                .setFlexGrow(0);
+        String me = SecurityContextHolder.email();
+        System.out.println("NotificationView attached for user: " + me);
 
-        grid.addColumn(item -> {
-                    if (item.getSender() != null && !item.getSender().isEmpty()) {
-                        return item.getSender();
+        /* history load */
+        System.out.println("Loading notification history for: " + me);
+        broadcast.getHistory(me).forEach(n -> {
+            System.out.println("Found in history: " + n);
+            this.push(n);
+        });
+
+        broadcast.getAuctionHistory(me).forEach(n -> {
+            System.out.println("Found in auction history: " + n);
+            this.push(n);
+        });
+
+        /* live via broadcast hub */
+        System.out.println("Registering for broadcasts");
+        broadcastReg = broadcast.register(me, e.getUI(), this::push);
+
+        /* direct endpoint (fallback) */
+        System.out.println("Subscribing to endpoint");
+        endpointSub = endpoint.subscribe(me)
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe(
+                        n -> e.getUI().access(() -> {
+                            System.out.println("Received from endpoint: " + n);
+                            push(n);
+                        }),
+                        err -> log.warning("endpoint error: " + err)
+                );
+    }
+    /* ───────────────── push handler ───────────────────────────────── */
+    private void push(Notification n) {
+        if(n == null) return;
+        System.out.println("NotificationView.push: " + n);
+
+        /* toast notification with improved styling */
+        com.vaadin.flow.component.notification.Notification toast =
+                com.vaadin.flow.component.notification.Notification
+                        .show(n.getMessage(), 5000, // Increase duration to 5 seconds
+                                com.vaadin.flow.component.notification.Notification.Position.TOP_END);
+
+        /* Apply theme variants based on notification type */
+        if(n instanceof RichNotification rn) {
+            switch (rn.getType()){
+                case BID, AUCTION_BID -> toast.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                case BID_ACCEPTED, AUCTION_WIN -> {
+                    toast.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    // Play a success sound (in a real app, you'd use a sound API)
+                    UI.getCurrent().getPage().executeJs("new Audio('/sounds/success.mp3').play();");
+                }
+                case BID_REJECTED -> {
+                    toast.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    // Add error icon
+                    toast.getElement().getStyle().set("--lumo-error-color-50pct", "rgba(231, 76, 60, 0.5)");
+                }
+                case BID_APPROVAL_NEEDED, AUCTION_OUTBID, BID_COUNTER -> {
+                    toast.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    // Make it more prominent
+                    toast.getElement().getStyle().set("font-weight", "bold");
+                }
+            }
+        }
+
+        /* convert → Item for the grid */
+        Item it = Item.of(n);
+        List<Item> list = it.type.startsWith("AUCTION_") ? auctions : offers;
+
+        // Check if notification already exists
+        boolean exists = list.stream().anyMatch(ex -> ex.sameAs(it));
+        if(!exists) {
+            System.out.println("Adding notification to " +
+                    (it.type.startsWith("AUCTION_") ? "auctions" : "offers") + " list: " + it);
+            list.add(0, it); // Add to top of list
+            updateGrids();
+        } else {
+            System.out.println("Notification already exists in list: " + it);
+        }
+    }
+    /* ───────────────── ui helpers ─────────────────────────────────── */
+    private Component actionButtons(Item it) {
+        /* delete */
+        Button del = new Button(new Icon(VaadinIcon.TRASH),
+                c -> {
+                    // Remove from both UI list and backend storage
+                    if (it.type.startsWith("AUCTION_")) {
+                        auctions.remove(it);
+                        // Also remove from persistent storage
+                        broadcast.removeFromAuctionHistory(SecurityContextHolder.email(), it.msg(), it.price(), it.productId());
                     } else {
-                        return "System";
+                        offers.remove(it);
+                        // Also remove from persistent storage
+                        broadcast.removeFromHistory(SecurityContextHolder.email(), it.msg(), it.price(), it.productId());
                     }
-                })
-                .setHeader("From")
-                .setWidth("200px")
-                .setFlexGrow(0);
+                    updateGrids();
+                });
+        del.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
 
-        grid.addColumn(NotificationItem::getMessage)
-                .setHeader("Message")
-                .setFlexGrow(1);
+        HorizontalLayout hl = new HorizontalLayout(del); hl.setSpacing(true);
 
-        grid.addComponentColumn(item -> {
-                    Button deleteButton = new Button(new Icon(VaadinIcon.TRASH), click -> {
-                        notifications.remove(item);
-                        updateGrid();
-                    });
-                    deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
-                    return deleteButton;
-                })
-                .setHeader("Actions")
-                .setWidth("100px")
-                .setFlexGrow(0);
-
-        grid.setWidthFull();
-    }
-
-    @Override
-    protected void onDetach(DetachEvent detachEvent) {
-        // Clean up the executor when the view is detached
-        if (refreshExecutor != null) {
-            refreshExecutor.shutdown();
-            refreshExecutor = null;
+        /* contextual actions */
+        if(it.type.equals("BID_APPROVAL_NEEDED")){
+            Button ok = new Button("Approve", new Icon(VaadinIcon.CHECK),
+                    c -> { approve(it); offers.remove(it); updateGrids(); });
+            ok.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
+            Button no = new Button("Reject", new Icon(VaadinIcon.CLOSE_SMALL),
+                    c -> { reject(it); offers.remove(it); updateGrids(); });
+            no.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+            hl.add(ok,no);
         }
-
-        // Clean up broadcast registration
-        if (broadcasterRegistration != null) {
-            broadcasterRegistration.remove();
-            broadcasterRegistration = null;
+        if(it.type.equals("BID_COUNTER")){
+            Button acc = new Button("Accept", new Icon(VaadinIcon.CHECK),
+                    c -> { acceptCounter(it); offers.remove(it); updateGrids(); });
+            acc.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
+            hl.add(acc);
         }
+        return hl;
     }
 
-    /**
-     * Updates the grid with the current notifications and shows/hides components accordingly.
-     */
-    private void updateGrid() {
-        grid.setItems(notifications);
-        System.out.println("Updating grid with " + notifications.size() + " notifications");
-
-        boolean hasNotifications = !notifications.isEmpty();
-        grid.setVisible(hasNotifications);
-        emptyMessage.setVisible(!hasNotifications);
+    private void approve(Item it){
+        sender.send(NotificationType.BID_APPROVAL_OK, null,
+                "Bid approved by "+SecurityContextHolder.email(),
+                it.price, it.productId, it.extra);
+        toast("You've approved the bid from "+it.extra, true);
+    }
+    private void reject(Item it){
+        sender.send(NotificationType.BID_REJECTED, it.extra,
+                "Your bid was rejected by "+SecurityContextHolder.email(),
+                it.price, it.productId, null);
+        toast("You've rejected the bid from "+it.extra, false);
+    }
+    private void acceptCounter(Item it){
+        sender.send(NotificationType.BID_ACCEPTED, it.sender,
+                "Counter offer of "+f$(it.price)+" accepted",
+                it.price, it.productId, SecurityContextHolder.email());
+        toast("Accepted counter offer of "+f$(it.price), true);
     }
 
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        UI ui = attachEvent.getUI();
+    private void toast(String m, boolean ok){
+        var n = com.vaadin.flow.component.notification.Notification
+                .show(m,3000,
+                        com.vaadin.flow.component.notification.Notification.Position.MIDDLE);
+        n.addThemeVariants(ok? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+    }
 
-        // Check if user is logged in
-        if (SecurityContextHolder.isLoggedIn()) {
-            String userEmail = SecurityContextHolder.email();
-            System.out.println("NotificationView attached for user: " + userEmail);
+    private void updateGrids(){
+        offerGrid.setItems(offers);
+        auctionGrid.setItems(auctions);
+        int total = offers.size()+auctions.size();
+        badge.setText(String.valueOf(total));
+        emptyMsg.setVisible(total==0);
+    }
 
-            // Register with broadcast service to receive notifications
-            if (broadcastService != null) {
-                broadcasterRegistration = broadcastService.register(
-                        userEmail,
-                        ui,
-                        notification -> {
-                            ui.access(() -> {
-                                addNotification(notification);
-                                System.out.println("Notification received via broadcaster in NotificationView: " + notification.getMessage());
-                            });
+    /* ───────────────── misc ───────────────────────────────────────── */
+    private static String f$(double d){ return "$"+String.format("%.2f",d); }
 
-                        }
-                );broadcastService
-                        .getHistory(userEmail)        // list from the service
-                        .forEach(this::addNotification); // r
+    /* small POJO for grid rows */
+    private record Item(String msg, String sender, String ts, LocalDateTime at,
+                        String type, double price, String productId, String extra) {
 
-                System.out.println("Registered with broadcast service in NotificationView");
+        static Item of(Notification n) {
+            LocalDateTime now = LocalDateTime.now();
+            String sender = n instanceof NotificationWithSender s ? s.getSenderId() : "";
+            String type = n instanceof RichNotification rn ? rn.getType().name() : "SYSTEM";
+            double price = n instanceof RichNotification rn ? rn.getPrice() : 0;
+            String pid = n instanceof RichNotification rn ? rn.getProductId() : null;
+            String extra = n instanceof RichNotification rn ? rn.getExtra() : null;
+
+            // Format message for bid notifications
+            String message = n.getMessage();
+            if (n instanceof RichNotification rn && rn.getType() == NotificationType.BID_ACCEPTED) {
+                message = "Bid of " + f$(price) + " accepted" +
+                        (sender != null && !sender.isEmpty() ? " by " + sender : "");
+            } else if (n instanceof RichNotification rn && rn.getType() == NotificationType.BID_REJECTED) {
+                message = "Bid of " + f$(price) + " rejected" +
+                        (sender != null && !sender.isEmpty() ? " by " + sender : "");
             }
 
-            // Set up a background thread to periodically check for new notifications
-            refreshExecutor = Executors.newSingleThreadScheduledExecutor();
-            refreshExecutor.scheduleAtFixedRate(() -> {
-                if (ui.isAttached()) {
-                    ui.access(() -> {
-                        fetchNotificationHistory(userEmail);
-                    });
-                }
-            }, 0, 5, TimeUnit.SECONDS);
+            return new Item(message, sender,
+                    now.format(DateTimeFormatter.ofPattern("HH:mm:ss")),
+                    now, type, price, pid, extra);
+        }
+        boolean sameAs(Item b){
+            return Objects.equals(msg,b.msg) &&
+                    Objects.equals(type,b.type) &&
+                    Math.abs(price-b.price)<1e-3 &&
+                    Objects.equals(productId,b.productId) &&
+                    Objects.equals(extra,b.extra);
         }
     }
 
 
-    /**
-     * Checks for new notifications for the specified user.
-     *
-     * @param userEmail The email of the user to check notifications for
-     */
-    private void checkForNewNotifications(String userEmail) {
-        try {
-            // In a real implementation, you would fetch notifications from the server here
-            // For example:
-            // List<Notification> newNotifications = notificationService.getNewNotificationsForUser(userEmail);
 
-            // For demonstration purposes, we're just logging that we checked
-            System.out.println("Checking for new notifications for user: " + userEmail);
-
-            // Process each new notification
-            // for (Notification notification : newNotifications) {
-            //     addNotification(notification);
-            // }
-        } catch (Exception e) {
-            System.err.println("Error checking for notifications: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Adds a new notification to the view.
-     *
-     * @param notification The notification to add
-     */
-    public void addNotification(Notification notification) {
-            if (notification == null) {
-                return;
-            }
-
-            /* 1.  Build the toast first so we can theme it later */
-            com.vaadin.flow.component.notification.Notification toast =
-                    com.vaadin.flow.component.notification.Notification.show(
-                            notification.getMessage(),
-                            3000,
-                            com.vaadin.flow.component.notification.Notification.Position.TOP_END
-                    );
-
-            /* 2.  Apply colour according to the rich type (if any) */
-            if (notification instanceof RichNotification rn) {
-                switch (rn.getType()) {
-                    case BID:
-                    case AUCTION_BID:
-                        toast.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-                        break;
-                    case BID_ACCEPTED:
-                    case AUCTION_WIN:
-                        toast.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        break;
-                    case BID_REJECTED:
-                        toast.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                        break;
-                    case BID_APPROVAL_NEEDED:
-                        toast.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            /* 3.  Continue with the grid bookkeeping */
-            try {
-                String sender = "";
-                if (notification instanceof NotificationWithSender) {
-                    sender = ((NotificationWithSender) notification).getSenderId();
-                }
-
-                NotificationItem item = new NotificationItem(
-                        notification.getMessage(),
-                        sender,
-                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-                );
-
-                if (!containsMessage(notifications, item.getMessage())) {
-                    notifications.add(0, item);
-                    updateGrid();
-                }
-            } catch (Exception e) {
-                System.err.println("Error adding notification to grid: " + e.getMessage());
-                e.printStackTrace();
-            }
-
-
-    }
-
-
-    private void fetchNotificationHistory(String userEmail) {
-        try {
-            System.out.println("Fetching notification history for: " + userEmail);
-
-            // Here's the key improvement - actually fetch notification history
-            // This is just a placeholder for demonstration. In a real implementation,
-            // you would access a notification repository or service.
-
-            // If the notifications list is empty, attempt to retrieve history
-            if (notifications.isEmpty()) {
-                // Here we're manually creating a notification to confirm the view works
-                // In your real implementation, you'd fetch actual history
-                NotificationItem historyItem = new NotificationItem(
-                        "New offer: $2213.0 for Smartphone X Pro (Quantity: 12) by owner@demo.com",
-                        "System",
-                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-                );
-
-                // Only add if not already in the list
-                if (!containsMessage(notifications, historyItem.getMessage())) {
-                    notifications.add(0, historyItem);
-                    updateGrid();
-                    System.out.println("Added history notification to grid");
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error fetching notification history: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    private boolean containsMessage(List<NotificationItem> items, String message) {
-        return items.stream().anyMatch(item -> item.getMessage().equals(message));
-    }
-
-    /**
-     * Data class representing a notification item in the grid.
-     */
-    public static class NotificationItem {
-        private final String message;
-        private final String sender;
-        private final String timestamp;
-
-        public NotificationItem(String message, String sender, String timestamp) {
-            this.message = message;
-            this.sender = sender;
-            this.timestamp = timestamp;
-        }
-
-        public String getMessage() { return message; }
-        public String getSender() { return sender; }
-        public String getTimestamp() { return timestamp; }
-    }
 }

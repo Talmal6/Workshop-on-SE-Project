@@ -2,10 +2,9 @@ package com.SEGroup.UI.Presenter;
 
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.Service.Result;
-import com.SEGroup.Service.StoreService;
-import com.SEGroup.Service.TransactionService;
-import com.SEGroup.Service.UserService;
+import com.SEGroup.Domain.User.Basket;
+import com.SEGroup.Domain.User.ShoppingCart;
+import com.SEGroup.Service.*;
 import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.CartView;
@@ -58,26 +57,66 @@ public class CartPresenter {
                 }
             }
 
-            // Get user cart - pass email as null for guests
-            String email = isLoggedIn ? SecurityContextHolder.email() : null;
-            Result<List<BasketDTO>> result = userService.getUserCart(token, email);
+            // Different path for guests vs registered users
+            List<BasketDTO> baskets;
+            if (isLoggedIn) {
+                // For registered users
+                String email = SecurityContextHolder.email();
+                Result<List<BasketDTO>> result = userService.getUserCart(token, email);
 
-            if (result.isSuccess()) {
-                List<BasketDTO> baskets = result.getData();
-                List<CartView.ShoppingCartProduct> products = fetchProductDetails(baskets);
-                currentCartProducts = products;
+                if (!result.isSuccess()) {
+                    System.out.println("Error loading cart: " + result.getErrorMessage());
+                    view.showError("Error loading cart: " + result.getErrorMessage());
+                    view.displayCart(new ArrayList<>(), new ArrayList<>());
+                    return;
+                }
 
-                // Calculate cart total
-                calculateCartTotal(baskets, products);
-
-                view.displayCart(baskets, products);
-                System.out.println("Successfully loaded cart with " + products.size() + " products");
+                baskets = result.getData();
             } else {
-                System.out.println("Error loading cart: " + result.getErrorMessage());
-                view.showError("Error loading cart: " + result.getErrorMessage());
-                view.displayCart(new ArrayList<>(), new ArrayList<>());
-                cartTotal = 0.0;
+                // For guests - Directly access the GuestService
+                try {
+                    // Get the GuestService
+                    GuestService guestService = ServiceLocator.getGuestService();
+                    ShoppingCart guestCart = guestService.cart(token);
+
+                    // Convert ShoppingCart to BasketDTO list
+                    baskets = new ArrayList<>();
+
+                    // Get the snapshot of the shopping cart
+                    Map<String, Basket> cartSnapshot = guestCart.snapShot();
+
+                    // Convert each Basket to a BasketDTO
+                    for (Map.Entry<String, Basket> entry : cartSnapshot.entrySet()) {
+                        String storeId = entry.getKey();
+                        Basket basket = entry.getValue();
+
+                        // Get the product map from the basket using the snapshot() method
+                        Map<String, Integer> productMap = basket.snapshot();
+
+                        // Create a BasketDTO
+                        baskets.add(new BasketDTO(storeId, productMap));
+                    }
+
+                    System.out.println("Successfully loaded guest cart with " + baskets.size() + " baskets");
+                } catch (Exception e) {
+                    System.err.println("Error accessing guest cart: " + e.getMessage());
+                    e.printStackTrace();
+                    view.showError("Error loading cart: " + e.getMessage());
+                    view.displayCart(new ArrayList<>(), new ArrayList<>());
+                    return;
+                }
             }
+
+            // Continue with common code for both user types
+            List<CartView.ShoppingCartProduct> products = fetchProductDetails(baskets);
+            currentCartProducts = products;
+
+            // Calculate cart total
+            calculateCartTotal(baskets, products);
+
+            view.displayCart(baskets, products);
+            System.out.println("Successfully loaded cart with " + products.size() + " products");
+
         } catch (Exception e) {
             System.err.println("Cart loading error: " + e.getMessage());
             e.printStackTrace();

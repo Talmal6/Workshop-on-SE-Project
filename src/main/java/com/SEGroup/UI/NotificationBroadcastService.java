@@ -1,25 +1,28 @@
 package com.SEGroup.UI;
 
 import com.SEGroup.Infrastructure.NotificationCenter.Notification;
+import com.SEGroup.Infrastructure.NotificationCenter.RichNotification;
 import com.vaadin.flow.component.UI;
+
 import com.vaadin.flow.shared.Registration;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-/**
- * Service to broadcast notifications to Vaadin UIs.
- * This handles the push functionality for real-time notifications.
- */
 @Service
 public class NotificationBroadcastService {
     private final Executor executor = Executors.newSingleThreadExecutor();
 
-    // Store both UI and listener together for each user
+    // Store notification history per user
+    private final Map<String, List<Notification>> history = new ConcurrentHashMap<>();
+    private final Map<String, List<Notification>> auctionHistory = new ConcurrentHashMap<>();
+    private final Map<String, Map<Integer, UIListenerPair>> listeners = new ConcurrentHashMap<>();
+
+    // Class to keep UI and listener together
     private static class UIListenerPair {
         final UI ui;
         final Consumer<Notification> listener;
@@ -30,74 +33,133 @@ public class NotificationBroadcastService {
         }
     }
 
-    private final Map<String, Map<Integer, UIListenerPair>> listeners = new ConcurrentHashMap<>();
-    /* ------------------- new: per-user history ---------------------------- */
-    private final ConcurrentHashMap<String,
-            java.util.List<Notification>> history = new ConcurrentHashMap<>();
-
     /**
-     * Register a UI to receive notifications for a specific user.
-     *
-     * @param userId The ID of the user to receive notifications
-     * @param ui The UI instance to update
-     * @param listener The callback to handle the notification
-     * @return A registration object that can be used to remove the listener
+     * Register a UI to receive notifications for a specific user
      */
     public Registration register(String userId, UI ui, Consumer<Notification> listener) {
-        // Get or create a map of UI listeners for this user
+        System.out.println("Registering UI " + ui.getUIId() + " for user " + userId);
+
         Map<Integer, UIListenerPair> userListeners = listeners.computeIfAbsent(
                 userId, id -> new ConcurrentHashMap<>());
 
-        // Add this UI's listener with a reference to the UI instance
         userListeners.put(ui.getUIId(), new UIListenerPair(ui, listener));
 
-        // Return a registration object to remove this listener
         return () -> {
-            synchronized (listeners) {
-                Map<Integer, UIListenerPair> userMap = listeners.get(userId);
-                if (userMap != null) {
-                    userMap.remove(ui.getUIId());
-                    if (userMap.isEmpty()) {
-                        listeners.remove(userId);
-                    }
+            Map<Integer, UIListenerPair> userMap = listeners.get(userId);
+            if (userMap != null) {
+                userMap.remove(ui.getUIId());
+                if (userMap.isEmpty()) {
+                    listeners.remove(userId);
                 }
             }
         };
     }
 
     /**
-     * Broadcast a notification to all registered UIs for a specific user.
-     *
-     * @param userId The ID of the user to send the notification to
-     * @param notification The notification to send
+     * Broadcast a notification to all registered UIs for a specific user
+     * and store in history
      */
-    /* --------------------------------------------------------------------- */
-    /* NEW broadcast – pushes the event *and* saves it for later retrieval   */
-    /* --------------------------------------------------------------------- */
     public void broadcast(String userId, Notification notification) {
-
         if (userId == null || notification == null) return;
 
-        /* 1) remember it --------------------------------------------------- */
-        history.computeIfAbsent(userId, k -> java.util.Collections.synchronizedList(
-                new java.util.ArrayList<>())).add(notification);
+        System.out.println("Broadcasting to " + userId + ": " + notification);
+        System.out.println("Broadcasting: " + notification.toString());
+        // Store notification in appropriate history collection
+        boolean isAuction = false;
+        if (notification instanceof RichNotification) {
+            RichNotification rich = (RichNotification) notification;
+            String typeName = rich.getType().name();
+            isAuction = typeName.startsWith("AUCTION_");
+        }
 
-        /* 2) push it to every live UI ------------------------------------- */
+        // Add to the appropriate history
+        if (isAuction) {
+            auctionHistory
+                    .computeIfAbsent(userId, id -> Collections.synchronizedList(new ArrayList<>()))
+                    .add(notification);
+            System.out.println("Added to auction history for " + userId + ": " + notification);
+        } else {
+            history
+                    .computeIfAbsent(userId, id -> Collections.synchronizedList(new ArrayList<>()))
+                    .add(notification);
+            System.out.println("Added to regular history for " + userId + ": " + notification);
+        }
+
+        // Get the listeners for this user
         Map<Integer, UIListenerPair> userListeners = listeners.get(userId);
+
         if (userListeners != null) {
-            executor.execute(() -> userListeners.values().forEach(pair -> {
-                if (pair.ui != null && pair.ui.isAttached()) {
-                    pair.ui.access(() -> pair.listener.accept(notification));
-                }
-            }));
+            // Schedule the broadcast on a background thread
+            executor.execute(() -> {
+                userListeners.forEach((uiId, pair) -> {
+                    try {
+                        if (pair.ui != null && pair.ui.isAttached()) {
+                            pair.ui.access(() -> {
+                                System.out.println("Delivering notification to UI " + uiId);
+                                pair.listener.accept(notification);
+                            });
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error broadcasting to UI " + uiId + ": " + e.getMessage());
+                    }
+                });
+            });
         }
     }
 
-    /* --------------------------------------------------------------------- */
-    /* helper - the NotificationView fetches the accumulated list            */
-    /* --------------------------------------------------------------------- */
-    public java.util.List<Notification> getHistory(String userId) {
-        return history.getOrDefault(userId, java.util.Collections.emptyList());
+    /**
+     * Get notification history for a user
+     */
+    public List<Notification> getHistory(String userId) {
+        List<Notification> userHistory = history.get(userId);
+        System.out.println("Getting history for " + userId + ": " +
+                (userHistory != null ? userHistory.size() : 0) + " notifications");
+        return userHistory != null ? userHistory : Collections.emptyList();
     }
 
+    /**
+     * Get auction notification history for a user
+     */
+    public List<Notification> getAuctionHistory(String userId) {
+        List<Notification> userAuctionHistory = auctionHistory.get(userId);
+        System.out.println("Getting auction history for " + userId + ": " +
+                (userAuctionHistory != null ? userAuctionHistory.size() : 0) + " notifications");
+        return userAuctionHistory != null ? userAuctionHistory : Collections.emptyList();
+    }
+
+    /**
+     * Remove a notification from a user's history
+     */
+    public void removeFromHistory(String userId, String message, double price, String productId) {
+        List<Notification> userHistory = history.get(userId);
+        if (userHistory != null) {
+            userHistory.removeIf(n -> matchesNotification(n, message, price, productId));
+            System.out.println("Removed notification from history for " + userId);
+        }
+    }
+
+    /**
+     * Remove a notification from a user's auction history
+     */
+    public void removeFromAuctionHistory(String userId, String message, double price, String productId) {
+        List<Notification> userAuctionHistory = auctionHistory.get(userId);
+        if (userAuctionHistory != null) {
+            userAuctionHistory.removeIf(n -> matchesNotification(n, message, price, productId));
+            System.out.println("Removed notification from auction history for " + userId);
+        }
+    }
+
+    /**
+     * Check if a notification matches specified criteria
+     */
+    private boolean matchesNotification(Notification n, String message, double price, String productId) {
+        if (n.getMessage().equals(message)) {
+            if (n instanceof RichNotification rich) {
+                return Math.abs(rich.getPrice() - price) < 0.001 &&
+                        Objects.equals(rich.getProductId(), productId);
+            }
+            return true;
+        }
+        return false;
+    }
 }
