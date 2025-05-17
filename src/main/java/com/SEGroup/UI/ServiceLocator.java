@@ -2,6 +2,7 @@ package com.SEGroup.UI;
 
 import com.SEGroup.Domain.*;
 import com.SEGroup.Domain.Report.ReportCenter;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
 import com.SEGroup.Service.*;
 import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
@@ -47,7 +48,6 @@ public class ServiceLocator {
     private static IShippingService shippingService;
 
     // Notifaction
-    private static NotificationCenter notificationCenter;
     private static ReportCenter reportCenter;
     public static void initialize(IGuestRepository guests,
                                   IUserRepository users,
