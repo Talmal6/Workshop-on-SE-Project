@@ -281,4 +281,20 @@ public class StorePresenter {
             view.showError("Error adding to cart: " + e.getMessage());
         }
     }
+
+    public void deleteProduct(String productId) {
+        try {
+            storeService.deleteShoppingProduct(
+                    SecurityContextHolder.token(),
+                    storeName,
+                    productId
+            );
+
+            // Since the method is void, we assume success if no exception is thrown
+            view.showSuccess("Product deleted successfully");
+            loadStoreProducts(); // Reload store products after deletion
+        } catch (Exception e) {
+            view.showError("Error deleting product: " + e.getMessage());
+        }
+    }
 }

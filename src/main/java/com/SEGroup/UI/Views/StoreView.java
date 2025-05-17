@@ -120,16 +120,26 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         reviewButton.addClickListener(evt ->{comment = commentField.getValue();
             ratingStorePresenter.bind();});
 
-
-
-
         // Search and filter bar
         HorizontalLayout searchAndFilterBar = createSearchAndFilterBar();
         add(searchAndFilterBar);
 
         // Products grid with configuration
         configureProductsGrid();
-        add(productsGrid);
+
+        // REMOVE THESE LINES:
+        // productsGrid.getStyle().set("overflow", "auto");
+        // productsGrid.setHeight("800px");
+
+        // INSTEAD USE THESE CONFIGURATIONS:
+        productsGrid.setSizeFull();
+
+        // Create a container for the grid that takes available space
+        Div gridContainer = new Div(productsGrid);
+        gridContainer.setSizeFull();
+        gridContainer.setHeight("500px"); // You can adjust this as needed
+
+        add(gridContainer);
 
         // Sort options
         add(createSortBar());
@@ -139,7 +149,11 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         backToMarketBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backToMarketBtn.addClickListener(e -> UI.getCurrent().navigate("catalog"));
         add(backToMarketBtn);
+
+        // Make sure the main layout (StoreView) uses all available space
+        setSizeFull();
     }
+
 
     private HorizontalLayout createStoreHeader() {
         // Store icon/logo
@@ -340,7 +354,9 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         });
 
         productsGrid.setSelectionMode(Grid.SelectionMode.NONE);
-        productsGrid.setHeight("500px");
+
+        // REMOVE THIS LINE:
+        // productsGrid.setHeight("800px");
     }
 
     private Component createSortBar() {
@@ -382,10 +398,46 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         addToCartButton.addClickListener(e -> presenter.addToCart(product.getProductId()));
 
         HorizontalLayout actions = new HorizontalLayout(viewButton, addToCartButton);
+
+        // Add delete button only for store owners
+        boolean isOwner = false;
+        try {
+            isOwner = presenter.isCurrentUserOwner();
+        } catch (Exception e) {
+            // ignore errors, just don't show delete button
+        }
+
+        if (isOwner) {
+            Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+            deleteButton.getElement().setAttribute("title", "Delete Product");
+            deleteButton.addClickListener(e -> confirmDelete(product));
+            actions.add(deleteButton);
+        }
+
         actions.setSpacing(true);
         return actions;
     }
 
+    private void confirmDelete(ShoppingProductDTO product) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Delete Product");
+
+        VerticalLayout content = new VerticalLayout();
+        content.add(new Paragraph("Are you sure you want to delete " + product.getName() + "?"));
+        content.setPadding(true);
+        dialog.add(content);
+
+        Button cancelButton = new Button("Cancel", e -> dialog.close());
+        Button deleteButton = new Button("Delete", e -> {
+            presenter.deleteProduct(product.getProductId());
+            dialog.close();
+        });
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+
+        dialog.getFooter().add(cancelButton, deleteButton);
+        dialog.open();
+    }
     private void showAddProductDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Add New Product");

@@ -5,6 +5,7 @@ import com.SEGroup.UI.Views.*;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -568,21 +569,28 @@ public class MainLayout extends AppLayout {
         }
     }
 
-    // Method to handle a new notification
+    // In MainLayout.java
     public void handleNewNotification(String message) {
         try {
-            // Increase notification count
+            // Don't increase counter for empty messages (used by clear notification)
+            if (message == null || message.isEmpty()) {
+                // Just ignore empty messages, don't increment
+                return;
+            }
+
+            // Only increase notification count for real notifications
             increaseNotificationCount();
 
-            // Show a toast notification
-            Notification toast = Notification.show(
-                    message,
-                    3000,
-                    com.vaadin.flow.component.notification.Notification.Position.TOP_END
-            );
-            toast.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-
-            System.out.println("Notification displayed: " + message);
+            // Only show toast for non-empty messages
+            if (!message.isEmpty()) {
+                Notification toast = Notification.show(
+                        message,
+                        3000,
+                        com.vaadin.flow.component.notification.Notification.Position.TOP_END
+                );
+                toast.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                System.out.println("Notification displayed: " + message);
+            }
         } catch (Exception e) {
             System.err.println("Error handling notification: " + e.getMessage());
         }

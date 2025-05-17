@@ -35,21 +35,24 @@ public class NotificationSubscriber {
         this.mainLayout = MainLayout.getInstance();
     }
 
-    /**
-     * Initialize the notification subscriber when the component is constructed.
-     */
     @PostConstruct
     public void init() {
         UI ui = UI.getCurrent();
         if (ui != null) {
-            ui.addDetachListener(event -> {
-                cleanupSubscriptions();
-            });
+            ui.addDetachListener(event -> cleanupSubscriptions());
         }
 
         // Subscribe to notifications if user is logged in
         if (SecurityContextHolder.isLoggedIn()) {
-            subscribeToNotifications(SecurityContextHolder.email());
+            System.out.println("NotificationSubscriber subscribing for: " +
+                    SecurityContextHolder.email());
+            try {
+                subscribeToNotifications(SecurityContextHolder.email());
+                System.out.println("Successfully subscribed to notifications");
+            } catch (Exception e) {
+                System.err.println("Error subscribing to notifications: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
@@ -63,63 +66,42 @@ public class NotificationSubscriber {
         }
     }
 
-    /**
-     * Subscribe to notifications for the given user ID.
-     * Stores UI reference to ensure UI updates happen correctly.
-     *
-     * @param userId The user ID to subscribe for
-     */
-    /**
-     * Subscribe to notifications for the given user ID.
-     * Stores UI reference to ensure UI updates happen correctly.
-     *
-     * @param userId The user ID to subscribe for
-     */
     public void subscribeToNotifications(String userId) {
         cleanupSubscriptions();
 
-        UI currentUI = UI.getCurrent();
+        final UI currentUI = UI.getCurrent(); // Make it effectively final
         if (currentUI != null) {
-            System.out.println("DEBUG: Subscribing to notifications for user: " + userId);
-
             try {
-                // Try to get endpoint from ServiceLocator as backup
-                NotificationEndpoint endpoint = this.notificationEndpoint;
-                if (endpoint == null) {
-                    endpoint = ServiceLocator.getNotificationEndpoint();
-                    System.out.println("Using endpoint from ServiceLocator");
-                }
-
-                if (endpoint != null) {
-                    // Subscribe using endpoint
-                    endpointSubscription = endpoint
+                // Primary subscription via endpoint
+                if (notificationEndpoint != null) {
+                    endpointSubscription = notificationEndpoint
                             .subscribe(userId)
                             .subscribeOn(Schedulers.boundedElastic())
                             .subscribe(
                                     notification -> {
                                         if (currentUI.isAttached()) {
-                                            System.out.println("Received notification via endpoint: " + notification.getMessage());
-                                            currentUI.access(() -> processNotification(notification));
+                                            System.out.println("Received via endpoint: " + notification);
+                                            // Create a final copy of the notification for the lambda
+                                            final Notification notificationCopy = notification;
+                                            currentUI.access(() -> processNotification(notificationCopy));
                                         }
                                     },
-                                    error -> System.err.println("Error in notification subscription: " + error.getMessage()),
-                                    () -> System.out.println("Notification subscription completed for user: " + userId)
+                                    error -> System.err.println("Subscription error: " + error.getMessage()),
+                                    () -> System.out.println("Subscription completed for: " + userId)
                             );
-                } else {
-                    System.out.println("WARNING: NotificationEndpoint not available!");
                 }
 
-                // Always register with broadcast service as primary/backup
+                // Always register with broadcast service as backup
                 broadcastRegistration = broadcastService.register(
                         userId,
                         currentUI,
                         notification -> {
-                            System.out.println("Received notification via broadcast: " + notification.getMessage());
+                            System.out.println("Received via broadcast: " + notification);
                             processNotification(notification);
                         }
                 );
 
-                System.out.println("Successfully subscribed to notifications for: " + userId);
+                System.out.println("Successfully subscribed to all notification channels");
             } catch (Exception e) {
                 System.err.println("ERROR subscribing to notifications: " + e.getMessage());
                 e.printStackTrace();
@@ -129,34 +111,42 @@ public class NotificationSubscriber {
         }
     }
 
-    /**
-     * Process a received notification by displaying it in the UI
-     * and incrementing the notification counter.
-     *
-     * @param notification The notification to process
-     */
     private void processNotification(Notification notification) {
-        String message = notification.getMessage();
-        String sender = "";
+        try {
+            String message = notification.getMessage();
+            String sender = "";
 
-        // Extract sender if present
-        if (notification instanceof NotificationWithSender) {
-            sender = ((NotificationWithSender) notification).getSenderId();
-            message = sender + ": " + message;
+            // Extract sender if present
+            if (notification instanceof NotificationWithSender) {
+                sender = ((NotificationWithSender) notification).getSenderId();
+                if (sender != null && !sender.isEmpty()) {
+                    message = sender + ": " + message;
+                }
+            }
+
+            // Create final copies for lambda use
+            final String finalMessage = message;
+
+            // Update UI with the notification
+            if (mainLayout != null) {
+                mainLayout.handleNewNotification(finalMessage);
+            }
+
+            // Show a toast notification with appropriate styling
+            UI ui = UI.getCurrent();
+            if (ui != null && ui.isAttached()) {
+                ui.access(() -> {
+                    com.vaadin.flow.component.notification.Notification toast =
+                            com.vaadin.flow.component.notification.Notification.show(
+                                    finalMessage,
+                                    3000,
+                                    com.vaadin.flow.component.notification.Notification.Position.TOP_END
+                            );
+                    toast.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                });
+            }
+        } catch (Exception e) {
+            System.err.println("Error processing notification: " + e.getMessage());
         }
-
-        // Update UI with the notification
-        if (mainLayout != null) {
-            mainLayout.handleNewNotification(message);
-        }
-
-        // Show a toast notification with appropriate styling
-        com.vaadin.flow.component.notification.Notification toast =
-                com.vaadin.flow.component.notification.Notification.show(
-                        message,
-                        3000,
-                        com.vaadin.flow.component.notification.Notification.Position.TOP_END
-                );
-        toast.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
     }
 }

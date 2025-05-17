@@ -19,6 +19,7 @@ import javax.crypto.SecretKey;
  * A centralized service locator for retrieving singleton service instances.
  * Use this to inject services into Presenters or UI layers.
  */
+
 public class ServiceLocator {
 
     // Core Dependencies
@@ -79,21 +80,34 @@ public class ServiceLocator {
         if (applicationContext != null) {
             return applicationContext.getBean(NotificationCenter.class);
         }
-        return notificationCenter;  // your old fallback
+        return notificationCenter;
     }
 
-
     public static DirectNotificationSender getDirectNotificationSender() {
-        // 1) if we have a Spring context, always pull the real bean
+        // ① if we already have Spring – always use the real bean
         if (applicationContext != null) {
             return applicationContext.getBean(DirectNotificationSender.class);
         }
-        // 2) otherwise (e.g. in pure‐unit‐test mode), fall back
+
+        // ② fallback only in pure unit tests - no Spring container
         if (directNotificationSender == null) {
             directNotificationSender = new DirectNotificationSender();
+
+            // Manually inject dependencies for test environment
+            directNotificationSender.endpoint = getNotificationEndpoint();
+
+            // Create a simple broadcast service if needed
+            if (applicationContext == null) {
+                System.out.println("Creating temporary broadcast service for DirectNotificationSender");
+                directNotificationSender.broadcast = new NotificationBroadcastService();
+            }
+
+            directNotificationSender.domainCenter = getNotificationCenter();
         }
+
         return directNotificationSender;
     }
+
 
     public static IAuthenticationService getAuthenticationService() {
         return authService;
@@ -138,20 +152,29 @@ public class ServiceLocator {
             }
         }
     }
-
-    // Helper method to get NotificationEndpoint
     public static NotificationEndpoint getNotificationEndpoint() {
+        /* ① primary – grab the singleton managed by Spring */
+        if (applicationContext != null) {
+            return applicationContext.getBean(NotificationEndpoint.class);
+        }
+
+        /* ② fallback – old reflective trick for pure-unit-tests */
         if (notificationEndpoint == null && notificationCenter != null) {
             try {
-                // Try to get endpoint directly
-                java.lang.reflect.Field field = notificationCenter.getClass().getDeclaredField("endpoint");
-                field.setAccessible(true);
-                notificationEndpoint = (NotificationEndpoint) field.get(notificationCenter);
-                System.out.println("Successfully extracted NotificationEndpoint from NotificationCenter");
+                var f = notificationCenter.getClass().getDeclaredField("endpoint");
+                f.setAccessible(true);
+                notificationEndpoint = (NotificationEndpoint) f.get(notificationCenter);
             } catch (Exception e) {
                 System.err.println("Cannot access NotificationEndpoint: " + e.getMessage());
             }
         }
         return notificationEndpoint;
     }
-}
+
+    public static BidApprovalManager getBidApprovalManager() {
+        return applicationContext.getBean(BidApprovalManager.class);
+    }
+
+
+
+    }

@@ -5,9 +5,14 @@ import com.SEGroup.UI.Constants.BidRequest;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.BidUsersPresenter;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.button.Button;
@@ -85,5 +90,31 @@ public class BidUsersView extends VerticalLayout implements BeforeEnterObserver 
     }
     public void showError(String msg) {
         Notification.show(msg, 3000, Position.MIDDLE);
+    }
+    /**
+     * Displays an informational message to the user
+     * @param message The message to display
+     */
+    public void showInfo(String message) {
+        Notification notification = Notification.show(
+                message,
+                3000,
+                Position.MIDDLE
+        );
+
+        // Apply information styling
+        notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+
+        // Add an info icon if needed
+        Div content = new Div();
+        Icon infoIcon = VaadinIcon.INFO_CIRCLE.create();
+        infoIcon.setColor("var(--lumo-primary-color)");
+        infoIcon.getStyle().set("margin-right", "8px");
+
+        Span text = new Span(message);
+        content.add(infoIcon, text);
+        content.getStyle().set("display", "flex").set("align-items", "center");
+
+        notification.add(content);
     }
 }
