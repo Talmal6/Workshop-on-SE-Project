@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.Store.Bid;
+import com.SEGroup.Domain.Store.Review;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.UI.Views.AddProductDialog;
 
@@ -270,4 +271,12 @@ public interface IStoreRepository {
         List<RatingDto> getStoreRatings(String storeName);
 
         List<RatingDto> getProductRatings(String storeName,String productId);
+
+        void giveStoreReview(String storeName, String userId, String review, String rating);
+
+        List<Review> getStoreReviews(String storeName);
+
+        void giveStoreComment(String userName,String storeName,String reviewId,String comment);
+
+        Review getReviewById(String storeName, String reviewId);
 }

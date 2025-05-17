@@ -10,11 +10,7 @@ import java.util.Set;
 
 import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.IStoreRepository;
-import com.SEGroup.Domain.Store.Auction;
-import com.SEGroup.Domain.Store.Bid;
-import com.SEGroup.Domain.Store.ManagerPermission;
-import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Domain.Store.*;
 import com.SEGroup.Mapper.StoreMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -800,5 +796,55 @@ public class StoreRepository implements IStoreRepository {
 
         return dtoList;
     }
+    @Override
+    public Review getReviewById(String storeName, String reviewId) {
+        Store store = findByName(storeName);
+        if (store == null) {
+            throw new RuntimeException("Store not found");
+        }
+        return store.getStoreReviewById(reviewId);
+    }
+    @Override
+    public List<Review> getStoreReviews(String storeName) {
+        Store store = findByName(storeName);
+        if (store == null) {
+            throw new RuntimeException("Store not found");
+        }
+        return store.getAllStoreReviews();
+    }
+    @Override
+    public void giveStoreComment(String userName, String storeName, String reviewId, String comment) {
+        Store store = findByName(storeName);
+        if (store == null) {
+            throw new RuntimeException("Store not found");
+        }
+        store.giveManagementComment(userName, reviewId,comment);
+    }
+
+
+    @Override
+    public void giveStoreReview(String storeName, String userId, String review , String rating) {
+        Store store = findByName(storeName);
+        if (!store.isActive()) {
+            throw new RuntimeException("Store is closed - cannot be rated ");
+        }
+        if (rating == null || rating.isEmpty()) {
+            throw new IllegalArgumentException("Rating cannot be null or empty");
+        }
+        if (review == null || review.isEmpty()) {
+            throw new IllegalArgumentException("Review cannot be null or empty");
+        }
+        if (Integer.parseInt(rating) < 1 || Integer.parseInt(rating) > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
+        }
+        if (userId == null || userId.isEmpty()) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+        if (store == null) {
+            throw new RuntimeException("Store not found");
+        }
+        store.giveStoreReview(userId, review, Integer.parseInt(rating));
+    }
+
 }
 

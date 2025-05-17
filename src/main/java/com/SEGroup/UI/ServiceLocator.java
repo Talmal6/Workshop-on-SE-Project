@@ -1,7 +1,7 @@
 package com.SEGroup.UI;
 
 import com.SEGroup.Domain.*;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
+import com.SEGroup.Domain.Report.ReportCenter;
 import com.SEGroup.Service.*;
 import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
@@ -39,7 +39,6 @@ public class ServiceLocator {
     private static IStoreRepository storeRepository;
     private static IProductCatalog productCatalog;
     private static IPaymentGateway paymentGateway;
-
     // Services
     private static GuestService guestService;
     private static UserService userService;
@@ -47,6 +46,9 @@ public class ServiceLocator {
     private static TransactionService transactionService;
     private static IShippingService shippingService;
 
+    // Notifaction
+    private static NotificationCenter notificationCenter;
+    private static ReportCenter reportCenter;
     public static void initialize(IGuestRepository guests,
                                   IUserRepository users,
                                   ITransactionRepository transactions,
@@ -64,13 +66,10 @@ public class ServiceLocator {
         SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         security.setKey(key);
         authService = new SecurityAdapter(security, passwordEncoder);
-        notificationCenter = new com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter(authService);
-
-
-
-        // Initialize services
+        notificationCenter = new NotificationCenter(authService);
+        reportCenter = new ReportCenter();
         guestService = new GuestService(guestRepository, authService);
-        userService = new UserService(guestService, userRepository, authService);
+        userService = new UserService(guestService, userRepository, authService,reportCenter);
         storeService = new StoreService(storeRepository, productCatalog, authService, userRepository, notificationCenter);
         shippingService = mock(IShippingService.class);
         transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService, notificationCenter);
