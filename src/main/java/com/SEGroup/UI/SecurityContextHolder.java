@@ -43,7 +43,7 @@ public final class SecurityContextHolder {
 
     public static boolean isAdmin() {
         boolean ans = false;
-        Result<Boolean> isAdminResult = ServiceLocator.getUserService().isAdmin(KEY);
+        Result<Boolean> isAdminResult = ServiceLocator.getUserService().isAdmin(get().token);
         if (isAdminResult.isSuccess() && isAdminResult.getData()) {
             ans = true;
         }
