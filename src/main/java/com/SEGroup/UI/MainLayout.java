@@ -152,6 +152,8 @@ public class MainLayout extends AppLayout {
         ownersBtn = new Button("Manage Owners", e -> UI.getCurrent().navigate("owners"));
         rolesBtn = new Button("Manage Permissions", e -> UI.getCurrent().navigate("roles"));
 
+
+
         // Hide all permission buttons by default
         manageStoreBtn.setVisible(false);
         addProductBtn.setVisible(false);
@@ -229,11 +231,17 @@ public class MainLayout extends AppLayout {
                 nav("All Stores", AllStoresView.class, VaadinIcon.STORAGE),
                 nav("Notifications", NotificationView.class, VaadinIcon.BELL),
                 nav("Purchase History", PurchaseHistoryView.class, VaadinIcon.ARCHIVE),
-                nav("Admin Panel", AdminView.class, VaadinIcon.USER)
+                nav("Admin Panel", AdminView.class, VaadinIcon.USER),
+                nav("Submit Report", ReportView.class, VaadinIcon.FLAG)
+//                nav("Manage Reports", AdminReportsView.class, VaadinIcon.CLIPBOARD)
+//                nav("My Reports", MyReportsView.class, VaadinIcon.CLIPBOARD)
         );
 
         tabs.getTabAt(6).setVisible(false);
         tabs.getTabAt(7).setVisible(false);
+//        tabs.getTabAt(9).setVisible(false);
+//        tabs.getTabAt(10).setVisible(false);
+
 
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         addToDrawer(tabs);
@@ -534,6 +542,10 @@ public class MainLayout extends AppLayout {
                 baseCatalogTab.setVisible(isAdmin || isGlobalOwner || ownsStore);
                 //todo: when isadmin will work properly we shell change to: tabs.getTabAt(7).setVisible(isadmin);
                 tabs.getTabAt(7).setVisible(isAdmin);
+                tabs.getTabAt(8).setVisible(!isAdmin);
+//                tabs.getTabAt(9).setVisible(isAdmin);
+//                tabs.getTabAt(10).setVisible(!isAdmin);
+
                 // Notifications always once logged in
                 notificationBtn.setVisible(true);
 
@@ -545,6 +557,8 @@ public class MainLayout extends AppLayout {
             // hide everything when logged out
             tabs.getTabAt(6).setVisible(false);
             tabs.getTabAt(7).setVisible(false);
+//            tabs.getTabAt(9).setVisible(false);
+//            tabs.getTabAt(10).setVisible(false);
             manageStoreBtn  .setVisible(false);
             addProductBtn   .setVisible(false);
             ownersBtn       .setVisible(false);

@@ -495,7 +495,7 @@ public class UserService {
     public Result<List<Report>> getReports(String sessionKey) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            if (userRepository.userIsAdmin(authenticationService.getUserBySession(sessionKey))) {
+            if (!userRepository.userIsAdmin(authenticationService.getUserBySession(sessionKey))) {
                 return Result.failure("User is not an admin");
             }
 
@@ -521,7 +521,7 @@ public class UserService {
     public Result<Void> handleReport(String sessionKey, String reportId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            if (userRepository.userIsAdmin(authenticationService.getUserBySession(sessionKey))) {
+            if (!userRepository.userIsAdmin(authenticationService.getUserBySession(sessionKey))) {
                 return Result.failure("User is not an admin");
             }
 

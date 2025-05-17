@@ -34,7 +34,7 @@ public class AdminView extends VerticalLayout {
         // TODO: Create other sections
         // UserManagementView usersSection = new UserManagementView();
         // StoreManagementView storesSection = new StoreManagementView();
-        // ReportsView reportsSection = new ReportsView();
+         AdminReportsView reportsSection = new AdminReportsView();
 
         // Add tabs for different admin sections
         Tab suspensionsTab = new Tab(suspensionsSection.getTitle());
@@ -65,9 +65,9 @@ public class AdminView extends VerticalLayout {
                 currentSection = null;
                 content.add(new VerticalLayout()); // Placeholder
             } else if (selectedTab == reportsTab) {
-                // TODO: Add ReportsView
+
                 currentSection = null;
-                content.add(new VerticalLayout()); // Placeholder
+                content.add(new VerticalLayout(reportsSection)); // Placeholder
             }
 
             // Activate new section if exists
