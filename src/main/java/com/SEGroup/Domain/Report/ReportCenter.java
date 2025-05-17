@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.checkerframework.checker.units.qual.t;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ReportCenter {
     private final java.util.concurrent.ConcurrentHashMap<String, Report> reportIdToReport = new java.util.concurrent.ConcurrentHashMap<>();
     private static final java.util.concurrent.atomic.AtomicInteger idCounter = new java.util.concurrent.atomic.AtomicInteger(
