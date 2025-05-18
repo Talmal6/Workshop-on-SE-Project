@@ -456,6 +456,7 @@ public class UserService {
         }
     }
 
+    //throw exception if the user is suspended
     public Result<Void> isSuspended(String sessionKey) {
         try {
             authenticationService.checkSessionKey(sessionKey);
