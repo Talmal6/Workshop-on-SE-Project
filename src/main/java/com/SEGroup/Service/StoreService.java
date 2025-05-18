@@ -645,7 +645,16 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    public Result<Void> closeAuction(String sessionKey, String storeName, String productId) {
+        try {
+            authenticationService.authenticate(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.closeAuction(authenticationService.getUserBySession(sessionKey), storeName, productId);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
     // 3.12
     public Result<Void> sendMessageToStoreFounder(String sessionKey, String storeName, String messageContent) {
         try {
@@ -924,5 +933,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+
 
 }

@@ -122,24 +122,31 @@
                 </configuration>
 			</plugin>
 
-			<!-- תוסף כיסוי קוד: JaCoCo -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.8</version>
 				<executions>
+					<!-- 1. טוען את האג’נט לפני הריצה -->
 					<execution>
 						<id>prepare-agent</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
+					<!-- 2. יוצר דוח רק על החבילה com.SEGroup.Domain -->
 					<execution>
 						<id>report</id>
 						<phase>verify</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
+						<configuration>
+							<!-- כוללים רק את הקלאסות שבתיקייה com/SEGroup/Domain -->
+							<includes>
+								<include>com/SEGroup/Domain/**</include>
+							</includes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

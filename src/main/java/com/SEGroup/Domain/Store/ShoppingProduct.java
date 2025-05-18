@@ -122,6 +122,10 @@ public class ShoppingProduct {
     public Auction getAuction() {
         return auction;
     }
+    public void closeAuction(){
+        this.auction.closeAuction();
+        this.auction = null;
+    }
 
     public String getStoreName(){
         return storeName;
