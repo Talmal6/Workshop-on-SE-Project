@@ -323,13 +323,23 @@ public class MainLayout extends AppLayout {
         return button;
     }
 
+
     public void increaseNotificationCount() {
         notificationCount++;
         notificationBadge.setText(String.valueOf(notificationCount));
         notificationBadge.setVisible(true);
     }
 
-    public void resetNotificationCount() {
+    public void decreaseNotificationCount() {
+        notificationCount--;
+        notificationBadge.setText(String.valueOf(notificationCount));
+        if (notificationCount <=0){
+            notificationBadge.setVisible(false);
+            notificationCount = 0;
+        }
+    }
+
+        public void resetNotificationCount() {
         notificationCount = 0;
         notificationBadge.setText("0");
         notificationBadge.setVisible(false);

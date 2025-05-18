@@ -66,7 +66,6 @@ public class AdminView extends VerticalLayout {
                 content.add(new VerticalLayout()); // Placeholder
             } else if (selectedTab == reportsTab) {
 
-                currentSection = null;
                 content.add(new VerticalLayout(reportsSection)); // Placeholder
             }
 

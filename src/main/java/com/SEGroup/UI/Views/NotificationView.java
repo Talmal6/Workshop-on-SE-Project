@@ -208,7 +208,9 @@ public class NotificationView extends VerticalLayout {
                         offers.remove(it);
                         // Also remove from persistent storage
                         broadcast.removeFromHistory(SecurityContextHolder.email(), it.msg(), it.price(), it.productId());
+
                     }
+                    MainLayout.getInstance().decreaseNotificationCount();
                     updateGrids();
                 });
         del.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
