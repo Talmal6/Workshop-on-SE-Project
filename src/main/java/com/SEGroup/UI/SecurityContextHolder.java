@@ -13,6 +13,11 @@ public final class SecurityContextHolder {
     private static final String KEY = "SESSION_DATA";
     public static final String GUEST_TOKEN_KEY = "GUEST_TOKEN";
 
+    public static boolean isSuspended() {
+        Result<Void> isSuspendedResult = ServiceLocator.getUserService().isSuspended(get().token);
+        return !isSuspendedResult.isSuccess();
+    }
+
     private record SessionData(String token, String email, Set<Role> roles) {
     }
 

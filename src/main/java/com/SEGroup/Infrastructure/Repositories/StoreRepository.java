@@ -542,7 +542,19 @@ public class StoreRepository implements IStoreRepository {
         }
         store.submitAuctionOffer(productId, bidAmount, email);
     }
+    public void closeAuction(String storeName, String userId, String productId){
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+        Auction auc = store.getProductAuction(productId);
+        if (auc == null) {
+            throw new RuntimeException("Auction not found for product: " + productId);
+        }
+        store.closeAuction(productId);;
 
+    }
     @Override
     public Integer getProductQuantity(String storeName, String productId) {
         Store store = findByName(storeName);
@@ -845,6 +857,7 @@ public class StoreRepository implements IStoreRepository {
         }
         store.giveStoreReview(userId, review, Integer.parseInt(rating));
     }
+
 
 }
 

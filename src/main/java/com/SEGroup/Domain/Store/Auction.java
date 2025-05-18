@@ -6,6 +6,7 @@ import java.util.Date;
  * Represents an auction for a product with a starting price and an end time.
  */
 public class Auction {
+
     private final double startingPrice;
     private final Date endTime;
     private Bid highestBid;

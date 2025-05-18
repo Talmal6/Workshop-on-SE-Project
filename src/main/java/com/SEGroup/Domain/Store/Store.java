@@ -199,6 +199,13 @@ public class Store {
         Auction auction = product.getAuction();
         return auction.submitBid(bidderEmail, offerAmount);
     }
+    public void closeAuction(String productId) {
+        ShoppingProduct product = products.get(productId);
+        if (product == null || product.getAuction() == null) {
+            throw new IllegalArgumentException("Product not found");
+        }
+        product.closeAuction();
+    }
     /*
      * checks if a given email is the owner of the store
         *
