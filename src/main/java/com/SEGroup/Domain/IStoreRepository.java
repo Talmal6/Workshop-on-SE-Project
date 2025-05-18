@@ -279,4 +279,6 @@ public interface IStoreRepository {
         void giveStoreComment(String userName,String storeName,String reviewId,String comment);
 
         Review getReviewById(String storeName, String reviewId);
+
+        void closeAuction(String storeName, String userId, String productId);
 }
