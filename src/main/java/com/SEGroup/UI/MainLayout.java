@@ -45,7 +45,7 @@ public class MainLayout extends AppLayout {
     private Tab baseCatalogTab;
     public static Button searchBtn;
     public static TextField search;
-
+    private Div suspensionBar;
     // Permission management buttons
     private Button manageStoreBtn;
     private Button addProductBtn;
@@ -205,10 +205,9 @@ public class MainLayout extends AppLayout {
                 .set("box-shadow", "0 2px 4px rgba(0,0,0,0.05)")
                 .set("overflow", "hidden");
 
-        addToNavbar(navbarWrapper);
+        navbarWrapper.setWidthFull();                    // keep the full-width rule
+        navbarWrapper.getStyle().set("box-sizing", "border-box");   // <-- NEW
 
-
-        refreshHeader();          // first paint = guest
 
         logout.addClickListener(e -> {
             SecurityContextHolder.closeSession();
@@ -247,6 +246,26 @@ public class MainLayout extends AppLayout {
 
         // Initialize with guest login
         sessionKey = ServiceLocator.getUserService().guestLogin().getData();
+        suspensionBar = new Div(
+                new Span("Your account is suspended — actions are disabled."));
+        suspensionBar.getStyle()
+                .set("background-color", "#f44336")   // אדום
+                .set("color", "white")
+                .set("width", "100%")
+                .set("padding", "0.5em 2em")
+                .set("text-align", "center")
+                .set("font-weight", "600");
+        suspensionBar.setVisible(false);              // מוסתר כברירת-מחדל
+        Div topBar = new Div(navbarWrapper, suspensionBar);
+        topBar.getStyle()
+                .set("display", "flex")
+                .set("flex-direction", "column")
+                .set("width", "100%");
+
+// במקום addToNavbar(navbarWrapper);
+        addToNavbar(topBar);
+        refreshHeader();          // first paint = guest
+
     }
 
     public static String getFullErrorMessage(Exception ex){
@@ -401,8 +420,14 @@ public class MainLayout extends AppLayout {
             System.out.println("Token present: " + (SecurityContextHolder.token() != null));
 
             greeting.setText("Hello " + displayName);
+            if (SecurityContextHolder.isSuspended()) {
+                suspensionBar.setVisible(true);
+            } else {
+                suspensionBar.setVisible(false);
+            }
         } else {
             greeting.setText("Hello Guest");
+            suspensionBar.setVisible(false);
         }
 
         logout.setVisible(loggedIn);
