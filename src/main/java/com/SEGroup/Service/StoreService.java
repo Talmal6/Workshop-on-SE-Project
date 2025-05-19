@@ -967,8 +967,12 @@ public class StoreService {
     }
 
     //now the methods relevant to user
-    public Result<Map<String, Double>> getDiscountsForCart(String buyerSessionKey, List<String> coupons){
+    public Result<Map<String, Double>> getDiscountsForCart(String buyerSessionKey){
         //todo: implement!!!
+        return Result.failure("not implemented");
+    }
+
+    public Result<Void> applyCouponToCart(String buyerSessionKey, String coupon){
         return Result.failure("not implemented");
     }
 
