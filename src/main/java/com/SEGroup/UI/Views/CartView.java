@@ -18,6 +18,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -32,6 +33,9 @@ public class CartView extends VerticalLayout {
     private final Grid<CartItem> grid = new Grid<>();
     private final Button checkoutButton = new Button("Checkout", VaadinIcon.CART_O.create());
     private final Span totalPriceLabel = new Span("Total: $0.00");
+    private final Span totalAfterDiscountLabel = new Span("Total after discount: $0.00");
+    private final TextField couponField = new TextField("Coupon Code");
+    private final Button applyCouponButton = new Button("Apply Coupon");
     private final VerticalLayout emptyCartMessage = new VerticalLayout();
     private double totalPrice = 0.0;
 
@@ -54,6 +58,20 @@ public class CartView extends VerticalLayout {
 
             // Total and checkout button
             totalPriceLabel.getStyle().set("font-weight", "bold").set("font-size", "1.2em");
+            totalAfterDiscountLabel.getStyle().set("font-weight", "bold").set("font-size", "1.2em").set("color", "var(--lumo-success-color)");
+
+            // Configure coupon field and button
+            couponField.setPlaceholder("Enter coupon code");
+            couponField.setWidth("200px");
+            applyCouponButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            applyCouponButton.addClickListener(e -> {
+                // TODO: Implement coupon application logic
+                System.out.println("Applying coupon: " + couponField.getValue());
+            });
+
+            HorizontalLayout couponLayout = new HorizontalLayout(couponField, applyCouponButton);
+            couponLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+            couponLayout.setSpacing(true);
 
             checkoutButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             checkoutButton.addClickListener(e -> presenter.checkout());
@@ -62,8 +80,15 @@ public class CartView extends VerticalLayout {
             clearCartButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
             clearCartButton.addClickListener(e -> presenter.clearCart());
 
-            HorizontalLayout footer = new HorizontalLayout(
+            VerticalLayout totalsLayout = new VerticalLayout(
                     totalPriceLabel,
+                    totalAfterDiscountLabel,
+                    couponLayout
+            );
+            totalsLayout.setSpacing(true);
+
+            HorizontalLayout footer = new HorizontalLayout(
+                    totalsLayout,
                     createSpacer(),
                     clearCartButton,
                     checkoutButton
@@ -166,13 +191,18 @@ public class CartView extends VerticalLayout {
         if (cartItems.isEmpty()) {
             grid.setVisible(false);
             emptyCartMessage.setVisible(true);
+            couponField.setVisible(false);
+            applyCouponButton.setVisible(false);
         } else {
             grid.setVisible(true);
             emptyCartMessage.setVisible(false);
             grid.setItems(cartItems);
+            couponField.setVisible(true);
+            applyCouponButton.setVisible(true);
         }
 
         totalPriceLabel.setText(String.format("Total: $%.2f", totalPrice));
+        totalAfterDiscountLabel.setText(String.format("Total after discount: $%.2f", totalPrice)); // TODO: Update with actual discount calculation
         checkoutButton.setEnabled(!cartItems.isEmpty());
     }
 
