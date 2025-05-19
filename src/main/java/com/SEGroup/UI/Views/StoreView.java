@@ -185,7 +185,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         storeRating.add(starIcon);
 
         // 1) Build a little title‐and‐buttons bar:
-        HorizontalLayout titleBar = new HorizontalLayout(storeNameHeader, ownersBtn, rolesBtn, showReviewsBtn);
+        HorizontalLayout titleBar = new HorizontalLayout(storeNameHeader, ownersBtn, rolesBtn, showReviewsBtn, addDiscountBtn);
         titleBar.setAlignItems(FlexComponent.Alignment.CENTER);
         titleBar.setSpacing(true);
 
@@ -666,6 +666,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
             boolean canManageStore = hasStoreOwnerRole || isAdmin;
             manageStoreBtn.setVisible(canManageStore);
             addProductBtn .setVisible(canManageStore);
+            addDiscountBtn.setVisible(canManageStore || isOwner);
 
             // 2) per-store owner bits only if they actually own this store:
             ownersBtn.setVisible(isOwner);

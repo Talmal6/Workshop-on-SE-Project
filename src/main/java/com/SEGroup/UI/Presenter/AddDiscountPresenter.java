@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 public class AddDiscountPresenter {
     private final AddDiscountView view;
     private Map<String, List<ShoppingProductDTO>> productsByCategory;
+    private List<String> categories;
     private String storeName;
 
     public AddDiscountPresenter(AddDiscountView view, String storeName) {
@@ -40,6 +41,13 @@ public class AddDiscountPresenter {
                     .sorted(Comparator.comparing(ShoppingProductDTO::getName))
                     .collect(Collectors.toList())
             );
+            // create a list of categories
+            categories = new ArrayList<>(productsByCategory.keySet());
+            categories.add(0, "Entire Store");
+            view.updateCategories(categories);
+            view.updateProducts(productsByCategory);
+
+
 
             System.out.println("Loaded " + products.size() + " products in " + productsByCategory.size() + " categories");
         } else {
@@ -57,5 +65,16 @@ public class AddDiscountPresenter {
 
     public List<ShoppingProductDTO> getProductsInCategory(String category) {
         return productsByCategory.getOrDefault(category, Collections.emptyList());
+    }
+
+    public void addDiscountToStore(Integer value) {
+        //todo
+    }
+
+    public void addDiscountToCategory(String category, Integer value) {
+        //todo
+    }
+
+    public void addDiscountToProduct(String item, Integer value, int minAmount) {
     }
 } 
