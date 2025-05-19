@@ -1,6 +1,7 @@
 package com.SEGroup.UI.Views;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.Service.Result;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.AddDiscountPresenter;
 import com.vaadin.flow.component.button.Button;
@@ -10,6 +11,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -28,9 +30,9 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
     private final ComboBox<String> itemComboBox;
     private final IntegerField minAmountField;
     private final IntegerField percentageField;
-    private final Button confirmButton;
     private final TextField couponField;
     private final Checkbox useCouponCheckbox;
+    private final Button confirmButton;
     private AddDiscountPresenter presenter;
 
     public AddDiscountView() {
@@ -52,6 +54,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         couponField = new TextField("Coupon Code");
         useCouponCheckbox = new Checkbox("Use Coupon Code");
 
+
         // Configure Category ComboBox
         categoryComboBox.setItems("Entire Store", "Specific Category", "Specific Item");
         categoryComboBox.setWidth("300px");
@@ -60,7 +63,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
             boolean isEntireStore = "Entire Store".equals(event.getValue());
             itemComboBox.setEnabled(!isEntireStore);
             minAmountField.setEnabled(!isEntireStore);
-            
+
             if (isEntireStore) {
                 itemComboBox.setValue(null);
                 minAmountField.setValue(null);
@@ -83,7 +86,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         itemComboBox.addValueChangeListener(event -> {
             boolean isEntireCategory = "Entire Category".equals(event.getValue());
             minAmountField.setEnabled(!isEntireCategory);
-            
+
             if (isEntireCategory) {
                 minAmountField.setValue(null);
             }
@@ -106,7 +109,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         couponField.setWidth("300px");
         couponField.setPlaceholder("Enter coupon code");
         couponField.setEnabled(false);
-        
+
         useCouponCheckbox.addValueChangeListener(event -> {
             couponField.setEnabled(event.getValue());
             if (!event.getValue()) {
@@ -115,45 +118,83 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         });
 
         // Create horizontal layout for coupon field and checkbox
-        HorizontalLayout couponLayout = new HorizontalLayout(useCouponCheckbox, couponField);
+        VerticalLayout couponLayout = new VerticalLayout(useCouponCheckbox, couponField);
         couponLayout.setAlignItems(Alignment.BASELINE);
         couponLayout.setSpacing(true);
+
 
         // Configure Confirm Button
         confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         confirmButton.setWidth("300px");
-        confirmButton.addClickListener(event -> {
-            // This will be handled by the presenter later
-            System.out.println("Confirm button clicked");
+        confirmButton.addClickListener(click -> {
+
             String category = categoryComboBox.getValue();
-            if (category == null || category.isEmpty() || percentageField.getValue() == null || percentageField.getValue() <= 0 || percentageField.getValue() > 99) {
-                categoryComboBox.setInvalid(true);
-                return;
-            }
-            if (category.equals("Entire Store")) {
-                presenter.addDiscountToStore(percentageField.getValue());
-            } else {
-                String item = itemComboBox.getValue();
-                if (item == null || item.isEmpty()) {
-                    itemComboBox.setInvalid(true);
-                    return;
+            Integer percent  = percentageField.getValue();
+            boolean couponOn = Boolean.TRUE.equals(useCouponCheckbox.getValue());
+            String  coupon   = couponField.getValue();
+            Result<Void> result = Result.failure("Unknown error");
+
+            // ---------- ולידציות בסיסיות ----------
+            if (empty(category))                     { categoryComboBox.setInvalid(true); return; }
+            if (percent == null || percent <= 0 || percent > 99) { percentageField.setInvalid(true); return; }
+            if (couponOn && empty(coupon))           { couponField.setInvalid(true); return; }
+
+            switch (category) {
+
+                case "Entire Store" -> {
+                    if (couponOn)
+                        result = presenter.addDiscountToStoreWithCoupon(percent, coupon);
+                    else
+                        result = presenter.addDiscountToStore(percent);
                 }
-                if (item.equals("Entire Category")) {
-                    presenter.addDiscountToCategory(category, percentageField.getValue());
-                } else {
-                    int minAmount = minAmountField.getValue();
-                    if (minAmount <= 0) {
-                        minAmountField.setInvalid(true);
-                        return;
+
+                default -> {                                     // קטגוריה מסוימת
+                    String item = itemComboBox.getValue();
+                    if (empty(item)) { itemComboBox.setInvalid(true); return; }
+
+                    if (item.equals("Entire Category")) {
+                        if (couponOn)
+                            result = presenter.addDiscountToCategoryWithCoupon(category, percent, coupon);
+                        else
+                            result = presenter.addDiscountToCategory(category, percent);
+                    } else {                                     // פריט בודד
+                        Integer min = minAmountField.getValue();
+                        if (min == null || min <= 0) {
+                            minAmountField.setInvalid(true);
+                            return;
+                        }
+                        if (couponOn)
+                            result = presenter.addDiscountToProductWithCoupon(category, item, percent, min, coupon);
+                        else
+                            result = presenter.addDiscountToProduct(category, item, percent, min);
                     }
-                    presenter.addDiscountToProduct(item, percentageField.getValue(), minAmount);
                 }
+            }
+            if (result.isSuccess()) {
+                Notification.show("Discount added successfully!", 3000, Notification.Position.MIDDLE);
+                //reset fields
+                categoryComboBox.clear();
+                itemComboBox.clear();
+                minAmountField.clear();
+                percentageField.clear();
+                couponField.clear();
+                useCouponCheckbox.setValue(false);
+                couponField.setEnabled(false);
+
+
+            } else {
+                Notification.show("Failed to add discount: " + result.getErrorMessage(), 3000, Notification.Position.MIDDLE);
             }
         });
 
+
         // Add components to layout
         add(categoryComboBox, itemComboBox, minAmountField, percentageField, couponLayout, confirmButton);
+
     }
+
+    private static boolean empty(String s) { return s == null || s.isBlank(); }
+
 
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {

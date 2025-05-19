@@ -67,14 +67,35 @@ public class AddDiscountPresenter {
         return productsByCategory.getOrDefault(category, Collections.emptyList());
     }
 
-    public void addDiscountToStore(Integer value) {
+    public Result<Void> addDiscountToStore(Integer value) {
         //todo
+        return         Result.failure("Unknown error");
+
     }
 
-    public void addDiscountToCategory(String category, Integer value) {
+    public Result<Void> addDiscountToCategory(String category, Integer value) {
         //todo
+        return         Result.failure("Unknown error");
+
     }
 
-    public void addDiscountToProduct(String item, Integer value, int minAmount) {
+    public Result<Void> addDiscountToProduct(String category, String item, Integer value, int minAmount) {
+        return         Result.failure("Unknown error");
+
+    }
+
+    public Result<Void> addDiscountToStoreWithCoupon(Integer value, String couponCode) {
+        return         Result.failure("Unknown error");
+
+    }
+
+    public Result<Void> addDiscountToCategoryWithCoupon(String category, Integer value, String couponCode) {
+        return         Result.failure("Unknown error");
+
+    }
+
+    public Result<Void> addDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, String couponCode) {
+        return         Result.failure("Unknown error");
+
     }
 } 
