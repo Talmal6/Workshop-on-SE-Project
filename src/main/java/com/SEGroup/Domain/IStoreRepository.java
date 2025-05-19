@@ -8,6 +8,7 @@ import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.Store.Bid;
 import com.SEGroup.Domain.Store.Review;
 import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.UI.Views.AddProductDialog;
 
 /**
@@ -281,4 +282,6 @@ public interface IStoreRepository {
         Review getReviewById(String storeName, String reviewId);
 
         void closeAuction(String storeName, String userId, String productId);
+
+        double calculateFinalPriceAfterDiscount(String storeName, Map<String, Integer> productIdToQuantity, InMemoryProductCatalog productCatalog);
 }

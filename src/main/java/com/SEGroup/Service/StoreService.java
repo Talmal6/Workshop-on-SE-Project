@@ -14,6 +14,7 @@ import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Review;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import org.springframework.stereotype.Service;
 
 import javax.print.DocFlavor;
@@ -934,6 +935,37 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+    /**
+     * Calculates the final price of a user's shopping cart after applying store discounts.
+     *
+     * @param sessionKey The session key of the authenticated user.
+     * @param storeName  The store name.
+     * @param productIdToQuantity The shopping cart as product ID to quantity.
+     * @return A Result object with the final price after discounts.
+     */
+    public Result<Double> calculateFinalPriceAfterDiscount(String sessionKey, String storeName, Map<String, Integer> productIdToQuantity) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(userEmail);
+
+            if (!(productCatalog instanceof InMemoryProductCatalog)) {
+                throw new IllegalStateException("Product catalog is not of type InMemoryProductCatalog");
+            }
+
+            double priceAfterDiscount = storeRepository.calculateFinalPriceAfterDiscount(
+                    storeName, productIdToQuantity, (InMemoryProductCatalog) productCatalog);
+
+            return Result.success(priceAfterDiscount);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error calculating final price after discount: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+
 
 
     //this section is dedicated for discount related service

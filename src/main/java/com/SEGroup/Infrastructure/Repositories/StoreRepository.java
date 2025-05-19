@@ -858,6 +858,13 @@ public class StoreRepository implements IStoreRepository {
         store.giveStoreReview(userId, review, Integer.parseInt(rating));
     }
 
+    @Override
+    public double calculateFinalPriceAfterDiscount(String storeName, Map<String, Integer> productIdToQuantity, InMemoryProductCatalog catalog) {
+        Store store = findByName(storeName);
+        return store.calculateFinalPriceAfterDiscount(productIdToQuantity, catalog);
+    }
+
+
 
 }
 
