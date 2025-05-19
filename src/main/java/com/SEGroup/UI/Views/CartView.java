@@ -1,6 +1,7 @@
 package com.SEGroup.UI.Views;
 
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.Service.Result;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.CartPresenter;
 import com.SEGroup.UI.SecurityContextHolder;
@@ -66,6 +67,18 @@ public class CartView extends VerticalLayout {
             applyCouponButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             applyCouponButton.addClickListener(e -> {
                 // TODO: Implement coupon application logic
+                if (couponField.getValue() == null || couponField.getValue().isEmpty()) {
+                    showError("Please enter a coupon code.");
+                    couponField.setInvalid(true);
+                    return;
+                }
+                Result<Void> result = presenter.applyCoupon(couponField.getValue());
+                if (result.isFailure()) {
+                    showError("Failed to apply coupon: " + result.getErrorMessage());
+                    couponField.setInvalid(true);
+                    return;
+                }
+                showSuccess("Coupon applied successfully!");
                 System.out.println("Applying coupon: " + couponField.getValue());
             });
 
