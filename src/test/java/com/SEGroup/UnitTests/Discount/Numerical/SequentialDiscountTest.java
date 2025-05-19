@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 public class SequentialDiscountTest {
 
     @Test
-    public void testSequentialDiscount_5AndThen20Percent() {
+    public void shouldApplySequentialDiscountSuccessfully_WhenApplying5PercentThen20PercentOnSameProduct() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> dairy = List.of("dairy");

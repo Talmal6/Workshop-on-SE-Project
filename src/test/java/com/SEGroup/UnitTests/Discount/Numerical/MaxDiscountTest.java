@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 public class MaxDiscountTest {
 
     @Test
-    public void testMaxDiscount_BetweenPastaAndMilk() {
+    public void shouldApplyMaxDiscountSuccessfully_WhenComparingPastaAndMilkCategoryDiscounts() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> pasta = List.of("pasta");

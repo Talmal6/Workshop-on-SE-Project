@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 public class DiscountScopeTest {
 
     @Test
-    public void testMatchByProductID() {
+    public void shouldMatchDiscountScopeSuccessfully_WhenScopeIsProductIDAndMatchesEntry() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
         catalog.addCatalogProduct("c1", "Milk", "Tnuva", "Fresh", List.of("dairy"));
         catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 10.0, 1, 4.0, "Milk");
@@ -25,7 +25,7 @@ public class DiscountScopeTest {
     }
 
     @Test
-    public void testMatchByStoreName() {
+    public void shouldMatchDiscountScopeSuccessfully_WhenScopeIsStoreNameAndMatchesEntry() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
         catalog.addCatalogProduct("c2", "Cheese", "Tnuva", "Yellow", List.of("dairy"));
         catalog.addStoreProductEntry("c2", "YuvalStore", "p2", 20.0, 1, 4.2, "Cheese");
@@ -37,7 +37,7 @@ public class DiscountScopeTest {
     }
 
     @Test
-    public void testMatchByCategory() {
+    public void shouldMatchDiscountScopeSuccessfully_WhenScopeIsCategoryAndMatchesEntry() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
         catalog.addCatalogProduct("c3", "Tomato", "Organic", "Fresh tomato", List.of("vegetables"));
         catalog.addStoreProductEntry("c3", "YuvalStore", "p3", 5.0, 2, 4.5, "Tomato");
@@ -49,7 +49,7 @@ public class DiscountScopeTest {
     }
 
     @Test
-    public void testMismatchByCategory() {
+    public void shouldNotMatchDiscountScope_WhenCategoryDoesNotMatchEntry() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
         catalog.addCatalogProduct("c4", "Soda", "ColaBrand", "Sparkling drink", List.of("drinks"));
         catalog.addStoreProductEntry("c4", "YuvalStore", "p4", 7.0, 1, 4.1, "Soda");

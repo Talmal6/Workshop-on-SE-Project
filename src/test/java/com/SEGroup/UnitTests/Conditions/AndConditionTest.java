@@ -19,7 +19,7 @@ public class AndConditionTest {
 
     // have discount of 5% on bakery products if there are at least 5 rolls and 2 breads in the store
     @Test
-    public void testAndCondition_BreadAndRollsCondition() {
+    public void shouldApplySimpleCategoryDiscountSuccessfully_WhenAtLeast5RollsAnd2BreadsAreInStore() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> bakery = new ArrayList<>();
