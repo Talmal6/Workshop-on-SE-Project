@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 public class OrConditionTest {
 
     @Test
-    public void testOrCondition_CottageOrYogurtCondition() {
+    public void shouldApplyCategoryDiscountSuccessfully_WhenBasketContainsEither3CottageOr2Yogurts() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> dairy = List.of("dairy");

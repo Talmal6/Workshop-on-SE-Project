@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 public class SumDiscountTest {
 
     @Test
-    public void testSumDiscount_SeparateScopes() {
+    public void shouldApplySumDiscountSuccessfully_WhenScopesAreDairyAndVegetablesSeparately() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> dairy = List.of("dairy");

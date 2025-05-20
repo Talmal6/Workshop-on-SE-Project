@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 public class XorConditionTest {
 
     @Test
-    public void testXorConditionByCategoryWithoutTieBreaker() {
+    public void shouldApplyXorCategoryDiscountSuccessfully_WhenOnlyDairyOrBakeryExists_WithoutTieBreaker() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> dairy = new ArrayList<>();
@@ -59,7 +59,7 @@ public class XorConditionTest {
     }
 
     @Test
-    public void testXorConditionByCategoryWithCustomTieBreaker() {
+    public void shouldApplyXorCategoryDiscountSuccessfully_WhenTieBreakerChoosesBakeryOverDairy() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> dairy = new ArrayList<>();

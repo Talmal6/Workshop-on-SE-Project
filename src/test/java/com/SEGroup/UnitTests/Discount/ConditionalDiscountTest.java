@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 public class ConditionalDiscountTest {
 
     @Test
-    public void testConditionMetDiscountApplied() {
+    public void shouldApplyConditionalDiscountSuccessfully_WhenTotalPurchaseExceedsThreshold() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> vegetables = new ArrayList<>();
@@ -47,7 +47,7 @@ public class ConditionalDiscountTest {
     }
 
     @Test
-    public void testConditionNotMetDiscountApplied() {
+    public void shouldNotApplyConditionalDiscount_WhenBasketTotalIsBelowThreshold() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> vegetables = new ArrayList<>();
@@ -78,7 +78,7 @@ public class ConditionalDiscountTest {
 
 
     @Test
-    public void testConditionOnDairyProducts() {
+    public void shouldApplyConditionalCategoryDiscountSuccessfully_WhenAtLeastTwoDairyProductsPresent() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> dairy = new ArrayList<>();

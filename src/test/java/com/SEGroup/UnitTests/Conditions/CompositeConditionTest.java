@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 public class CompositeConditionTest {
 
     @Test
-    public void testCompositeCondition_ShoppingOver100AndHas3Pastas() {
+    public void shouldApplyConditionalCategoryDiscountSuccessfully_WhenBasketOver100AndHasAtLeast3Pastas() {
         InMemoryProductCatalog catalog;
         catalog = new InMemoryProductCatalog();
 
@@ -67,7 +67,7 @@ public class CompositeConditionTest {
     }
 
     @Test
-    public void testCompositeCondition_OnlyOneConditionTrue_NoDiscount() {
+    public void shouldNotApplyConditionalDiscount_WhenOnlyOneCompositeConditionIsSatisfied() {
         InMemoryProductCatalog catalog;
         catalog = new InMemoryProductCatalog();
 

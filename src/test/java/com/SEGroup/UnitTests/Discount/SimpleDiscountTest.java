@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 public class SimpleDiscountTest {
 
     @Test
-    public void testDiscountByProduct() {
+    public void shouldApplySimpleDiscountSuccessfully_WhenScopeIsProductID() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> categories = new ArrayList<>();
@@ -35,7 +35,7 @@ public class SimpleDiscountTest {
 
     // 50% discount on dairy products
     @Test
-    public void testDiscountByCategory() {
+    public void shouldApplySimpleDiscountSuccessfully_WhenScopeIsDairyCategory() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> categories = new ArrayList<>();
@@ -59,7 +59,7 @@ public class SimpleDiscountTest {
 
     // %20 discount on the entire store!
     @Test
-    public void testDiscountByStore() {
+    public void shouldApplySimpleDiscountSuccessfully_WhenScopeIsEntireStore() {
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         List<String> dairyCategory = new ArrayList<>();
