@@ -118,12 +118,12 @@ public class Store {
      * @param quantity     The quantity of the product.
      * @return The ID of the added product.
      */
-    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity,boolean isAdmin, String imageURL){
+    public String addProductToStore(String email, String storeName, String catalogID,String product_name, String description, double price, int quantity,boolean isAdmin, String imageURL,List<String> categories){
         if(quantity == 0)
             throw new IllegalArgumentException("quantity cannot be 0 ");
         if (isOwnerOrHasManagerPermissions(email) || isAdmin) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
-            ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity, imageURL);
+            ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity, imageURL,categories);
             products.put(productId, product);
             return productId;
         }

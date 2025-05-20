@@ -237,10 +237,11 @@ public class StoreService {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             productCatalog.isProductExist(catalogID);
+            List<String> categories = productCatalog.getProductCategory(catalogID);
             String email = authenticationService.getUserBySession(sessionKey);
             boolean isAdmin = userRepository.userIsAdmin(email);
             String productID = storeRepository.addProductToStore(email, storeName, catalogID,
-                    productName, description, price, quantity, isAdmin, imageURL);
+                    productName, description, price, quantity, isAdmin, imageURL,categories);
             productCatalog.addStoreProductEntry(catalogID, storeName, productID, price, quantity, 0, productName);
             LoggerWrapper.info("Added product to store: " + storeName + ", Product ID: " + productID); // Log the
                                                                                                        // product

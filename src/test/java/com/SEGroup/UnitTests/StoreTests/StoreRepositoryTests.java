@@ -88,7 +88,7 @@ public class StoreRepositoryTests {
     @DisplayName("Given store with product, when updateShoppingProduct, then returns updated DTO")
     public void testUpdateShoppingProductReturnsUpdatedDTO() {
         String catalogID = "CID";
-        repo.addProductToStore(founderEmail, storeName, catalogID, "ProdName", "Desc", 5.0, 10, false,"");
+        repo.addProductToStore(founderEmail, storeName, catalogID, "ProdName", "Desc", 5.0, 10, false,"",List.of());
 
         StoreDTO storeDTO = repo.getStore(storeName);
         assertEquals(1, storeDTO.getProducts().size());
@@ -112,7 +112,7 @@ public class StoreRepositoryTests {
     @DisplayName("Given store with product, when deleteShoppingProduct, then returns DTO and product removed")
     public void testDeleteShoppingProductRemovesAndReturnsDTO() {
         String catalogID = "CID";
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false,"");
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false,"",List.of());
 
         StoreDTO storeDTO = repo.getStore(storeName);
         ShoppingProductDTO original = storeDTO.getProducts().get(0);
@@ -129,7 +129,7 @@ public class StoreRepositoryTests {
     @DisplayName("Given non-owner, when deleteShoppingProduct, then RuntimeException")
     public void testDeleteShoppingProductThrowsForNonOwner() {
         String catalogID = "CID";
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false,"");
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false,"",List.of());
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();
@@ -142,7 +142,7 @@ public class StoreRepositoryTests {
     @DisplayName("Given store with product, when rateProduct valid, then returns DTO with avgRating")
     public void testRateProductValidReturnsAvgRating() {
         String catalogID = "CID";
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, false,"");
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, false,"",List.of());
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();
@@ -162,7 +162,7 @@ public class StoreRepositoryTests {
     @DisplayName("Given product, when rateProduct invalid score, then IllegalArgumentException")
     public void testRateProductThrowsOnInvalidScore() {
         String catalogID = "CID";
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, false,"");
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 4.0, 3, false,"",List.of());
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();
@@ -213,7 +213,7 @@ public class StoreRepositoryTests {
     @DisplayName("Given baskets with valid items, when removeItemsFromStores, then returns correct totals")
     public void testRemoveItemsFromStoresReturnsTotals() {
         String catalogID = "CID";
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false,"");
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 5, false,"",List.of());
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();
@@ -231,7 +231,7 @@ public class StoreRepositoryTests {
     @DisplayName("Given baskets with insufficient quantity, when removeItemsFromStores, then exception and rollback")
     public void testRemoveItemsFromStoresRollbackOnException() {
         String catalogID = "CID";
-        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 2, false,"");
+        repo.addProductToStore(founderEmail, storeName, catalogID, "Name", "Desc", 2.0, 2, false,"",List.of());
 
         StoreDTO storeDTO = repo.getStore(storeName);
         String productId = storeDTO.getProducts().get(0).getProductId();

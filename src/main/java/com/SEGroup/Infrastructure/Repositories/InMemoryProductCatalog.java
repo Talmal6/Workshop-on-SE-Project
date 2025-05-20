@@ -250,5 +250,8 @@ public class InMemoryProductCatalog implements IProductCatalog {
         catalogIdToStoreOffers.computeIfAbsent(catalogID, k -> new ArrayList<>()).add(entry);
         storeNameToStoreOffers.computeIfAbsent(storeName, k -> new ArrayList<>()).add(entry);
     }
-
+    public List<String> getProductCategory(String catalogID) {
+        CatalogProduct product = catalogIDtoCatalogProduct.get(catalogID);
+        return product.getCategories();
+    }
 }

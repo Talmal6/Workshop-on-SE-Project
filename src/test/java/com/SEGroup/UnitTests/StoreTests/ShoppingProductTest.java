@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.*;
 
 import java.sql.Date;
+import java.util.Collections;
 import java.util.Optional;
 
 public class ShoppingProductTest {
@@ -17,7 +18,7 @@ public class ShoppingProductTest {
     @BeforeEach
     public void init(){
         this.shoppingProduct = new ShoppingProduct("Supermarket", "Drink", "Milk", "Milk Vanilla", "" +
-                "The milk is made out of vanilla with milk", 7.18, 2,"");
+                "The milk is made out of vanilla with milk", 7.18, 2,"", Collections.emptyList());
     }
 
     @Test
