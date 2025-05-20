@@ -132,7 +132,13 @@ public class User {
             throw new IllegalStateException("ShoppingCart is not initialized.");
         }
     }
-
+    public Set<Role> getAllRoles() {
+        Set<Role> roles = EnumSet.noneOf(Role.class);
+        for (EnumSet<Role> roleSet : storeRoles.values()) {
+            roles.addAll(roleSet);
+        }
+        return roles;
+    }
     /**
      * Removes a product from the user's shopping cart for a specific store.
      *

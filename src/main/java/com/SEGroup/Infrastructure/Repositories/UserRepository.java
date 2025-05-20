@@ -338,10 +338,6 @@ public class UserRepository implements IUserRepository {
     public Set<Role> getGlobalRoles(String email) {
         User u = requireUser(email);
         // union of all role sets (store-specific + system)
-        return u.snapshotRoles()
-                .values()
-                .stream()
-                .flatMap(EnumSet::stream)
-                .collect(Collectors.toSet());
+        return u.getAllRoles();
     }
 }

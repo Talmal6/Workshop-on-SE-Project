@@ -10,6 +10,7 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -171,7 +172,7 @@ class BootstrapData {
         // Demo Store products - with descriptions and real image URLs
         System.out.println("Adding Demo Store products...");
         String p1 = stores.addProductToStore("owner@demo.com", demoStore, "TECH-001",
-                "Smartphone X Pro", "Flagship smartphone with 6.7-inch AMOLED display, 108MP camera system, 5G connectivity, and all-day battery life. Includes 1-year warranty and premium accessories.", 999.99, 10, true, getProductImage("Phone"));
+                "Smartphone X Pro", "Flagship smartphone with 6.7-inch AMOLED display, 108MP camera system, 5G connectivity, and all-day battery life. Includes 1-year warranty and premium accessories.", 999.99, 10, true, getProductImage("Phone"), List.of("Electronics", "Phones"));
         // 🔨 start a quick demo auction on that first product:
         // ownerEmail, storeName, productId, startingPrice, durationMillis
         stores.startAuction("owner@demo.com",
@@ -181,11 +182,11 @@ class BootstrapData {
                 new Date(System.currentTimeMillis() + 5 * 60_000L)
         );
         String p2 = stores.addProductToStore("owner@demo.com", demoStore, "TECH-002",
-                "Laptop Pro Max", "High-performance laptop featuring the latest processor, 32GB RAM, 1TB SSD, and dedicated graphics. Perfect for professionals, designers, and gamers.", 1499.99, 5, true, getProductImage("Laptop"));
+                "Laptop Pro Max", "High-performance laptop featuring the latest processor, 32GB RAM, 1TB SSD, and dedicated graphics. Perfect for professionals, designers, and gamers.", 1499.99, 5, true, getProductImage("Laptop"),List.of("Electronics", "Computers"));
         String p3 = stores.addProductToStore("owner@demo.com", demoStore, "HOME-001",
-                "Coffee Maker Deluxe", "Fully automatic coffee maker with built-in grinder, programmable timer, and thermal carafe. Enjoy barista-quality coffee at home.", 129.99, 20, true, getProductImage("Coffee"));
+                "Coffee Maker Deluxe", "Fully automatic coffee maker with built-in grinder, programmable timer, and thermal carafe. Enjoy barista-quality coffee at home.", 129.99, 20, true, getProductImage("Coffee"),List.of("Home", "Kitchen"));
         String p4 = stores.addProductToStore("owner@demo.com", demoStore, "FASH-002",
-                "Premium Leather Jacket", "Handcrafted genuine leather jacket with quilted lining and premium hardware. Classic style that never goes out of fashion.", 349.99, 8, true, getProductImage("Jacket"));
+                "Premium Leather Jacket", "Handcrafted genuine leather jacket with quilted lining and premium hardware. Classic style that never goes out of fashion.", 349.99, 8, true, getProductImage("Jacket"),List.of("Clothing", "Outerwear"));
 
         // Add store products to catalog with images and initial ratings
         System.out.println("Adding Demo Store product images...");
@@ -201,15 +202,15 @@ class BootstrapData {
         // Tech Store products - with descriptions and real image URLs
         System.out.println("Adding Tech Store products...");
         String p5 = stores.addProductToStore("tech@demo.com", techStore, "TECH-001",
-                "Smartphone X Limited Edition", "Exclusive version with extended warranty, premium case, and screen protector. Features enhanced storage and special color options.", 1049.99, 15, true, getProductImage("Phone"));
+                "Smartphone X Limited Edition", "Exclusive version with extended warranty, premium case, and screen protector. Features enhanced storage and special color options.", 1049.99, 15, true, getProductImage("Phone"),List.of("Electronics", "Phones"));
         String p6 = stores.addProductToStore("tech@demo.com", techStore, "TECH-002",
-                "Laptop Pro Developer Edition", "Specially configured for developers with Linux pre-installed, extended battery, and free carrying case.", 1649.99, 8, true, getProductImage("Laptop"));
+                "Laptop Pro Developer Edition", "Specially configured for developers with Linux pre-installed, extended battery, and free carrying case.", 1649.99, 8, true, getProductImage("Laptop"),List.of("Electronics", "Computers"));
         String p7 = stores.addProductToStore("tech@demo.com", techStore, "TECH-003",
-                "Wireless Earbuds Pro", "Premium wireless earbuds with active noise cancellation, transparency mode, and wireless charging case.", 179.99, 30, true, getProductImage("Audio"));
+                "Wireless Earbuds Pro", "Premium wireless earbuds with active noise cancellation, transparency mode, and wireless charging case.", 179.99, 30, true, getProductImage("Audio"),List.of("Electronics", "Audio"));
         String p8 = stores.addProductToStore("tech@demo.com", techStore, "TECH-004",
-                "Smart Watch Elite GPS", "Advanced smartwatch with cellular connectivity, ECG monitoring, and premium band options.", 349.99, 12, true, getProductImage("Watch"));
+                "Smart Watch Elite GPS", "Advanced smartwatch with cellular connectivity, ECG monitoring, and premium band options.", 349.99, 12, true, getProductImage("Watch"),List.of("Electronics", "Wearables"));
         String p9 = stores.addProductToStore("tech@demo.com", techStore, "TECH-005",
-                "Ultra Gaming Monitor", "34-inch ultra-wide curved gaming monitor with 165Hz refresh rate and G-Sync support.", 699.99, 7, true, getProductImage("Monitor"));
+                "Ultra Gaming Monitor", "34-inch ultra-wide curved gaming monitor with 165Hz refresh rate and G-Sync support.", 699.99, 7, true, getProductImage("Monitor"),List.of("Electronics", "Displays"));
 
         // Add Tech Store products to catalog with images and ratings
         System.out.println("Adding Tech Store product images...");
@@ -227,15 +228,15 @@ class BootstrapData {
         // Fashion Store products - with descriptions and real image URLs
         System.out.println("Adding Fashion Store products...");
         String p10 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-001",
-                "Designer Graphic Tee", "Limited edition designer t-shirt with exclusive print. Made from organic cotton for maximum comfort and style.", 59.99, 100, true, getProductImage("Clothing"));
+                "Designer Graphic Tee", "Limited edition designer t-shirt with exclusive print. Made from organic cotton for maximum comfort and style.", 59.99, 100, true, getProductImage("Clothing"), List.of("Clothing", "T-Shirts"));
         String p11 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-002",
-                "Vintage Leather Jacket", "Classic leather jacket with distressed finish and premium hardware. Timeless style that gets better with age.", 329.99, 15, true, getProductImage("Jacket"));
+                "Vintage Leather Jacket", "Classic leather jacket with distressed finish and premium hardware. Timeless style that gets better with age.", 329.99, 15, true, getProductImage("Jacket"), List.of("Clothing", "Outerwear"));
         String p12 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-003",
-                "Performance Running Shoes", "Engineered for maximum comfort and performance with responsive cushioning and breathable materials.", 149.99, 50, true, getProductImage("Shoe"));
+                "Performance Running Shoes", "Engineered for maximum comfort and performance with responsive cushioning and breathable materials.", 149.99, 50, true, getProductImage("Shoe"),List.of("Footwear", "Sports"));
         String p13 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-004",
-                "Signature Tote Bag", "Spacious designer tote with premium leather trim and durable canvas construction. Perfect for work or weekend.", 199.99, 25, true, getProductImage("Bag"));
+                "Signature Tote Bag", "Spacious designer tote with premium leather trim and durable canvas construction. Perfect for work or weekend.", 199.99, 25, true, getProductImage("Bag"),List.of("Accessories", "Bags"));
         String p14 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-005",
-                "Designer Silk Scarf", "Luxurious silk scarf with hand-painted design. Versatile accessory to elevate any outfit.", 89.99, 40, true, getProductImage("Scarf"));
+                "Designer Silk Scarf", "Luxurious silk scarf with hand-painted design. Versatile accessory to elevate any outfit.", 89.99, 40, true, getProductImage("Scarf"),List.of("Accessories", "Scarves"));
 
         // Add Fashion Store products to catalog with images and ratings
         System.out.println("Adding Fashion Store product images...");
@@ -253,15 +254,15 @@ class BootstrapData {
         // Home Store products - with descriptions and real image URLs
         System.out.println("Adding Home Store products...");
         String p15 = stores.addProductToStore("home@demo.com", homeStore, "HOME-001",
-                "Barista Coffee Maker", "Professional-grade coffee maker with built-in grinder, pressure control, and milk frother. Make cafe-quality coffee at home.", 199.99, 18, true, getProductImage("Coffee"));
+                "Barista Coffee Maker", "Professional-grade coffee maker with built-in grinder, pressure control, and milk frother. Make cafe-quality coffee at home.", 199.99, 18, true, getProductImage("Coffee"),List.of("Home", "Kitchen"));
         String p16 = stores.addProductToStore("home@demo.com", homeStore, "HOME-002",
-                "Smart Robot Vacuum", "AI-powered vacuum with mapping technology, scheduling, and app control. Keep your home clean with minimal effort.", 299.99, 10, true, getProductImage("Vacuum"));
+                "Smart Robot Vacuum", "AI-powered vacuum with mapping technology, scheduling, and app control. Keep your home clean with minimal effort.", 299.99, 10, true, getProductImage("Vacuum"),List.of("Home", "Cleaning"));
         String p17 = stores.addProductToStore("home@demo.com", homeStore, "HOME-003",
-                "Premium Egyptian Cotton Bedding", "Luxurious 1000 thread count Egyptian cotton sheets, duvet cover, and pillowcases for the ultimate sleep experience.", 249.99, 25, true, getProductImage("Bedding"));
+                "Premium Egyptian Cotton Bedding", "Luxurious 1000 thread count Egyptian cotton sheets, duvet cover, and pillowcases for the ultimate sleep experience.", 249.99, 25, true, getProductImage("Bedding"),List.of("Home", "Bedroom"));
         String p18 = stores.addProductToStore("home@demo.com", homeStore, "HOME-004",
-                "Professional Knife Collection", "Hand-forged chef's knives with premium steel blades and ergonomic handles. Essential tools for any serious cook.", 179.99, 15, true, getProductImage("Knife"));
+                "Professional Knife Collection", "Hand-forged chef's knives with premium steel blades and ergonomic handles. Essential tools for any serious cook.", 179.99, 15, true, getProductImage("Knife"),List.of("Home", "Kitchen"));
         String p19 = stores.addProductToStore("home@demo.com", homeStore, "HOME-005",
-                "Smart Home Control Center", "Central hub for all your smart home devices with voice control, automation, and security features.", 159.99, 20, true, getProductImage("Smart Home"));
+                "Smart Home Control Center", "Central hub for all your smart home devices with voice control, automation, and security features.", 159.99, 20, true, getProductImage("Smart Home"),List.of("Home", "Smart Home"));
 
         // Add Home Store products to catalog with images and ratings
         System.out.println("Adding Home Store product images...");

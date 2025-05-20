@@ -84,4 +84,5 @@ public interface IProductCatalog {
 
     void addStoreProductEntryWithImage(String catalogID, String storeName, String productID, double price,
                                        int quantity, double rating, String name, String imageUrl);
+    List<String> getProductCategory(String catalogID) throws Exception;
 }

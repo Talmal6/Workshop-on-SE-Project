@@ -22,6 +22,7 @@ public class ShoppingProduct {
     private final String storeName;
     private final String imageUrl;
     private final Map<String, Store.Rating> ratings = new HashMap<>();
+    private final List<String> categories;;
 
     // Bids and auction
     private final List<Bid> bids;
@@ -29,7 +30,7 @@ public class ShoppingProduct {
     private BuyingPolicy buyingPolicy;
 
     public ShoppingProduct(String storeName, String catalogID, String productId, String name,
-                           String description, double price, int quantity, String imageUrl) {
+                           String description, double price, int quantity, String imageUrl,List<String> categories) {
         this.storeName = storeName;
         this.catalogID = catalogID;
         this.productId = productId;
@@ -41,6 +42,7 @@ public class ShoppingProduct {
         this.buyingPolicy = new BuyingPolicy(1);
         this.imageUrl=imageUrl;
         this.ratings.clear();
+        this.categories = categories;
     }
 
     // Getters
@@ -163,7 +165,9 @@ public class ShoppingProduct {
                 .average()
                 .orElse(0.0);
     }
-
+    public List<String> getCategories() {
+        return Collections.unmodifiableList(categories);
+    }
     public String getImageUrl() {
         return imageUrl;
     }
@@ -176,4 +180,5 @@ public class ShoppingProduct {
     public Map<String, Store.Rating> getAllRatings() {
         return Collections.unmodifiableMap(ratings);
     }
+
 }

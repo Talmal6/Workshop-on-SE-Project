@@ -148,11 +148,11 @@ public class StoreRepository implements IStoreRepository {
     @Override
     public String addProductToStore(String email, String storeName, String catalogID, String product_name,
                                     String description, double price,
-                                    int quantity, boolean isAdmin, String imageURL) {
+                                    int quantity, boolean isAdmin, String imageURL,List<String> categories) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
             return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity,
-                    isAdmin, imageURL);
+                    isAdmin, imageURL,categories);
         }
         return null;
 

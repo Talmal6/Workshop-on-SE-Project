@@ -74,7 +74,7 @@ public interface IStoreRepository {
          */
         String addProductToStore(String email, String storeName, String catalogID, String product_name,
                         String description,
-                        double price, int quantity, boolean isAdmin, String imageURL);
+                        double price, int quantity, boolean isAdmin, String imageURL,List<String> categories);
 
         /**
          * Updates the details of a shopping product.
