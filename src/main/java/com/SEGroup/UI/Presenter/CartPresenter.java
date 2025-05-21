@@ -364,4 +364,9 @@ public class CartPresenter {
                 creditCardDetails.getZipCode(),
                 creditCardDetails.getCountry());
     }
+
+    public Result<Void> applyCoupon(String value) {
+
+        return null;
+    }
 }

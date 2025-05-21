@@ -7,13 +7,13 @@ import java.util.Map;
 
 import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.INotificationCenter;
 import com.SEGroup.Domain.IProductCatalog;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Review;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +29,7 @@ public class StoreService {
     private final IProductCatalog productCatalog;
     private final IUserRepository userRepository;
     private final IAuthenticationService authenticationService;
-    private final NotificationCenter notificationService;
+    private final INotificationCenter notificationService;
 
     /**
      * Constructs a new StoreService instance with the provided dependencies.
@@ -44,7 +44,7 @@ public class StoreService {
             IProductCatalog productCatalog,
             IAuthenticationService authenticationService,
             IUserRepository userRepository,
-            NotificationCenter notificationService) {
+            INotificationCenter notificationService) {
         this.storeRepository = storeRepository;
         this.productCatalog = productCatalog;
         this.authenticationService = authenticationService;
@@ -1003,6 +1003,9 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+
+
 
 
 

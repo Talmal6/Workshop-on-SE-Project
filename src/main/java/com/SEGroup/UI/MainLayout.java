@@ -29,8 +29,9 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-
+import java.util.stream.Collectors;
 
 
 @SpringComponent
@@ -71,6 +72,29 @@ public class MainLayout extends AppLayout {
 
         // Check permissions after navigation
         checkRolesAndUpdateUI();
+
+        //now select the right tab
+        String currentPath = UI.getCurrent()
+                .getInternals()
+                .getActiveViewLocation()
+                .getPath(); // e.g. "all-stores"
+        Tab match = null;
+        for (Component child : tabs.getChildren().collect(Collectors.toList())) {
+            if (child instanceof Tab) {
+                Tab t = (Tab) child;
+                // each Tab wraps exactly one RouterLink in your setup
+                Optional<RouterLink> link = t.getChildren()
+                        .filter(c -> c instanceof RouterLink)
+                        .map(c -> (RouterLink) c)
+                        .findFirst();
+                if (link.isPresent()
+                        && link.get().getHref().equals(currentPath)) {
+                    match = t;
+                    break;
+                }
+            }
+        }
+        tabs.setSelectedTab(match);
     }
 
     @Override
@@ -239,6 +263,7 @@ public class MainLayout extends AppLayout {
 
         tabs.getTabAt(6).setVisible(false);
         tabs.getTabAt(7).setVisible(false);
+        tabs.getTabAt(8).setVisible(false);
 //        tabs.getTabAt(9).setVisible(false);
 //        tabs.getTabAt(10).setVisible(false);
 
@@ -538,6 +563,7 @@ public class MainLayout extends AppLayout {
 
         if (loggedIn) {
             tabs.getTabAt(6).setVisible(true);
+            tabs.getTabAt(8).setVisible(true);
 
             try {
                 String email = SecurityContextHolder.email();
@@ -593,6 +619,7 @@ public class MainLayout extends AppLayout {
             // hide everything when logged out
             tabs.getTabAt(6).setVisible(false);
             tabs.getTabAt(7).setVisible(false);
+            tabs.getTabAt(8).setVisible(false);
 //            tabs.getTabAt(9).setVisible(false);
 //            tabs.getTabAt(10).setVisible(false);
             manageStoreBtn  .setVisible(false);

@@ -11,12 +11,13 @@ import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.INotificationCenter;
 import com.SEGroup.Domain.IPaymentGateway;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.ITransactionRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.IShippingService;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,7 +35,7 @@ public class TransactionService {
     private final IStoreRepository storeRepository; // Added StoreRepository
     private final IUserRepository userRepository; // Added UserRepository
     private final IShippingService shippingService; // Added ShippingService
-    private final NotificationCenter notificationService;
+    private final INotificationCenter notificationService;
 
     /**
      * Constructs a new TransactionService instance with the provided dependencies.
@@ -53,7 +54,7 @@ public class TransactionService {
             IStoreRepository storeRepository,
             IUserRepository userRepository,
             IShippingService shippingService,
-            NotificationCenter notificationService) {
+            INotificationCenter notificationService) {
         this.authenticationService = authenticationService;
         this.paymentGateway = paymentGateway;
         this.transactionRepository = transactionRepository;
