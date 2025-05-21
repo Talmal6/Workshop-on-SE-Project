@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.SEGroup.DTO.*;
+import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.Store.*;
 import com.SEGroup.Mapper.StoreMapper;
@@ -488,6 +489,31 @@ public class StoreRepository implements IStoreRepository {
 
         return basketToTotalPrice;
     }
+    @Override
+    public Map<String, Double> CalculateDiscountToStores(List<BasketDTO> basketDTOList) {
+        Map<String, Double> discountedPrices = new HashMap<>();
+
+        for (BasketDTO basketDTO : basketDTOList) {
+            Store store = findByName(basketDTO.storeId());
+            for (Map.Entry<String, Integer> entry : basketDTO.prod2qty().entrySet()) {
+                String productId = entry.getKey();
+                int quantity = entry.getValue();
+
+                ShoppingProduct product = store.getProduct(productId);
+                if (product == null) {
+                    throw new RuntimeException("Product not found: " + productId);
+                }
+
+                double baseTotal = product.getPrice() * quantity;
+                double discountAmount = store.calculateDiscount(product, quantity);
+                double finalPrice = baseTotal - discountAmount;
+
+                discountedPrices.put(productId, finalPrice);
+            }
+        }
+
+        return discountedPrices;
+    }
 
     @Override
     public void rollBackItemsToStores(List<BasketDTO> basketDTOList) {
@@ -858,13 +884,52 @@ public class StoreRepository implements IStoreRepository {
         store.giveStoreReview(userId, review, Integer.parseInt(rating));
     }
 
+
     @Override
-    public double calculateFinalPriceAfterDiscount(String storeName, Map<String, Integer> productIdToQuantity, InMemoryProductCatalog catalog) {
+    public void addSimpleDiscountToEntireStore(String storeName, String operatorEmail,int percentage,String Coupon){
         Store store = findByName(storeName);
-        return store.calculateFinalPriceAfterDiscount(productIdToQuantity, catalog);
+        store.addSimpleDiscountToEntireStore(operatorEmail, percentage, Coupon);
+    }
+    @Override
+    public void addSimpleDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon) {
+        Store store = findByName(storeName);
+        store.addSimpleDiscountToEntireCategoryInStore(operatorEmail, category, percentage, coupon);
     }
 
+    @Override
+    public void addSimpleDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon) {
+        Store store = findByName(storeName);
+        store.addSimpleDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage, coupon);
+    }
 
+    @Override
+    public void addConditionalDiscountToEntireStore(String storeName, String operatorEmail, int percentage, String coupon) {
+        Store store = findByName(storeName);
+        store.addConditionalDiscountToEntireStore(operatorEmail, percentage, coupon);
+    }
 
-}
+    @Override
+    public void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon) {
+        Store store = findByName(storeName);
+        store.addConditionalDiscountToEntireCategoryInStore(operatorEmail, category, percentage, coupon);
+    }
+
+    @Override
+    public void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon) {
+        Store store = findByName(storeName);
+        store.addConditionalDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage, coupon);
+    }
+
+    @Override
+    public void applyCouponToCart(List<BasketDTO> basketDTOList,String Coupon){
+        Map<String, Double> discountedPrices = new HashMap<>();
+
+        for (BasketDTO basketDTO : basketDTOList) {
+            Store store = findByName(basketDTO.storeId());
+           store.applyCoupon(Coupon);
+        }
+
+    }
+    }
+
 

@@ -217,6 +217,8 @@ public interface IStoreRepository {
          */
         Map<BasketDTO, Double> removeItemsFromStores(List<BasketDTO> basketDTOList);
 
+        Map<String, Double> CalculateDiscountToStores(List<BasketDTO> basketDTOList);
+
         /**
          * Rolls back items to stores from a basket.
          *
@@ -283,5 +285,12 @@ public interface IStoreRepository {
 
         void closeAuction(String storeName, String userId, String productId);
 
-        double calculateFinalPriceAfterDiscount(String storeName, Map<String, Integer> productIdToQuantity, InMemoryProductCatalog productCatalog);
+
+        void addSimpleDiscountToEntireStore(String storeName, String operatorEmail,int percentage,String Coupon);
+        void addSimpleDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon);
+        void addSimpleDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon);
+        void addConditionalDiscountToEntireStore(String storeName, String operatorEmail, int percentage, String coupon);
+        void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon);
+        void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon);
+        void applyCouponToCart(List<BasketDTO> basketDTOList,String Coupon);
 }

@@ -937,73 +937,74 @@ public class StoreService {
         }
     }
 
-    /**
-     * Calculates the final price of a user's shopping cart after applying store discounts.
-     *
-     * @param sessionKey The session key of the authenticated user.
-     * @param storeName  The store name.
-     * @param productIdToQuantity The shopping cart as product ID to quantity.
-     * @return A Result object with the final price after discounts.
-     */
-    public Result<Double> calculateFinalPriceAfterDiscount(String sessionKey, String storeName, Map<String, Integer> productIdToQuantity) {
+
+    //this section is dedicated for discount related service
+    //part 1 is dedicated to store owner/manager wanting to add a discount
+    public Result<Boolean> addSimpleDiscountToEntireStore(String sessionKey, String storeName, int percentage,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
-            String userEmail = authenticationService.getUserBySession(sessionKey);
-            userRepository.checkUserSuspension(userEmail);
-
-            if (!(productCatalog instanceof InMemoryProductCatalog)) {
-                throw new IllegalStateException("Product catalog is not of type InMemoryProductCatalog");
-            }
-
-            double priceAfterDiscount = storeRepository.calculateFinalPriceAfterDiscount(
-                    storeName, productIdToQuantity, (InMemoryProductCatalog) productCatalog);
-
-            return Result.success(priceAfterDiscount);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.addSimpleDiscountToEntireStore(authenticationService.getUserBySession(sessionKey),storeName,percentage,Coupon);
+            return Result.success(null);
         } catch (Exception e) {
-            LoggerWrapper.error("Error calculating final price after discount: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+    public Result<Boolean> addSimpleDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage,String Coupon){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.addSimpleDiscountToEntireCategoryInStore(authenticationService.getUserBySession(sessionKey),storeName,category,percentage,Coupon);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Boolean> addSimpleDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage,String Coupon){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.addSimpleDiscountToSpecificProductInStorePercentage(authenticationService.getUserBySession(sessionKey),storeName,product_id,percentage,Coupon);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Boolean> addConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage,String Coupon){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.addConditionalDiscountToEntireStore(authenticationService.getUserBySession(sessionKey),storeName,percentage,Coupon);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    public Result<Boolean> addConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage,String Coupon){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.addConditionalDiscountToEntireCategoryInStore(authenticationService.getUserBySession(sessionKey),storeName,category,percentage,Coupon);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Boolean> addConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage,String Coupon){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            storeRepository.addConditionalDiscountToSpecificProductInStorePercentage(authenticationService.getUserBySession(sessionKey),storeName,product_id,percentage,Coupon);
+            return Result.success(null);
+        } catch (Exception e) {
             return Result.failure(e.getMessage());
         }
     }
 
 
-
-
-
-    //this section is dedicated for discount related service
-    //part 1 is dedicated to store owner/manager wanting to add a discount
-    public Result<Boolean> addSimpleDiscountToEntireStore(String sessionKey, String storeName, int percentage){
-        //todo: implement!!!
-        return Result.failure("not implemented");
-    }
-    public Result<Boolean> addSimpleDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage){
-        //todo: implement!!!
-        return Result.failure("not implemented");
-    }
-
-    public Result<Boolean> addSimpleDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage){
-        //todo: implement!!!
-        return Result.failure("not implemented");
-    }
-
-    public Result<Boolean> addConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage){
-        //todo: implement!!!
-        return Result.failure("not implemented");
-    }
-    public Result<Boolean> addConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage){
-        //todo: implement!!!
-        return Result.failure("not implemented");
-    }
-
-    public Result<Boolean> addConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage){
-        //todo: implement!!!
-        return Result.failure("not implemented");
-    }
-
-    //now the methods relevant to user
-    public Result<Map<String, Double>> getDiscountsForCart(String buyerSessionKey){
-        //todo: implement!!!
-        return Result.failure("not implemented");
-    }
 
 
 }
