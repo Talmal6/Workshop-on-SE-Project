@@ -73,7 +73,7 @@ public class AddDiscountPresenter {
 
     public Result<Void> addDiscountToStore(Integer value) {
 //        return         Result.failure("Unknown error");
-        return  storeService.addSimpleDiscountToEntireStore(SecurityContextHolder.token(), storeName, value, null);
+        return storeService.addSimpleDiscountToEntireStore(SecurityContextHolder.token(), storeName, value, null);
 
     }
 
