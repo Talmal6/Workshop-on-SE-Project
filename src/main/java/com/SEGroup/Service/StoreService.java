@@ -971,42 +971,49 @@ public class StoreService {
 
     //this section is dedicated for discount related service
     //part 1 is dedicated to store owner/manager wanting to add a discount
-    public Result<Boolean> addSimpleDiscountToEntireStore(String sessionKey, String storeName, int percentage, String coupon){
+    public Result<Void> addSimpleDiscountToEntireStore(String sessionKey, String storeName, int percentage, String coupon){
         //todo: implement!!!
-        return Result.failure("not implemented");
+        return Result.success(null);
     }
-    public Result<Boolean> addSimpleDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage, String coupon){
+    public Result<Void> addSimpleDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage, String coupon){
         //todo: implement!!!
-        return Result.failure("not implemented");
+        return Result.success(null);
+
     }
 
-    public Result<Boolean> addSimpleDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, String coupon){
+    public Result<Void> addSimpleDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, String coupon){
         //todo: implement!!!
-        return Result.failure("not implemented");
+        return Result.success(null);
+
     }
 
-    public Result<Boolean> addConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage, String coupon){
+    public Result<Void> addConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage, String coupon){
         //todo: implement!!!
-        return Result.failure("not implemented");
+        return Result.success(null);
+
     }
-    public Result<Boolean> addConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage, String coupon){
+    public Result<Void> addConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage, String coupon){
         //todo: implement!!!
-        return Result.failure("not implemented");
+        return Result.success(null);
+
     }
 
-    public Result<Boolean> addConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, String coupon){
+    public Result<Void> addConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, String coupon){
         //todo: implement!!!
-        return Result.failure("not implemented");
+        return Result.success(null);
+
     }
 
     //now the methods relevant to user
     public Result<Map<String, Double>> getDiscountsForCart(String buyerSessionKey){
         //todo: implement!!!
-        return Result.failure("not implemented");
+        return Result.success(null);
+
     }
 
     public Result<Void> applyCouponToCart(String buyerSessionKey, String coupon){
-        return Result.failure("not implemented");
+        //todo: implement!!!
+        return Result.success(null);
     }
 
 

@@ -4,6 +4,7 @@ import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Service.Result;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.AddDiscountPresenter;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -133,13 +134,11 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
             String  coupon   = couponField.getValue();
             Result<Void> result = Result.failure("Unknown error");
 
-            // ---------- ולידציות בסיסיות ----------
             if (empty(category))                     { categoryComboBox.setInvalid(true); return; }
             if (percent == null || percent <= 0 || percent > 99) { percentageField.setInvalid(true); return; }
             if (couponOn && empty(coupon))           { couponField.setInvalid(true); return; }
 
             switch (category) {
-
                 case "Entire Store" -> {
                     if (couponOn)
                         result = presenter.addDiscountToStoreWithCoupon(percent, coupon);
@@ -179,14 +178,11 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
                 couponField.clear();
                 useCouponCheckbox.setValue(false);
                 couponField.setEnabled(false);
-
-
             } else {
                 Notification.show("Failed to add discount: " + result.getErrorMessage(), 3000, Notification.Position.MIDDLE);
             }
+
         });
-
-
         // Add components to layout
         add(categoryComboBox, itemComboBox, minAmountField, percentageField, couponLayout, confirmButton);
 
@@ -196,7 +192,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
 
 
     @Override
-    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+    public void setParameter(BeforeEvent event, String parameter) {
         if (parameter != null && !parameter.isEmpty()) {
             presenter = new AddDiscountPresenter(this, parameter);
         }
