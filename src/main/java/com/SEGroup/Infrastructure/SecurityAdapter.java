@@ -1,12 +1,10 @@
-package com.SEGroup.Service;
+package com.SEGroup.Infrastructure;
 
 import javax.naming.AuthenticationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.SEGroup.Domain.IAuthenticationService;
-import com.SEGroup.Infrastructure.PasswordEncoder;
-import com.SEGroup.Infrastructure.Security;
 
 import org.springframework.stereotype.Component;
 /**

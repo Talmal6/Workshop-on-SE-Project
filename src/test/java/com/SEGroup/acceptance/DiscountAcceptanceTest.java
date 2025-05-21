@@ -8,6 +8,8 @@ import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Discount.DiscountScope;
 import com.SEGroup.Domain.Discount.SimpleDiscount;
 import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.INotificationCenter;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Store;
@@ -16,12 +18,13 @@ import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Domain.Report.ReportCenter;
 
 import com.SEGroup.Infrastructure.Security;
+import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+
 import javax.crypto.SecretKey;
 import java.util.*;
 import java.util.function.Predicate;
@@ -41,7 +44,7 @@ public class DiscountAcceptanceTest {
     InMemoryProductCatalog productCatalog;
     IUserRepository userRepository;
     UserService userService;
-    NotificationCenter notificationService;
+    INotificationCenter notificationService;
     ReportCenter reportCenter;
 
     @BeforeEach

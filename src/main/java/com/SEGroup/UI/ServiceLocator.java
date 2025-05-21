@@ -5,9 +5,11 @@ import com.SEGroup.Domain.Report.ReportCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
 import com.SEGroup.Service.*;
 import com.SEGroup.Domain.*;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
+import com.SEGroup.Infrastructure.SecurityAdapter;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.context.ApplicationContext;
@@ -32,7 +34,7 @@ public class ServiceLocator {
     private static NotificationEndpoint notificationEndpoint;
     private static NotificationSender notificationSender;
     private static DirectNotificationSender directNotificationSender;
-    private static NotificationCenter notificationCenter;
+    private static INotificationCenter notificationCenter;
 
     // Repositories
     private static IUserRepository userRepository;
@@ -76,9 +78,9 @@ public class ServiceLocator {
         transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService, notificationCenter);
     }
 
-    public static NotificationCenter getNotificationCenter() {
+    public static INotificationCenter getNotificationCenter() {
         if (applicationContext != null) {
-            return applicationContext.getBean(NotificationCenter.class);
+            return applicationContext.getBean(INotificationCenter.class);
         }
         return notificationCenter;
     }
