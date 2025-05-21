@@ -2,6 +2,8 @@ package com.SEGroup.UI.Presenter;
 
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Service.Result;
+import com.SEGroup.Service.StoreService;
+import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.AddDiscountView;
 
@@ -13,11 +15,13 @@ public class AddDiscountPresenter {
     private Map<String, List<ShoppingProductDTO>> productsByCategory;
     private List<String> categories;
     private String storeName;
+    private StoreService storeService;
 
     public AddDiscountPresenter(AddDiscountView view, String storeName) {
         this.view = view;
         this.storeName = storeName;
         this.productsByCategory = new HashMap<>();
+        this.storeService = ServiceLocator.getStoreService();
         loadStoreProducts();
     }
 
@@ -68,34 +72,34 @@ public class AddDiscountPresenter {
     }
 
     public Result<Void> addDiscountToStore(Integer value) {
-        //todo
-        return         Result.failure("Unknown error");
+//        return         Result.failure("Unknown error");
+        return  storeService.addSimpleDiscountToEntireStore(SecurityContextHolder.token(), storeName, value, null);
 
     }
 
     public Result<Void> addDiscountToCategory(String category, Integer value) {
-        //todo
-        return         Result.failure("Unknown error");
+//        return         Result.failure("Unknown error");
+        return  storeService.addSimpleDiscountToEntireCategoryInStore(SecurityContextHolder.token(),storeName,category,value, null);
 
     }
 
     public Result<Void> addDiscountToProduct(String category, String item, Integer value, int minAmount) {
-        return         Result.failure("Unknown error");
-
+//        return         Result.failure("Unknown error");
+        return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,item,value,null);
     }
 
     public Result<Void> addDiscountToStoreWithCoupon(Integer value, String couponCode) {
-        return         Result.failure("Unknown error");
-
+//        return         Result.failure("Unknown error");
+        return  storeService.addSimpleDiscountToEntireStore(SecurityContextHolder.token(), storeName, value, couponCode);
     }
 
     public Result<Void> addDiscountToCategoryWithCoupon(String category, Integer value, String couponCode) {
-        return         Result.failure("Unknown error");
+        return  storeService.addSimpleDiscountToEntireCategoryInStore(SecurityContextHolder.token(),storeName,category,value, couponCode);
 
     }
 
     public Result<Void> addDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, String couponCode) {
-        return         Result.failure("Unknown error");
+        return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,item,value,couponCode);
 
     }
 } 
