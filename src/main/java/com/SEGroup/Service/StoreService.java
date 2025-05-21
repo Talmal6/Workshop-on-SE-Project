@@ -966,15 +966,24 @@ public class StoreService {
     }
 
 
-
-
-
     //this section is dedicated for discount related service
     //part 1 is dedicated to store owner/manager wanting to add a discount
-    public Result<Boolean> addSimpleDiscountToEntireStore(String sessionKey, String storeName, int percentage){
-        //todo: implement!!!
-        return Result.failure("not implemented");
+    public Result<Boolean> addSimpleDiscountToEntireStore(String sessionKey, String storeName, int percentage) {
+        try {
+            authenticationService.authenticate(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            boolean isAdmin = userRepository.userIsAdmin(userEmail);
+
+            storeRepository.addSimpleDiscountToStore(storeName, percentage, userEmail, isAdmin);
+            LoggerWrapper.info("Added simple discount to entire store: " + storeName + ", percentage: " + percentage);
+            return Result.success(true);
+        } catch (Exception e) {
+            LoggerWrapper.error("Error adding simple discount to entire store: " + e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
     }
+
     public Result<Boolean> addSimpleDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage){
         //todo: implement!!!
         return Result.failure("not implemented");

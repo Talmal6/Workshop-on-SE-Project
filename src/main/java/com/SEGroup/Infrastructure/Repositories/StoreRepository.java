@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.SEGroup.DTO.*;
+import com.SEGroup.Domain.Discount.DiscountScope;
+import com.SEGroup.Domain.Discount.SimpleDiscount;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.Store.*;
 import com.SEGroup.Mapper.StoreMapper;
@@ -862,6 +864,21 @@ public class StoreRepository implements IStoreRepository {
     public double calculateFinalPriceAfterDiscount(String storeName, Map<String, Integer> productIdToQuantity, InMemoryProductCatalog catalog) {
         Store store = findByName(storeName);
         return store.calculateFinalPriceAfterDiscount(productIdToQuantity, catalog);
+    }
+
+    public void addSimpleDiscountToStore(String storeName, int percentage, String userEmail, boolean isAdmin) {
+        Store store = findByName(storeName);
+        checkAuthorization(store, userEmail, isAdmin);
+
+        DiscountScope scope = new DiscountScope(DiscountScope.ScopeType.STORE, storeName);
+        SimpleDiscount discount = new SimpleDiscount(percentage, scope);
+        store.addDiscount(discount);
+    }
+
+    private void checkAuthorization(Store store, String userEmail, boolean isAdmin) {
+        if (!store.isOwner(userEmail) && !isAdmin) {
+            throw new SecurityException("User " + userEmail + " is not authorized to manage discounts on store " + store.getName());
+        }
     }
 
 

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.SEGroup.DTO.*;
+import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Bid;
 import com.SEGroup.Domain.Store.Review;
 import com.SEGroup.Domain.Store.Store;
@@ -284,4 +285,7 @@ public interface IStoreRepository {
         void closeAuction(String storeName, String userId, String productId);
 
         double calculateFinalPriceAfterDiscount(String storeName, Map<String, Integer> productIdToQuantity, InMemoryProductCatalog productCatalog);
-}
+
+        void addSimpleDiscountToStore(String storeName, int percentage, String userEmail, boolean isAdmin);
+
+    }
