@@ -5,10 +5,11 @@ import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Domain.Report.ReportCenter;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -57,7 +58,7 @@ public class TransactionServiceAcceptanceTests {
         private TransactionService transactionService;
         private UserService userService;
         private IShippingService shippingService;
-        private NotificationCenter notificationService;
+        private INotificationCenter notificationService;
         private ReportCenter reportCenter;
 
         @BeforeEach

@@ -1,7 +1,10 @@
 package com.SEGroup.Infrastructure.NotificationCenter;
 
-import com.SEGroup.Domain.IAuthenticationService;
 import org.springframework.stereotype.Component;
+
+import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Infrastructure.NotificationCenter.Notification;
+import com.SEGroup.Domain.INotificationCenter;
 
 import javax.naming.AuthenticationException;
 import java.util.*;
@@ -9,7 +12,7 @@ import java.util.concurrent.*;
 
 /** Central dispatcher for user & system notifications. */
 @Component
-public class NotificationCenter implements Runnable {
+public class NotificationCenter implements Runnable, INotificationCenter {
 
     /* ------------ configuration ------------ */
 
@@ -124,4 +127,10 @@ public class NotificationCenter implements Runnable {
             }
         }
     }
+
+    // NotificationCenter.java (for testing only!)
+    public List<Notification> getUserNotifications(String userEmail) {
+        return userNotificationHistory.getOrDefault(userEmail, Collections.emptyList());
+    }
+
 }

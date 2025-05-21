@@ -10,9 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.INotificationCenter;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
-import com.SEGroup.Service.SecurityAdapter;
+import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.UserService;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;

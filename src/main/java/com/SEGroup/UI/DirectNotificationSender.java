@@ -1,7 +1,8 @@
 package com.SEGroup.UI;
 
+import com.SEGroup.Domain.INotificationCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.*;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class DirectNotificationSender {
     @Autowired NotificationEndpoint endpoint;
     @Autowired NotificationBroadcastService broadcast;
     @Autowired(required = false)
-    NotificationCenter domainCenter;
+    INotificationCenter domainCenter;
 
     private static final Logger log = Logger.getLogger(DirectNotificationSender.class.getName());
 

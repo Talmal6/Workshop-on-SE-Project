@@ -3,7 +3,7 @@ package com.SEGroup.UI.Presenter;
 import com.SEGroup.DTO.AuctionDTO;
 import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
-import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import com.SEGroup.Domain.INotificationCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationType;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
@@ -29,7 +29,7 @@ public class ProductPresenter {
     private ShoppingProductDTO product;
     private AuctionDTO auction;
     private final DirectNotificationSender notificationSender;
-    private final NotificationCenter notificationCenter;
+    private final INotificationCenter notificationCenter;
     private List<String> owners = List.of();
     // Bid approval tracking - will be refreshed from server each time
     private int totalOwnersCount = 0;
