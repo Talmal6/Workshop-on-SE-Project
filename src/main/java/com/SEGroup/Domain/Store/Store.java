@@ -1,8 +1,10 @@
 package com.SEGroup.Domain.Store;
+import com.SEGroup.Domain.Discount.ConditionalDiscount;
 import com.SEGroup.Domain.Discount.Discount;
-import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
-import com.vaadin.pro.licensechecker.Product;
+import com.SEGroup.Domain.Discount.DiscountType;
+import com.SEGroup.Domain.Discount.Numerical.MaxDiscount;
+import com.SEGroup.Domain.Discount.Numerical.NumericalComposite;
+import com.SEGroup.Domain.Discount.SimpleDiscount;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,7 +21,6 @@ public class Store {
     private String founderEmail;
     private boolean isActive;
     private double balance;
-    private int numOfitems;
     private final AtomicInteger inStoreProductId = new AtomicInteger(-1);
     private String description="";
 
@@ -47,12 +48,13 @@ public class Store {
     }
     // Disocunt and policy fields
     private PurchasePolicy purchasePolicy;
-    private List<Discount> discounts;
+    //genislav need todo
+    private NumericalComposite discounts;
 
     //Owners and managers
     private final Map<String, String> ownersAppointer = new java.util.concurrent.ConcurrentHashMap<>(); // email → appointedBy
     private final Map<String, ManagerData> managers = new java.util.concurrent.ConcurrentHashMap<>(); // email → metadata
-    
+
 
     public Store(String name, String founderEmail) {
         //field
@@ -68,7 +70,8 @@ public class Store {
         this.reviewIdToReview.clear();
         // Disocunt and policy fields
         this.purchasePolicy = new PurchasePolicy(0,0);
-        this.discounts = new ArrayList<>();
+        //genislav to do
+        this.discounts = new MaxDiscount(new ArrayList<>());
     }
 
     // Getters
@@ -157,7 +160,7 @@ public class Store {
         allWorkers.addAll(managers.keySet());
         return allWorkers;
     }
-    
+
     /*
      * Submits a bid to a shopping item.
         *
@@ -506,41 +509,8 @@ public class Store {
         return p;
     }
 
-    public void addDiscount(Discount discount) {
-        if (discount == null) throw new IllegalArgumentException("Discount cannot be null");
-        discounts.add(discount);
-    }
 
-    public double calculateFinalPriceAfterDiscount(Map<String, Integer> productIdToQuantity, InMemoryProductCatalog catalog) {
-        List<StoreSearchEntry> entries = new ArrayList<>();
-        double totalPrice = 0.0;
 
-        for (Map.Entry<String, Integer> entry : productIdToQuantity.entrySet()) {
-            ShoppingProduct product = this.getProduct(entry.getKey());
-            if (product == null) continue;
-
-            int quantity = entry.getValue();
-            double productPrice = product.getPrice() * quantity;
-            totalPrice += productPrice;
-
-            entries.add(new StoreSearchEntry(
-                    product.getCatalogID(),
-                    this.name,
-                    product.getProductId(),
-                    product.getPrice(),
-                    quantity,
-                    product.averageRating(),
-                    product.getName()
-            ));
-        }
-
-        double totalDiscount = 0;
-        for (Discount discount : this.discounts) {
-            totalDiscount += discount.calculate(entries.toArray(new StoreSearchEntry[0]), catalog);
-        }
-
-        return totalPrice - totalDiscount;
-    }
     public List<String> getAllBidManagers() {
         List<String> bidManagers = new ArrayList<>();
 
@@ -625,8 +595,53 @@ public class Store {
     public Review getStoreReviewById(String reviewId) {
         return reviewIdToReview.get(reviewId);
     }
+    public void addSimpleDiscountToEntireStore(String operatorEmail,int percentage,String Coupon){
+        if(!isOwnerOrHasManagerPermissions(operatorEmail))
+            throw new IllegalArgumentException("Only owners can control discount");
+        this.discounts.add(new SimpleDiscount(DiscountType.STORE,percentage,null,Coupon));
 
+    }
+    public void addSimpleDiscountToEntireCategoryInStore(String operatorEmail, String category, int percentage, String coupon) {
+        if (!isOwnerOrHasManagerPermissions(operatorEmail))
+            throw new IllegalArgumentException("Only owners can control discount");
+        discounts.add(new SimpleDiscount(DiscountType.CATEGORY, percentage,category, coupon));
+    }
 
+    public void addSimpleDiscountToSpecificProductInStorePercentage(String operatorEmail, String productId, int percentage, String coupon) {
+        if (!isOwnerOrHasManagerPermissions(operatorEmail))
+            throw new IllegalArgumentException("Only owners can control discount");
+        discounts.add(new SimpleDiscount(DiscountType.PRODUCT, percentage,productId, coupon));
+    }
 
+    public void addConditionalDiscountToEntireStore(String operatorEmail, int percentage, String coupon) {
+        if (!isOwnerOrHasManagerPermissions(operatorEmail))
+            throw new IllegalArgumentException("Only owners can control discount");
+        discounts.add(new ConditionalDiscount(DiscountType.STORE, percentage,  p -> true,null, coupon));
+    }
+
+    public void addConditionalDiscountToEntireCategoryInStore(String operatorEmail, String category, int percentage, String coupon) {
+        if (!isOwnerOrHasManagerPermissions(operatorEmail))
+            throw new IllegalArgumentException("Only owners can control discount");
+        discounts.add(new ConditionalDiscount(DiscountType.CATEGORY, percentage, p -> true,category ,coupon));
+    }
+
+    public void addConditionalDiscountToSpecificProductInStorePercentage(String operatorEmail, String productId, int percentage, String coupon) {
+        if (!isOwnerOrHasManagerPermissions(operatorEmail))
+            throw new IllegalArgumentException("Only owners can control discount");
+        discounts.add(new ConditionalDiscount(DiscountType.PRODUCT, percentage, p -> true,productId, coupon));
+    }
+
+    /**
+     * Calculate the maximum discount amount for the given product based on all store discounts.
+     * @param product the shopping product with quantity
+     * @return the discount amount (money) for this product
+     */
+    public double calculateDiscount(ShoppingProduct product,int quantity) {
+        return this.discounts.calculate(product, quantity);
+    }
+
+    public void applyCoupon(String coupon) {
+        this.discounts.applyCoupon(coupon);
+    }
 
 }

@@ -1,89 +1,76 @@
 package com.SEGroup.UnitTests.Discount;
 
-import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Domain.Discount.Discount;
-import com.SEGroup.Domain.Discount.DiscountScope;
 import com.SEGroup.Domain.Discount.SimpleDiscount;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Domain.Discount.DiscountType;
+import com.SEGroup.Domain.Store.ShoppingProduct;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 public class SimpleDiscountTest {
 
     @Test
-    public void shouldApplySimpleDiscountSuccessfully_WhenScopeIsProductID() {
-        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-
+    public void shouldApplyProductLevelSimpleDiscount() {
+        // Arrange
+        double price = 100.0;
+        int quantity = 3;
         List<String> categories = new ArrayList<>();
         categories.add("electronics");
+        ShoppingProduct product = new ShoppingProduct(
+                "StoreA", "cat1", "p1", "Gadget", "Desc", price, quantity, "", categories
+        );
+        SimpleDiscount discount = new SimpleDiscount(DiscountType.PRODUCT, 20, "p1","COUPON1");
 
-        catalog.addCatalogProduct("c1", "Phone", "Apple", "IPhone 16 pro", categories);
-        catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 1000.0, 1, 4.5, "Phone");
+        // Act
+        discount.ApplyCoupon("COUPON1");
+        double discountedTotal = discount.calculate(product,3);
 
-        StoreSearchEntry[] entries = catalog.search("", new ArrayList<>(), "YuvalStore", null).toArray(new StoreSearchEntry[0]);
-
-        DiscountScope scope = new DiscountScope(DiscountScope.ScopeType.PRODUCT, "p1");     // By product ID
-        Discount discount = new SimpleDiscount(15, scope);                                // 15% discount
-
-        double result = discount.calculate(entries, catalog);
-        assertEquals(150.0, result, 0.001);                                         // 15% of 1000 is 150
+        // Assert
+        // 20% off of (100 * 3) = 240.0
+        assertEquals(240.0, discountedTotal, 0.001);
     }
 
-    // 50% discount on dairy products
     @Test
-    public void shouldApplySimpleDiscountSuccessfully_WhenScopeIsDairyCategory() {
-        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-
+    public void shouldApplyCategoryLevelSimpleDiscount() {
+        // Arrange
+        double price = 50.0;
+        int quantity = 2;
         List<String> categories = new ArrayList<>();
         categories.add("dairy");
+        ShoppingProduct product = new ShoppingProduct(
+                "StoreB", "cat2", "p2", "Milk", "Desc", price, quantity, "", categories
+        );
+        SimpleDiscount discount = new SimpleDiscount(DiscountType.CATEGORY, 50,"dairy", null);
 
-        catalog.addCatalogProduct("c1", "Milk", "Tnuva", "Lactose-free", categories);
-        catalog.addCatalogProduct("c2", "Cheese", "Tnuva", "Yellow cheese", categories);
+        // Act
+        double discountedTotal = discount.calculate(product,2);
 
-        catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 10.0, 1, 4.5, "Milk");
-        catalog.addStoreProductEntry("c2", "YuvalStore", "p2", 20.0, 2, 4.5, "Cheese");
-
-        StoreSearchEntry[] entries = catalog.search("", new ArrayList<>(), "YuvalStore", null).toArray(new StoreSearchEntry[0]);
-
-        DiscountScope scope = new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy");     // By category
-        Discount discount = new SimpleDiscount(50, scope);                                    // 50% discount
-
-        double result = discount.calculate(entries, catalog);
-        assertEquals(25.0, result, 0.001);                                         // 50% of (10 + 20 * 2) is 25
+        // Assert
+        // 50% off of (50 * 2) = 50.0
+        assertEquals(50.0, discountedTotal, 0.001);
     }
 
-
-    // %20 discount on the entire store!
     @Test
-    public void shouldApplySimpleDiscountSuccessfully_WhenScopeIsEntireStore() {
-        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
+    public void shouldApplyStoreLevelSimpleDiscount() {
+        // Arrange
+        double price1 = 10.0;
+        int quantity1 = 5;
+        List<String> categories1 = new ArrayList<>();
+        categories1.add("misc");
+        ShoppingProduct product1 = new ShoppingProduct(
+                "StoreC", "cat3", "p3", "ItemA", "Desc", price1, quantity1, "", categories1
+        );
+        // Even for store-level, discount applies per product
+        SimpleDiscount discount = new SimpleDiscount(DiscountType.STORE, 10, null,"COUPON3");
 
-        List<String> dairyCategory = new ArrayList<>();
-        dairyCategory.add("dairy");
+        // Act
+        discount.ApplyCoupon("COUPON3");
+        double discountedTotal = discount.calculate(product1,5);
 
-        List<String> sweetsCategory = new ArrayList<>();
-        sweetsCategory.add("sweets");
-
-        catalog.addCatalogProduct("c1", "Milk", "Tnuva", "Lactose-free", dairyCategory);
-        catalog.addCatalogProduct("c2", "Chocolate", "Elite", "Dubai Chocolate", sweetsCategory);
-
-        catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 10.0, 3, 4.5, "Milk");
-        catalog.addStoreProductEntry("c2", "YuvalStore", "p2", 50.0, 2, 4.5, "Cheese");
-
-        StoreSearchEntry[] entries = catalog.search("", new ArrayList<>(), "YuvalStore", null).toArray(new StoreSearchEntry[0]);
-
-        DiscountScope scope = new DiscountScope(DiscountScope.ScopeType.STORE, "YuvalStore");     // By store
-        Discount discount = new SimpleDiscount(20, scope);                                    // 20% discount
-
-        double result = discount.calculate(entries, catalog);
-        assertEquals(26.0, result, 0.001);                                         // 20% of (10 * 3 + 50 * 2) is 26
+        // Assert
+        // 10% off of (10 * 5) = 45.0
+        assertEquals(45.0, discountedTotal, 0.001);
     }
-
-
-
-
 }

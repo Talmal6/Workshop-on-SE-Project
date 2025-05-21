@@ -1,34 +1,45 @@
 package com.SEGroup.Domain.Discount;
 
-import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
-public class SimpleDiscount implements Discount{
-    private final double percent;
-    private final DiscountScope scope;
+import com.SEGroup.Domain.Store.ShoppingProduct;
 
-    public SimpleDiscount(double percent, DiscountScope scope) {
-        this.percent = percent;
-        this.scope = scope;
+import java.util.List;
+
+/**
+ * Simple discount that always applies to the product's unit price.
+ */
+public class SimpleDiscount extends Discount {
+
+    public SimpleDiscount(DiscountType type, double percent, String scopeKey,String Coupon) {
+        super(type, percent,scopeKey,Coupon);
     }
 
     @Override
-    public double calculate(StoreSearchEntry[] entries, InMemoryProductCatalog catalog) {
-        double totalDiscount = 0.0;
-
-        for (StoreSearchEntry entry : entries) {
-            if (scope.matches(entry, catalog)) {
-                double price = entry.getPrice();
-                int quantity = entry.getQuantity();
-                totalDiscount += quantity * price * (percent / 100);
-            }
+    public double calculate(ShoppingProduct product,int quantity) {
+        if(getCoupon()!=null && !isActive()) {
+            throw new IllegalArgumentException("Coupon is not active.");
         }
-
-        return totalDiscount;
-    }
-
-    @Override
-    public String getDescription() {
-        return percent + "% discount on " + scope.getType() + ": " + scope.getValue();
+        double baseTotal = product.getPrice() * quantity;
+        switch (getType()) {
+            case STORE:
+                // always applies
+                return baseTotal * (100 - getPercent()) / 100.0;
+            case PRODUCT:
+                // only if matching product ID
+                String skopekey=getScopeKey();
+                if (product.getProductId().equals(getScopeKey())) {
+                    return baseTotal * (100 - getPercent()) / 100.0;
+                }
+                break;
+            case CATEGORY:
+                // only if product belongs to category
+                List<String> cats = product.getCategories();
+                if (cats != null && cats.contains(getScopeKey())) {
+                    return baseTotal * (100 - getPercent()) / 100.0;
+                }
+                break;
+        }
+        // no discount applies
+        return baseTotal;
     }
 }

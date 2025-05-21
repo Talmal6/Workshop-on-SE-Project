@@ -1,27 +1,32 @@
 package com.SEGroup.Domain.Discount.Numerical;
 
-import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Discount.Discount;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Domain.Store.ShoppingProduct;
 
 import java.util.List;
 
-public abstract class NumericalComposite implements Discount {
-    protected final List<Discount> discountList;
+/**
+ * Abstract base class for numeric composite operations on discounts.
+ */
+public abstract class NumericalComposite {
+    protected final List<Discount> discounts;
 
-    public NumericalComposite(List<Discount> discountList) {
-        this.discountList = discountList;
+    protected NumericalComposite(List<Discount> discounts) {
+        this.discounts = discounts;
     }
 
-    @Override
-    public String getDescription() {
-        StringBuilder builder = new StringBuilder();
-        for (Discount d : discountList) {
-            builder.append("- ").append(d.getDescription()).append("\n");
+    /**
+     * Calculate the numeric result for a given product (e.g., discount amount).
+     * @param product the shopping product to evaluate
+     * @return computed numeric result
+     */
+    public abstract double calculate(ShoppingProduct product,int quantity);
+    public void add(Discount discount) {
+        discounts.add(discount);
+    }
+    public void applyCoupon(String coupon) {
+        for (Discount discount : discounts) {
+            discount.ApplyCoupon(coupon);
         }
-        return builder.toString();
     }
-
-    public abstract double calculate(StoreSearchEntry[] entries, InMemoryProductCatalog catalog);
-
 }

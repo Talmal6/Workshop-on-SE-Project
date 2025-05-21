@@ -297,5 +297,34 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+    public Result<Map<String, Double>> getDiscountsForCart(String buyerSessionKey) {
+        try {
+            authenticationService.checkSessionKey(buyerSessionKey);
+            String userEmail = authenticationService.getUserBySession(buyerSessionKey);
+            userRepository.checkUserSuspension(userEmail);
 
+            List<BasketDTO> cart = userRepository.getUserCart(userEmail);
+
+            Map<String, Double> discountedPrices = storeRepository.CalculateDiscountToStores(cart);
+
+            return Result.success(discountedPrices);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    public Result<Void> applyCouponToCart(String buyerSessionKey, String coupon) {
+        try {
+            authenticationService.checkSessionKey(buyerSessionKey);
+            String userEmail = authenticationService.getUserBySession(buyerSessionKey);
+            userRepository.checkUserSuspension(userEmail);
+
+            List<BasketDTO> cart = userRepository.getUserCart(userEmail);
+
+            storeRepository.applyCouponToCart(cart,coupon);
+
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 }
