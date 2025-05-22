@@ -366,8 +366,14 @@ public class CartPresenter {
     }
 
     public Result<Void> applyCoupon(String value) {
-        //todo!
-        return null;
+        Result<Void> result = transactionService.applyCouponToCart(SecurityContextHolder.token(), value);
+        if (result.isSuccess()) {
+            view.showSuccess("Coupon applied successfully");
+            loadCart(); // Reload the cart to show updated prices
+        } else {
+            view.showError("Failed to apply coupon: " + result.getErrorMessage());
+        }
+        return result;
     }
 
     public double getCartTotalAfterDiscount() {
