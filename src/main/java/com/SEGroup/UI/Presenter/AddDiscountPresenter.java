@@ -102,4 +102,36 @@ public class AddDiscountPresenter {
         return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,item,value,couponCode);
 
     }
+
+    public Result<Void> addConditionalDiscountToStore(Integer value, Integer minimumPrice) {
+//        return         Result.failure("Unknown error");
+        return storeService.addConditionalDiscountToEntireStore(SecurityContextHolder.token(), storeName, value, null);
+
+    }
+
+    public Result<Void> addConditionalDiscountToCategory(String category, Integer value, Integer minimumPrice) {
+//        return         Result.failure("Unknown error");
+        return  storeService.addConditionalDiscountToEntireCategoryInStore(SecurityContextHolder.token(),storeName,category,value, null);
+
+    }
+
+    public Result<Void> addConditionalDiscountToProduct(String category, String item, Integer value, int minAmount, Integer minimumPrice) {
+//        return         Result.failure("Unknown error");
+        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,item,value,null);
+    }
+
+    public Result<Void> addConditionalDiscountToStoreWithCoupon(Integer value, String couponCode, Integer minimumPrice) {
+//        return         Result.failure("Unknown error");
+        return  storeService.addConditionalDiscountToEntireStore(SecurityContextHolder.token(), storeName, value, couponCode);
+    }
+
+    public Result<Void> addConditionalDiscountToCategoryWithCoupon(String category, Integer value, String couponCode, Integer minimumPrice) {
+        return  storeService.addConditionalDiscountToEntireCategoryInStore(SecurityContextHolder.token(),storeName,category,value, couponCode);
+
+    }
+
+    public Result<Void> addConditionalDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, String couponCode, Integer minimumPrice) {
+        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,item,value,couponCode);
+
+    }
 } 

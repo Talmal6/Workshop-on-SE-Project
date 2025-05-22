@@ -32,6 +32,8 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
     private final IntegerField percentageField;
     private final TextField couponField;
     private final Checkbox useCouponCheckbox;
+    private final Checkbox isConditionalDiscount;
+    private final TextField minimumPrice;
     private final Button confirmButton;
     private AddDiscountPresenter presenter;
 
@@ -53,6 +55,8 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         confirmButton = new Button("Confirm Discount");
         couponField = new TextField("Coupon Code");
         useCouponCheckbox = new Checkbox("Use Coupon Code");
+        isConditionalDiscount = new Checkbox("Conditional Discount");
+        minimumPrice = new TextField("Minimum Price");
 
 
         // Configure Category ComboBox
@@ -105,10 +109,21 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         percentageField.setMax(99);
         percentageField.setSuffixComponent(new Span("%"));
 
+        minimumPrice.setWidth("300px");
+        minimumPrice.setPlaceholder("Enter Minimum Price");
+        minimumPrice.setEnabled(false);
+
         // Configure Coupon Field and Checkbox
         couponField.setWidth("300px");
         couponField.setPlaceholder("Enter coupon code");
         couponField.setEnabled(false);
+
+        isConditionalDiscount.addValueChangeListener(event -> {
+            minimumPrice.setEnabled(event.getValue());
+            if (!event.getValue()) {
+                minimumPrice.clear();
+            }
+        });
 
         useCouponCheckbox.addValueChangeListener(event -> {
             couponField.setEnabled(event.getValue());
@@ -118,7 +133,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         });
 
         // Create horizontal layout for coupon field and checkbox
-        VerticalLayout couponLayout = new VerticalLayout(useCouponCheckbox, couponField);
+        VerticalLayout couponLayout = new VerticalLayout(isConditionalDiscount, minimumPrice, useCouponCheckbox, couponField);
         couponLayout.setAlignItems(Alignment.BASELINE);
         couponLayout.setSpacing(true);
 
@@ -131,6 +146,8 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
             String category = categoryComboBox.getValue();
             Integer percent  = percentageField.getValue();
             boolean couponOn = Boolean.TRUE.equals(useCouponCheckbox.getValue());
+            boolean conditionalOn = Boolean.TRUE.equals(isConditionalDiscount.getValue());
+            Integer minimumP = Integer.parseInt(minimumPrice.getValue());
             String  coupon   = couponField.getValue();
             Result<Void> result = Result.failure("Unknown error");
 
@@ -140,10 +157,24 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
 
             switch (category) {
                 case "Entire Store" -> {
-                    if (couponOn)
-                        result = presenter.addDiscountToStoreWithCoupon(percent, coupon);
+                    if (couponOn) {
+                        if(conditionalOn){
+                            result = presenter.addConditionalDiscountToStoreWithCoupon(percent, coupon,minimumP);
+                        }
+                        else{
+                            result = presenter.addDiscountToStoreWithCoupon(percent, coupon);
+                        }
+                    }
                     else
-                        result = presenter.addDiscountToStore(percent);
+                    {
+                        if(conditionalOn){
+                            result = presenter.addConditionalDiscountToStore(percent,minimumP);
+                        }
+                        else {
+                            result = presenter.addDiscountToStore(percent);
+                        }
+                    }
+
                 }
 
                 default -> {                                     // קטגוריה מסוימת
@@ -151,10 +182,22 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
                     if (empty(item)) { itemComboBox.setInvalid(true); return; }
 
                     if (item.equals("Entire Category")) {
-                        if (couponOn)
-                            result = presenter.addDiscountToCategoryWithCoupon(category, percent, coupon);
-                        else
-                            result = presenter.addDiscountToCategory(category, percent);
+                        if (couponOn){
+                            if(conditionalOn){
+                                result = presenter.addConditionalDiscountToCategoryWithCoupon(category, percent, coupon, minimumP);
+                            }
+                            else{
+                                result = presenter.addDiscountToCategoryWithCoupon(category, percent, coupon);
+                            }
+                        }
+                        else {
+                            if(conditionalOn){
+                                result = presenter.addConditionalDiscountToCategory(category,percent,minimumP);
+                            }
+                            else {
+                                result = presenter.addDiscountToCategory(category, percent);
+                            }
+                        }
                     } else {                                     // פריט בודד
                         Integer min = minAmountField.getValue();
                         if (min == null || min <= 0) {
@@ -162,9 +205,22 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
                             return;
                         }
                         if (couponOn)
-                            result = presenter.addDiscountToProductWithCoupon(category, item, percent, min, coupon);
-                        else
-                            result = presenter.addDiscountToProduct(category, item, percent, min);
+                        {
+                            if(conditionalOn){
+                                result = presenter.addConditionalDiscountToProductWithCoupon(category, item, percent, min, coupon, minimumP);
+                            }
+                            else {
+                                result = presenter.addDiscountToProductWithCoupon(category, item, percent, min, coupon);
+                            }
+                        }
+                        else {
+                            if(conditionalOn){
+                                result = presenter.addConditionalDiscountToProduct(category, item, percent, min, minimumP);
+                            }
+                            else {
+                                result = presenter.addDiscountToProduct(category, item, percent, min);
+                            }
+                        }
                     }
                 }
             }
@@ -177,7 +233,8 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
                 percentageField.clear();
                 couponField.clear();
                 useCouponCheckbox.setValue(false);
-                couponField.setEnabled(false);
+                isConditionalDiscount.setValue(false);
+                minimumPrice.setEnabled(false);
             } else {
                 Notification.show("Failed to add discount: " + result.getErrorMessage(), 3000, Notification.Position.MIDDLE);
             }
