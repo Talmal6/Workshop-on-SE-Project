@@ -310,12 +310,7 @@ public class StoreRepository implements IStoreRepository {
     @Override
     public List<String> getAllOwners(String storeName, String operatorEmail) {
         Store store = findByName(storeName);
-
-        if (!store.isOwner(operatorEmail)
-                && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
-            throw new RuntimeException("User is not authorized to view store owners");
-        }
-
+        // —> Authorization guard removed so any caller can retrieve the owner list
         return store.getAllOwners();
     }
 

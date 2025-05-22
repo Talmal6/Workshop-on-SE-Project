@@ -12,6 +12,7 @@ import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.BidUsersView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -25,6 +26,8 @@ public class BidUsersPresenter {
     private final String productId;
     private final TransactionService transactionService;
     private final DirectNotificationSender notificationSender;
+    private List<BidRequest> currentRequests = new ArrayList<>();
+
 
     @Autowired
     private BidApprovalManager approvalManager;
@@ -70,80 +73,74 @@ public class BidUsersPresenter {
                 this.storeName,
                 this.productId
         );
-
         if (r.isSuccess()) {
-            List<BidRequest> requests = r.getData().stream()
+            var requests = r.getData().stream()
                     .map(dto -> new BidRequest(dto.getBidderEmail(), dto.getPrice()))
                     .toList();
-            view.displayBidUsers(requests);
+            currentRequests = new ArrayList<>(requests);       // ← cache
+            view.displayBidUsers(currentRequests);
         } else {
             view.showError("Failed to load bids: " + r.getErrorMessage());
         }
     }
-
     public void acceptBid(String userEmail, double amount) {
-        // First, log the action for debugging
         logger.info("Accepting bid from " + userEmail + " for $" + amount + " on product " + productId);
 
-        // Create a unique bid ID
+        // 1) Build a unique bid-ID for approval tracking
         String bidId = storeName + ":" + productId + ":" + userEmail + ":" + amount;
 
-        // Record the current owner's approval
+        // 2) Record this owner’s approval; check if everyone’s now approved
         boolean allApproved = approvalManager.recordApproval(
                 bidId,
                 SecurityContextHolder.email(),
                 totalOwnersCount
         );
-
         int currentApprovals = approvalManager.getApprovalCount(bidId);
         logger.info("Current approvals: " + currentApprovals + " of " + totalOwnersCount + " required");
 
         if (allApproved) {
-            // All owners have approved, finalize the transaction
+            // 3) Finalize: call TransactionService
             Result<Void> res = transactionService.acceptBid(
                     SecurityContextHolder.token(),
-                    this.storeName,
-                    new BidDTO(userEmail, this.productId, amount)
+                    storeName,
+                    new BidDTO(userEmail, productId, amount)
             );
 
             if (res.isSuccess()) {
-                // Get the current user (owner's email)
+                // 4) Notify the bidder
                 String ownerEmail = SecurityContextHolder.email();
-
-                // Send notification to the bidder directly
-                logger.info("Sending BID_ACCEPTED notification to " + userEmail);
                 notificationSender.send(
                         NotificationType.BID_ACCEPTED,
-                        userEmail,  // Target bidder specifically
-                        "Your bid of $" + String.format("%,.2f", amount) + " was accepted by " + ownerEmail,
+                        userEmail,
+                        "Your bid of $" + String.format("%.2f", amount)
+                                + " was accepted by " + ownerEmail,
                         amount,
                         productId,
-                        ownerEmail  // Include owner's email as extra info
+                        ownerEmail
                 );
 
-                // Remove the bid from approval tracking
+                // 5) Cleanup tracking and UI
                 approvalManager.removeBid(bidId);
-
-                // Remove this bid from the grid
-                view.displayBidUsers(
-                        view.usersGrid.getDataProvider().fetch(new com.vaadin.flow.data.provider.Query<>())
-                                .filter(b -> !b.email().equals(userEmail))
-                                .collect(Collectors.toList())
+                currentRequests.removeIf(rq ->
+                        rq.email().equals(userEmail)
+                                && Double.compare(rq.amount(), amount) == 0
                 );
+                view.displayBidUsers(currentRequests);
 
-                view.showSuccess("Accepted " + userEmail + "'s bid of $" + String.format("%,.2f", amount));
             } else {
                 view.showError("Could not accept bid: " + res.getErrorMessage());
             }
         } else {
-            // Send notifications to other owners requesting approval
+            // 6) Not everyone yet: ask other owners to approve
             sendApprovalRequestToOtherOwners(userEmail, amount);
-
-            // Notify this owner that more approvals are needed
-            view.showInfo("Your approval has been recorded. " +
-                    (totalOwnersCount - currentApprovals) + " more approval(s) needed.");
+            view.showInfo("Your approval has been recorded. "
+                    + (totalOwnersCount - currentApprovals)
+                    + " more approval(s) needed."
+            );
         }
     }
+
+
 
     private void sendApprovalRequestToOtherOwners(String bidderEmail, double amount) {
         try {
@@ -178,7 +175,6 @@ public class BidUsersPresenter {
     }
 
     public void rejectBid(String userEmail, double amount) {
-        // First, log the action for debugging
         logger.info("Rejecting bid from " + userEmail + " for $" + amount + " on product " + productId);
 
         Result<Void> res = transactionService.rejectBid(
@@ -188,32 +184,25 @@ public class BidUsersPresenter {
         );
 
         if (res.isSuccess()) {
-            // Get the current user (owner's email)
             String ownerEmail = SecurityContextHolder.email();
-
-            // Send notification to the bidder directly
             logger.info("Sending BID_REJECTED notification to " + userEmail);
             notificationSender.send(
                     NotificationType.BID_REJECTED,
-                    userEmail,  // Target bidder specifically
+                    userEmail,
                     "Your bid of $" + String.format("%,.2f", amount) + " was rejected by " + ownerEmail,
                     amount,
                     productId,
-                    ownerEmail  // Include owner's email as extra info
-            );
-
-            // Remove this bid from the grid
-            view.displayBidUsers(
-                    view.usersGrid.getDataProvider().fetch(new com.vaadin.flow.data.provider.Query<>())
-                            .filter(b -> !b.email().equals(userEmail))
-                            .collect(Collectors.toList())
+                    ownerEmail
             );
 
             view.showSuccess("Rejected " + userEmail + "'s bid of $" + String.format("%,.2f", amount));
+            // simply reload the entire list instead of trying to filter one out
+            loadBidUsers();
         } else {
             view.showError("Could not reject bid: " + res.getErrorMessage());
         }
     }
+
 
     public void counterOffer(String userEmail, double originalAmount, double counterAmount, String message) {
         logger.info("Sending counter-offer of $" + counterAmount + " to " + userEmail);

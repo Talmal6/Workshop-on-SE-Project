@@ -1,7 +1,10 @@
 package com.SEGroup.UI.Views;
 
+import com.SEGroup.DTO.AuctionDTO;
 import com.SEGroup.Infrastructure.NotificationCenter.*;
+import com.SEGroup.Service.StoreService;
 import com.SEGroup.UI.*;
+import com.SEGroup.UI.Presenter.ProductPresenter;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.*;
 import com.vaadin.flow.component.grid.*;
@@ -9,10 +12,12 @@ import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.*;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.*;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.shared.Registration;
+import com.vaadin.flow.shared.communication.PushMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.Disposable;
 import reactor.core.scheduler.Schedulers;
@@ -28,7 +33,10 @@ import java.util.logging.Logger;
 @Route(value = "notifications", layout = MainLayout.class)
 @PageTitle("Notifications")
 public class NotificationView extends VerticalLayout {
-
+    @Autowired
+    private StoreService storeService;
+    @Autowired
+    private BidApprovalService approvalService;
     /* ─── infra ─────────────────────────────────────────────────────── */
     private static final Logger log = Logger.getLogger(NotificationView.class.getName());
     private final NotificationEndpoint          endpoint;
@@ -46,7 +54,7 @@ public class NotificationView extends VerticalLayout {
     private Registration broadcastReg;
     private Disposable   endpointSub;
 
-    /* ─── ctor ──────────────────────────────────────────────────────── */
+    /* ─── ctor ────────────────────────────────────────────────────── */
     @Autowired
     public NotificationView(NotificationEndpoint ep,
                             NotificationBroadcastService bc){
@@ -146,93 +154,87 @@ public class NotificationView extends VerticalLayout {
                         err -> log.warning("endpoint error: " + err)
                 );
     }
-    /* ───────────────── push handler ───────────────────────────────── */
+
+    /* ───────────────── push handler ────────────────────────────────── */
+    /** Handles every incoming Notification for the current user. */
+  // ← add this at top of NotificationView
+
     private void push(Notification n) {
-        if(n == null) return;
-        System.out.println("NotificationView.push: " + n);
+        if (n == null) return;
+        // log for debugging
+        log.info("🔔 NotificationView.push received: " + n);
 
-        /* toast notification with improved styling */
-        com.vaadin.flow.component.notification.Notification toast =
-                com.vaadin.flow.component.notification.Notification
-                        .show(n.getMessage(), 5000, // Increase duration to 5 seconds
-                                com.vaadin.flow.component.notification.Notification.Position.TOP_END);
+        // always show toast
+        com.vaadin.flow.component.notification.Notification.show(
+                n.getMessage(),
+                5000,
+                com.vaadin.flow.component.notification.Notification.Position.TOP_END
+        );
 
-        /* Apply theme variants based on notification type */
-        if(n instanceof RichNotification rn) {
-            switch (rn.getType()){
-                case BID, AUCTION_BID -> toast.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-                case BID_ACCEPTED, AUCTION_WIN -> {
-                    toast.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    // Play a success sound (in a real app, you'd use a sound API)
-                    UI.getCurrent().getPage().executeJs("new Audio('/sounds/success.mp3').play();");
-                }
-                case BID_REJECTED -> {
-                    toast.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    // Add error icon
-                    toast.getElement().getStyle().set("--lumo-error-color-50pct", "rgba(231, 76, 60, 0.5)");
-                }
-                case BID_APPROVAL_NEEDED, AUCTION_OUTBID, BID_COUNTER -> {
-                    toast.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    // Make it more prominent
-                    toast.getElement().getStyle().set("font-weight", "bold");
-                }
+        // determine target list: purchase-offers or auctions
+        if (n instanceof RichNotification rn
+                && rn.getType() == NotificationType.BID) {
+            Item it = Item.of(n);
+            // dedupe
+            if (offers.stream().noneMatch(ex -> ex.sameAs(it))) {
+                offers.add(0, it);
+                updateGrids();
             }
+            return;  // stop here
         }
 
-        /* convert → Item for the grid */
+        // ────── existing auction logic ──────
         Item it = Item.of(n);
-        List<Item> list = it.type.startsWith("AUCTION_") ? auctions : offers;
-
-        // Check if notification already exists
-        boolean exists = list.stream().anyMatch(ex -> ex.sameAs(it));
-        if(!exists) {
-            System.out.println("Adding notification to " +
-                    (it.type.startsWith("AUCTION_") ? "auctions" : "offers") + " list: " + it);
-            list.add(0, it); // Add to top of list
-            updateGrids();
+        List<Item> list;
+        if (n instanceof RichNotification arn
+                && arn.getType().name().startsWith("AUCTION_")) {
+            list = auctions;
         } else {
-            System.out.println("Notification already exists in list: " + it);
+            // everything else (counters, rejections, approvals) falls under offers
+            list = offers;
+        }
+
+        if (list.stream().noneMatch(ex -> ex.sameAs(it))) {
+            list.add(0, it);
+            updateGrids();
         }
     }
-    /* ───────────────── ui helpers ─────────────────────────────────── */
+
+
+
     private Component actionButtons(Item it) {
-        /* delete */
-        Button del = new Button(new Icon(VaadinIcon.TRASH),
-                c -> {
-                    // Remove from both UI list and backend storage
-                    if (it.type.startsWith("AUCTION_")) {
-                        auctions.remove(it);
-                        // Also remove from persistent storage
-                        broadcast.removeFromAuctionHistory(SecurityContextHolder.email(), it.msg(), it.price(), it.productId());
-                    } else {
-                        offers.remove(it);
-                        // Also remove from persistent storage
-                        broadcast.removeFromHistory(SecurityContextHolder.email(), it.msg(), it.price(), it.productId());
+        // delete/trash button—always present
+        Button del = new Button(new Icon(VaadinIcon.TRASH), click -> {
+            // Remove from UI lists and persistent storage
+            if (it.type.startsWith("AUCTION_")) {
+                auctions.remove(it);
+                broadcast.removeFromAuctionHistory(
+                        SecurityContextHolder.email(),
+                        it.msg(),
+                        it.price(),
+                        it.productId()
+                );
+            } else {
+                offers.remove(it);
+                broadcast.removeFromHistory(
+                        SecurityContextHolder.email(),
+                        it.msg(),
+                        it.price(),
+                        it.productId()
+                );
+            }
+            MainLayout.getInstance().decreaseNotificationCount();
+            updateGrids();
+        });
+        del.addThemeVariants(
+                ButtonVariant.LUMO_ERROR,
+                ButtonVariant.LUMO_SMALL,
+                ButtonVariant.LUMO_TERTIARY
+        );
 
-                    }
-                    MainLayout.getInstance().decreaseNotificationCount();
-                    updateGrids();
-                });
-        del.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
-
-        HorizontalLayout hl = new HorizontalLayout(del); hl.setSpacing(true);
-
-        /* contextual actions */
-        if(it.type.equals("BID_APPROVAL_NEEDED")){
-            Button ok = new Button("Approve", new Icon(VaadinIcon.CHECK),
-                    c -> { approve(it); offers.remove(it); updateGrids(); });
-            ok.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
-            Button no = new Button("Reject", new Icon(VaadinIcon.CLOSE_SMALL),
-                    c -> { reject(it); offers.remove(it); updateGrids(); });
-            no.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
-            hl.add(ok,no);
-        }
-        if(it.type.equals("BID_COUNTER")){
-            Button acc = new Button("Accept", new Icon(VaadinIcon.CHECK),
-                    c -> { acceptCounter(it); offers.remove(it); updateGrids(); });
-            acc.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
-            hl.add(acc);
-        }
+        // Wrap in a layout so spacing stays consistent
+        HorizontalLayout hl = new HorizontalLayout(del);
+        hl.setSpacing(true);
         return hl;
     }
 
@@ -308,6 +310,24 @@ public class NotificationView extends VerticalLayout {
         }
     }
 
+    /* ───────────────── helper: keep ProductCache in-sync ─────────────── */
+    private void cacheBid(RichNotification rn) {
+        AuctionDTO a = ProductCache.getAuction(rn.getProductId());
+        if (a == null) {
+            a = new AuctionDTO(
+                    "",                       // store (unknown here)
+                    rn.getProductId(),
+                    0.0,                      // starting price unknown
+                    rn.getPrice(),            // first bid we heard
+                    rn.getSenderId(),         // bidder
+                    null, 0L);
+        }
+        if (a.getHighestBid() == null || rn.getPrice() > a.getHighestBid()) {
+            a.setHighestBid(rn.getPrice());
+            a.setHighestBidder(rn.getSenderId());
+            ProductCache.put(rn.getProductId(), a);
+        }
+    }
 
 
 }

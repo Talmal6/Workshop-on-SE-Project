@@ -162,4 +162,12 @@ public class NotificationBroadcastService {
         }
         return false;
     }
+
+    public void broadcastMany(Set<String> userIds, Notification n) {
+        userIds.forEach(uid -> broadcast(uid, n));
+    }
+
+    public void broadcastToAll(Notification n){
+        listeners.keySet().forEach(uid -> broadcast(uid, n));
+    }
 }

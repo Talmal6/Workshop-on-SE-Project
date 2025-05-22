@@ -5,18 +5,21 @@ import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Domain.INotificationCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationType;
+import com.SEGroup.Infrastructure.NotificationCenter.RichNotification;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.StoreService;
 import com.SEGroup.Service.UserService;
-import com.SEGroup.UI.DirectNotificationSender;
-import com.SEGroup.UI.SecurityContextHolder;
-import com.SEGroup.UI.ServiceLocator;
+import com.SEGroup.UI.*;
 import com.SEGroup.UI.Views.ProductView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.shared.Registration;
+import com.vaadin.flow.spring.annotation.UIScope;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 
 public class ProductPresenter {
     private static final Logger logger = Logger.getLogger(ProductPresenter.class.getName());
@@ -183,22 +186,32 @@ public class ProductPresenter {
             }
 
             // Get highest bid for the auction
-            Result<BidDTO> highestBidResult = storeService.getAuctionHighestBidByProduct(token, storeName, productId);
+            Result<BidDTO> highestBidResult =
+                    storeService.getAuctionHighestBidByProduct(token, storeName, productId);
 
-            // Determine starting and current price
-            double startingPrice = 0.0;
-            Double highestBid = null;
-            String highestBidder = null;
-
-            // If we have the product info, use its price as starting price
-            if (product != null) {
+// ── Determine starting- and current-price ─────────────
+            double startingPrice;
+            AuctionDTO cached = ProductCache.getAuction(productId);
+            if (cached != null) {
+                startingPrice = cached.getStartingPrice();
+            } else if (product != null) {
                 startingPrice = product.getPrice();
+            } else {
+                startingPrice = 0.0;
             }
 
-            // If there's a highest bid, use it
+            Double  highestBid    = null;
+            String  highestBidder = null;
+
+// If there's a highest bid, use it
             if (highestBidResult.isSuccess() && highestBidResult.getData() != null) {
-                highestBid = highestBidResult.getData().getPrice();
+                highestBid    = highestBidResult.getData().getPrice();
                 highestBidder = highestBidResult.getData().getBidderEmail();
+            }
+
+            if (highestBid == null && cached != null && cached.getHighestBid() != null) {
+                highestBid    = cached.getHighestBid();
+                highestBidder = cached.getHighestBidder();
             }
 
             // Calculate time remaining
@@ -217,7 +230,7 @@ public class ProductPresenter {
 
             // Display the auction info in the view
             view.displayAuctionInfo(auction);
-
+            ProductCache.put(productId, auction);
             // Set up polling for real-time updates
             if (timeRemaining > 0) {
                 scheduleAuctionRefresh();
@@ -295,36 +308,97 @@ public class ProductPresenter {
             logger.severe("Error checking for auction updates: " + e.getMessage());
         }
     }
+
     /**
-     * Processes the end of an auction by notifying winners
+     * Called when the UI timer finishes or immediately if end-date is in the past.
      */
 
-
+    /**
+     * Called when the UI timer finishes or immediately if end-date is in the past.
+     */
 
     /**
-     * Public method to handle auction ending - called by UI components
+     * Called when the auction ends—determine winner, notify all, and update UI.
      */
     public void processAuctionEnd() {
-        try {
-            if (auction != null && auction.getHighestBidder() != null && auction.getHighestBid() != null) {
-                // Show auction ended with winner in the UI
-                view.showAuctionEnded(auction.getHighestBidder(), auction.getHighestBid());
+        if (auction == null) return;
+        if (!GlobalAuctionRegistry.markClosed(productId)) return;
 
-                // Notify the winner
-                notify(NotificationType.AUCTION_WIN, auction.getHighestBidder(), null, auction.getHighestBid(), null);
+        // 1) Gather all participants
+        Set<String> all = GlobalAuctionRegistry.getBidders(productId);
+        GlobalAuctionRegistry.clear(productId);
 
-                // Notify owners
-                notifyStoreOwners("Auction for " + getProductName() + " ended. Winner: " +
-                        auction.getHighestBidder() + " with bid of $" +
-                        String.format("%.2f", auction.getHighestBid()));
-            } else {
-                // No winner (no valid bids)
-                view.showAuctionEndedNoWinner();
-            }
-        } catch (Exception e) {
-            logger.severe("Error processing auction end: " + e.getMessage());
+        // 2) No bids → just show “ended” with no sale
+        if (all.isEmpty()) {
+            view.showAuctionEnded("—", 0);
+            return;
         }
+
+        // 3) Authoritative winner from backend
+        Result<BidDTO> highRes = storeService.getAuctionHighestBidByProduct(
+                SecurityContextHolder.token(), storeName, productId);
+        BidDTO winBid = highRes.isSuccess() ? highRes.getData() : null;
+
+        double finalPrice = winBid  != null
+                ? winBid.getPrice()
+                : auction.getHighestBid() != null
+                ? auction.getHighestBid()
+                : auction.getStartingPrice();
+
+        String winner = winBid != null
+                ? winBid.getBidderEmail()
+                : auction.getHighestBidder();
+
+        // 4) Update UI
+        view.showAuctionEnded(
+                winner != null ? winner : "—",
+                finalPrice
+        );
+
+        String ownerEmail = SecurityContextHolder.email();
+
+        // 5) Notify the winner
+        if (winner != null) {
+            String winMsg = "Congratulations! You won the auction for "
+                    + getProductName() + " at $" + String.format("%.2f", finalPrice);
+            notificationSender.send(
+                    NotificationType.AUCTION_WIN,
+                    winner,
+                    winMsg,
+                    finalPrice,
+                    productId,
+                    null
+            );
+        }
+
+        // 6) Notify all the others as “LOSE”, sent _from_ the owner
+        all.stream()
+                .filter(u -> !u.equalsIgnoreCase(winner))
+                .forEach(loser -> {
+                    String loseMsg = "You lost the auction for "
+                            + getProductName() + ". Final price: $"
+                            + String.format("%.2f", finalPrice);
+                    notificationSender.send(
+                            NotificationType.AUCTION_LOSE,
+                            loser,
+                            loseMsg,
+                            finalPrice,
+                            productId,
+                            null
+                    );
+                });
+
+        // 7) Audit notification to store-owners
+        String audit = String.format(
+                "Auction ended for %s. Winner: %s at $%.2f",
+                getProductName(),
+                winner != null ? winner : "—",
+                finalPrice
+        );
+        notifyStoreOwners(audit);
     }
+
+
 
     /**
      * Loads the product details from the service and updates the view.
@@ -394,35 +468,63 @@ public class ProductPresenter {
      * @param startingPrice The starting price
      * @param endDate The end date/time
      */
+    // ────────────────────────────────────────
+// startAuction(...) → broadcast AUCTION_START to all registered users
+// ────────────────────────────────────────
     public void startAuction(double startingPrice, Date endDate) {
-        // Check user permissions
+        // 1) Permission checks
         if (!SecurityContextHolder.isLoggedIn()) {
             view.showError("You must be logged in to start an auction");
             return;
         }
-
         if (!isOwner()) {
             view.showError("Only store owners can start auctions");
             return;
         }
 
-        String token = SecurityContextHolder.token();
-        Result<Void> r = storeService.startAuction(token, storeName, productId, startingPrice, endDate);
+        // 2) Call backend to start auction
+        Result<Void> res = storeService.startAuction(
+                SecurityContextHolder.token(),
+                storeName, productId,
+                startingPrice, endDate
+        );
+        if (!res.isSuccess()) {
+            view.showError("Failed to start auction: " + res.getErrorMessage());
+            return;
+        }
 
-        if (r.isSuccess()) {
-            view.showSuccess("Auction started successfully! Notifications will be sent to interested users.");
+        // 3) Update UI & cache
+        view.showSuccess("Auction started successfully!");
+        auction = new AuctionDTO(
+                storeName,
+                productId,
+                startingPrice,
+                null,        // no bids yet
+                null,
+                endDate,
+                endDate.getTime() - System.currentTimeMillis()
+        );
+        ProductCache.put(productId, auction);
+        view.displayAuctionInfo(auction);
+        scheduleAuctionRefresh();
 
-            // Notify other store owners
-            String notifyMsg = SecurityContextHolder.email() + " has started an auction for " +
-                    getProductName() + " with starting price $" + startingPrice +
-                    ". Ending on: " + endDate;
-            notifyStoreOwners(notifyMsg);
-
-            loadAuctionInfo();  // Refresh the auction bar
-        } else {
-            view.showError("Failed to start auction: " + r.getErrorMessage());
+        // 4) Broadcast AUCTION_START to every user in the system
+        List<String> everyone = userService.allUsersEmails();
+        String startMsg = SecurityContextHolder.email()
+                + " started an auction for " + getProductName()
+                + " (starting at $" + String.format("%.2f", startingPrice) + ")";
+        for (String userEmail : everyone) {
+            notificationSender.send(
+                    NotificationType.AUCTION_START,
+                    userEmail,
+                    startMsg,
+                    startingPrice,
+                    productId,
+                    null
+            );
         }
     }
+
 
     /**
      * Adds the current product to the user's cart
@@ -601,155 +703,207 @@ public class ProductPresenter {
     /**
      * Places a bid in an auction with validation
      */
+
+    /**
+     * Places a bid in an auction with optimistic UI update
+     * and correct previous‐bidder notifications.
+     */
+    /**
+     * Places a bid in an auction, always syncing with server to get the real highest bidder.
+     * Ensures only the actual winner gets "win" notification, and losers get "lose" notification.
+     * Store owners get full bid event notifications.
+     */
+    /**
+     * Places a bid in an auction with optimistic UI update
+     * and resilient notification handling so the server sync never fails.
+     */
+
     public void placeBid(double amount) {
-        // Check if user is logged in
+        Date now = new Date();
+        if (auction.getEndTime().before(now)) {
+            view.showError("Sorry, this auction has already ended.");
+            return;
+        }
         if (!SecurityContextHolder.isLoggedIn()) {
             view.showError("You must be logged in to place a bid");
             return;
         }
 
-        // Save previous highest bidder to notify if outbid
-        String previousBidder = null;
-        Double previousBid = null;
-
-        if (auction != null) {
-            previousBidder = auction.getHighestBidder();
-            previousBid = auction.getHighestBid();
-        }
-
-        // Validate bid amount against current highest bid
-        if (auction != null && auction.getHighestBid() != null && amount <= auction.getHighestBid()) {
-            view.showError("Your bid must be higher than the current highest bid ($" + auction.getHighestBid() + ")");
+        Double currentHigh = auction.getHighestBid();
+        if (currentHigh != null && amount <= currentHigh) {
+            view.showError("Your bid must be higher than the current highest bid ($"
+                    + String.format("%.2f", currentHigh) + ")");
             return;
         }
 
-        // Submit the bid
-        Result<Void> r = storeService.submitBidToShoppingItem(
-                SecurityContextHolder.token(),
-                storeName,
-                productId,
-                amount
-        );
+        String prevLeader   = auction.getHighestBidder();
+        Double prevAmount   = auction.getHighestBid();
+        String me           = SecurityContextHolder.email();
 
-        if (r.isSuccess()) {
-            view.showSuccess("Bid placed successfully!");
+        auction.setHighestBid(amount);
+        auction.setHighestBidder(me);
+        ProductCache.put(productId, auction);
+        view.updateAuctionHighestBid(amount, me);
 
-            // CHANGE: Update the auction object locally instead of refreshing
-            if (auction != null) {
-                auction.setHighestBid(amount);
-                auction.setHighestBidder(SecurityContextHolder.email());
-            }
+        Result<Void> r = storeService.sendAuctionOffer(
+                        SecurityContextHolder.token(), storeName, productId, amount);
+        if (!r.isSuccess()) {
 
-            // Handle notifications
-            if (previousBidder != null && previousBid != null) {
-                notify(NotificationType.AUCTION_OUTBID, previousBidder, null, previousBid, null);
-            }
-
-            /* --- broadcast NEW highest bid -------------------------------- */
-            Set<String> targets = new HashSet<>(loadOwners());
-            if (previousBidder != null) {
-                targets.add(previousBidder);
-            }
-
-            notificationSender.sendToMany(targets,
-                    NotificationType.AUCTION_BID, null,
-                    amount, productId,
-                    SecurityContextHolder.email());
-
-            if (previousBidder != null && previousBid != null &&
-                    !previousBidder.equals(SecurityContextHolder.email())) {
-                notificationSender.send(
-                        NotificationType.AUCTION_OUTBID,
-                        previousBidder,
-                        null,
-                        previousBid,
-                        productId,
-                        null);
-            }
-
-            // CHANGE: DON'T reload the entire auction component
-            // This is what's causing the flickering!
-            // loadAuctionInfo();
-
-            // Instead, just update the timer if needed
-            // You can add a method to your AuctionPanel to update just the latest bid
-            view.updateAuctionHighestBid(amount, SecurityContextHolder.email());
-        } else {
+            auction.setHighestBid(prevAmount);
+            auction.setHighestBidder(prevLeader);
+            ProductCache.put(productId, auction);
+            view.updateAuctionHighestBid(prevAmount, prevLeader);
             view.showError("Failed to place bid: " + r.getErrorMessage());
+            return;
+        }
+
+        view.showSuccess("Bid placed successfully!");
+        AuctionParticipationTracker.mark(productId);
+        GlobalAuctionRegistry.addBidder(productId, me);
+
+
+        List<String> ownerEmails = loadOwners();
+        if (!ownerEmails.isEmpty()) {
+            String notifText = me + " placed a bid of $"
+                    + String.format("%.2f", amount) + " on " + getProductName();
+            for (String owner : ownerEmails) {
+                notificationSender.send(
+                        NotificationType.AUCTION_BID,
+                        owner,
+                        notifText,
+                        amount,
+                        productId,
+                        null
+                );
+            }
         }
     }
+
+
+
     /**
      * Submit a bid offer for a product (regular bid, not auction)
      */
-// Fix for bidBuy method in ProductPresenter
-// Updated bidBuy method for better error handling
+
+    /**
+     * Submit a bid offer for a product (regular bid, not auction)
+     */
+    /**
+     * Submit a bid offer for a product (regular bid, not auction)
+     */
     public void bidBuy(double amount) {
-        // Check if user is logged in
+        // 1) basic validation
         if (!SecurityContextHolder.isLoggedIn()) {
             view.showError("You must be logged in to make an offer");
             return;
         }
-
-        // Validate inputs
         if (amount <= 0) {
-            view.showError("Price must be a positive number");
+            view.showError("Offer must be a positive number");
             return;
         }
 
-        // Log the bid attempt for debugging
-        logger.info("User " + SecurityContextHolder.email() + " is bidding $" + amount +
-                " for product " + productId + " in store " + storeName);
-
-        // Submit bid offer
+        // 2) hand it off to the service (which persists the bid and notifies DB-side listeners)
         Result<Void> res = storeService.submitBidToShoppingItem(
                 SecurityContextHolder.token(),
                 storeName,
                 productId,
                 amount
         );
-
-        if (res.isSuccess()) {
-            view.showSuccess("Your offer has been submitted!");
-
-            try {
-                // Get a list of store owners - safely handle potential permission errors
-                List<String> ownersList = loadOwners();
-
-                if (ownersList.isEmpty()) {
-                    logger.warning("No owners found, sending notification to store channel");
-
-                    // Try to send to a store-level notification channel
-                    String storeChannel = "STORE_" + storeName.toUpperCase().replace(" ", "_");
-                    notificationSender.sendSystemNotification(
-                            storeChannel,
-                            "New bid offer of $" + formatCurrency(amount) + " for product " +
-                                    product.getName() + " (" + productId + ") from " + SecurityContextHolder.email()
-                    );
-
-                    // Also send a direct notification to any administrators
-                    notificationSender.sendSystemNotification(
-                            "ADMIN_CHANNEL",
-                            "New bid requires approval: $" + formatCurrency(amount) + " for " +
-                                    product.getName() + " in " + storeName + " by " + SecurityContextHolder.email()
-                    );
-                } else {
-                    // Send notification to all owners
-                    notificationSender.sendToMany(
-                            ownersList,
-                            NotificationType.BID,
-                            "New bid offer: $" + formatCurrency(amount) + " for " + product.getName(),
-                            amount,
-                            productId,
-                            SecurityContextHolder.email()  // Put bidder's email in extra field
-                    );
-                }
-            } catch (Exception e) {
-                logger.warning("Error sending notifications: " + e.getMessage());
-                // Don't fail the whole operation if just notifications fail
-            }
-        } else {
-            view.showError("Problem with your offer: " + res.getErrorMessage());
+        if (!res.isSuccess()) {
+            view.showError("Failed to submit offer: " + res.getErrorMessage());
+            return;
         }
+
+        // 3) build your human-friendly message
+        String buyer = SecurityContextHolder.email();
+        String msg   = String.format("%s made an offer of $%.2f on %s",
+                buyer, amount, getProductName());
+
+        // 4) fetch the real owner list (no more guard! 🎉)
+        Result<List<String>> ownersResult =
+                storeService.getAllOwners(
+                        SecurityContextHolder.token(),
+                        storeName,
+                        /* operatorEmail—now irrelevant */ buyer
+                );
+
+        List<String> owners = ownersResult.isSuccess()
+                ? ownersResult.getData()
+                : List.of();
+
+        if (owners.isEmpty()) {
+            view.showError("Offer submitted, but no store-owners could be found");
+            return;
+        }
+
+        // 5) fan-out a BID notification to each owner
+        for (String ownerEmail : owners) {
+            notificationSender.send(
+                    NotificationType.BID,
+                    ownerEmail,
+                    msg,
+                    amount,
+                    productId,
+                    buyer   // extra → who placed the bid
+            );
+        }
+
+        view.showSuccess("Offer submitted — notifying store owners");
+    }
+
+
+
+    /**
+     * Called by each owner when clicking “Approve”.
+     */
+    public void recordOwnerApproval(String bidId, String ownerEmail) {
+        boolean everyoneNow = BidApprovalTracker.approve(bidId);
+        if (!everyoneNow) {
+            // still waiting on others
+            return;
+        }
+        // all approved → notify buyer
+        String buyer = BidApprovalTracker.finish(bidId);
+        double amt   = BidApprovalTracker.amount(bidId);
+        sendFinalAccept(buyer, amt);
+    }
+
+    /**
+     * Called by an owner when clicking “Reject”.
+     */
+    public void recordOwnerRejection(String bidId, String ownerEmail) {
+        String buyer = BidApprovalTracker.reject(bidId);
+        if (buyer == null) {
+            return;
+        }
+        double amt = BidApprovalTracker.amount(bidId);
+        ServiceLocator.getDirectNotificationSender().send(
+                NotificationType.BID_REJECTED,
+                buyer,
+                "Your offer of $"
+                        + String.format("%.2f", amt)
+                        + " was rejected by "
+                        + ownerEmail,
+                amt,
+                productId,
+                null
+        );
+    }
+
+    /**
+     * Helper: send “accepted by all owners” once.
+     */
+    private void sendFinalAccept(String buyer, double amount) {
+        ServiceLocator.getDirectNotificationSender().send(
+                NotificationType.BID_ACCEPTED,
+                buyer,
+                "Your offer of $"
+                        + String.format("%.2f", amount)
+                        + " has been accepted by all owners!",
+                amount,
+                productId,
+                null
+        );
     }
     /**
      * Gets the product name

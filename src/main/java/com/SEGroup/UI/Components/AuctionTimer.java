@@ -185,13 +185,14 @@ public class AuctionTimer extends HorizontalLayout {
                     secondsDiv.getStyle().set("animation", pulseAnimation);
                     millisDiv.getStyle().set("animation", pulseAnimation);
 
-                    // Add the pulse animation if not already added
-                    if (!UI.getCurrent().getElement().getStyle().get("--pulse-added").equals("true")) {
+                    String pulseAdded = UI.getCurrent().getElement().getStyle().get("--pulse-added");
+                    if (!"true".equals(pulseAdded)) {
                         UI.getCurrent().getElement().executeJs(
                                 "if (!document.getElementById('pulse-animation')) {" +
                                         "  var style = document.createElement('style');" +
                                         "  style.id = 'pulse-animation';" +
-                                        "  style.innerHTML = '@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }';" +
+                                        "  style.innerHTML = '@keyframes pulse { 0% { transform: scale(1); } " +
+                                        "50% { transform: scale(1.05); } 100% { transform: scale(1); } }';" +
                                         "  document.head.appendChild(style);" +
                                         "  this.style.setProperty('--pulse-added', 'true');" +
                                         "}"
