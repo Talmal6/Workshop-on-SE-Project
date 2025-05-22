@@ -5,6 +5,7 @@ import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract base class for numeric composite operations on discounts.
@@ -22,6 +23,7 @@ public abstract class NumericalComposite {
      * @return computed numeric result
      */
     public abstract double calculate(ShoppingProduct product,int quantity);
+    public abstract double calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities);
     public void add(Discount discount) {
         discounts.add(discount);
     }

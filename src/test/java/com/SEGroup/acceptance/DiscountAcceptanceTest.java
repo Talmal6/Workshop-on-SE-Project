@@ -94,7 +94,7 @@ public class DiscountAcceptanceTest {
 
         double discountedPrice = store.calculateDiscount(product, quantity);
 
-        assertEquals(20.0, discountedPrice, 0.001);
+        assertEquals(180.0, discountedPrice, 0.001);
     }
 
     @Test
@@ -111,7 +111,7 @@ public class DiscountAcceptanceTest {
 
         double discountAmount = store.calculateDiscount(product, quantity);
 
-        assertEquals(150.0, discountAmount, 0.001);
+        assertEquals(850.0, discountAmount, 0.001);
     }
 
     @Test
@@ -125,10 +125,11 @@ public class DiscountAcceptanceTest {
 
         ShoppingProduct product = store.getProduct(productId);
         int quantity = product.getQuantity();
-
+        double price = product.getPrice()*quantity;
+        store.activateConditionDiscount((int) price);
         // Condition minimum price is 500, actual total is 800*1=800 -> discount applies
         double discountAmount = store.calculateDiscount(product, quantity);
-        assertEquals(80.0, discountAmount, 0.001);
+        assertEquals(720.0, discountAmount, 0.001);
     }
 
     @Test
@@ -145,7 +146,7 @@ public class DiscountAcceptanceTest {
 
         // Condition minimum price is 500, actual total is 400*1=400 -> discount does not apply
         double discountAmount = store.calculateDiscount(product, quantity);
-        assertEquals(0.0, discountAmount, 0.001);
+        assertEquals(400.0, discountAmount, 0.001);
     }
 
 //    @Test

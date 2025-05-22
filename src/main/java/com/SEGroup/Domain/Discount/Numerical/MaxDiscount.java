@@ -4,6 +4,7 @@ package com.SEGroup.Domain.Discount.Numerical;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,22 +27,28 @@ public class MaxDiscount extends NumericalComposite {
                 maxDiscount = discountAmount;
             }
         }
-        return maxDiscount;
+        return base - maxDiscount;
     }
 
-    public double calculateMaxDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
-        double maxDiscountOverall = 0.0;
+    @Override
+    public double calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
+        double maxDiscount = 0.0;
+        double totalPrice  = 0.0;
 
         for (var entry : productsWithQuantities.entrySet()) {
             ShoppingProduct product = entry.getKey();
             int quantity = entry.getValue();
+
+            double baseTotal     = product.getPrice() * quantity;
+            totalPrice += baseTotal;
+
             double discountAmount = calculate(product, quantity);
-            if (discountAmount > maxDiscountOverall) {
-                maxDiscountOverall = discountAmount;
+            if (discountAmount > maxDiscount) {
+                maxDiscount = discountAmount;
             }
         }
 
-        return maxDiscountOverall;
+        return totalPrice - maxDiscount;
     }
 
 }

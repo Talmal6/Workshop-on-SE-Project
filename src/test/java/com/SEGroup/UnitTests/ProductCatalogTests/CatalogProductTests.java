@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 
+import java.util.List;
+
 
 public class CatalogProductTests {
 
@@ -15,8 +17,8 @@ public class CatalogProductTests {
     
     @BeforeAll
     static void init(){
-        catalogProduct1 = new CatalogProduct("catalog123", "Nike Air Force", "Nike", "Comfortable shoes");
-        catalogProduct2 = new CatalogProduct(null, null, null, null);
+        catalogProduct1 = new CatalogProduct("catalog123", "Nike Air Force", "Nike", "Comfortable shoes", List.of());
+        catalogProduct2 = new CatalogProduct(null, null, null, null,null);
     }
 
     @Test

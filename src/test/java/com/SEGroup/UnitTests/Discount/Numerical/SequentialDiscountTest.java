@@ -30,9 +30,9 @@ public class SequentialDiscountTest {
         Map<ShoppingProduct, Integer> basket = new HashMap<>();
         basket.put(milk, 1);
 
-        double discountAmount = sequentialDiscount.calculateSequentialDiscountForBasket(basket);
+        double discountAmount = sequentialDiscount.calculateDiscountForBasket(basket);
 
-        assertEquals(24.0, discountAmount, 0.001); // 5% of 100 = 5, then 20% of (100 - 5) = 20% of 95 = 19 => total discount = 5 + 19 = 24
+        assertEquals(76.0, discountAmount, 0.001); // 5% of 100 = 5, then 20% of (100 - 5) = 20% of 95 = 19 => total discount = 5 + 19 = 24
     }
 
     @Test
@@ -57,7 +57,7 @@ public class SequentialDiscountTest {
         basket.put(milk, 2);
         basket.put(pastaProduct, 3);
 
-        double discountAmount = sequentialDiscount.calculateSequentialDiscountForBasket(basket);
+        double discountAmount = sequentialDiscount.calculateDiscountForBasket(basket);
 
         // Manual calculation:
         // Total before discounts: 100 + 90 = 190
@@ -66,7 +66,7 @@ public class SequentialDiscountTest {
         // Second discount 5% on total: 5% of 180 = 9
         // Total discount: 10 + 9 = 19
 
-        assertEquals(19.0, discountAmount, 0.001);
+        assertEquals(171.0, discountAmount, 0.001);
     }
 
     @Test
@@ -82,9 +82,9 @@ public class SequentialDiscountTest {
         Map<ShoppingProduct, Integer> basket = new HashMap<>();
         basket.put(milk, 1);
 
-        double discountAmount = sequentialDiscount.calculateSequentialDiscountForBasket(basket);
+        double discountAmount = sequentialDiscount.calculateDiscountForBasket(basket);
 
-        assertEquals(0.0, discountAmount, 0.001);
+        assertEquals(50.0, discountAmount, 0.001);
     }
 
 }

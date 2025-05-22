@@ -18,7 +18,8 @@ public class SequentialDiscount extends NumericalComposite {
      * @param basket Map of ShoppingProduct to quantity purchased.
      * @return The total discount amount applied sequentially.
      */
-    public double calculateSequentialDiscountForBasket(Map<ShoppingProduct, Integer> basket) {
+    @Override
+    public double calculateDiscountForBasket(Map<ShoppingProduct, Integer> basket) {
         // Calculate total price before discount
         double totalBefore = 0.0;
         for (Map.Entry<ShoppingProduct, Integer> entry : basket.entrySet()) {
@@ -46,7 +47,7 @@ public class SequentialDiscount extends NumericalComposite {
         }
 
         double totalAfter = totalBefore * ratio;
-        return totalBefore - totalAfter;
+        return totalAfter;
     }
 
     @Override

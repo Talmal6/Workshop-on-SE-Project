@@ -21,13 +21,12 @@ public class CatalogProduct {
      * @param brand       The brand of the product.
      * @param description A brief description of the product.
      */
-    public CatalogProduct(String catalogID, String name, String brand, String description) {
+    public CatalogProduct(String catalogID, String name, String brand, String description,List<String> categories) {
         this.catalogID = catalogID;
         this.name = name;
         this.brand = brand;
         this.description = description;
-        this.categories = new ArrayList<>();
-        this.categories.add(brand);
+        this.categories = categories;
     }
 
     /**

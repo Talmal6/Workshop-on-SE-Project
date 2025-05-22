@@ -651,7 +651,9 @@ public class Store {
     public double calculateDiscount(ShoppingProduct product,int quantity) {
         return this.discounts.calculate(product, quantity);
     }
-
+    public double calculateDiscount(Map<ShoppingProduct, Integer> productsWithQuantities) {
+        return this.discounts.calculateDiscountForBasket(productsWithQuantities);
+    }
     public void applyCoupon(String coupon) {
         this.discounts.applyCoupon(coupon);
     }

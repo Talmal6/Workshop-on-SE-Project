@@ -30,7 +30,7 @@ public class MaxDiscountTest {
         double discountAmount = maxDiscount.calculate(pasta, 3);
 
         // 5% of 60 = 3.0, 10% of 60 = 6.0, max is 6.0
-        assertEquals(6.0, discountAmount, 0.001);
+        assertEquals(54.0, discountAmount, 0.001);
     }
 
     @Test
@@ -46,7 +46,7 @@ public class MaxDiscountTest {
 
         double discountAmount = maxDiscount.calculate(product, 2);
 
-        assertEquals(0.0, discountAmount, 0.001);
+        assertEquals(100, discountAmount, 0.001);
     }
 
     @Test
@@ -72,10 +72,10 @@ public class MaxDiscountTest {
         basket.put(pasta, 3);  // total 60
         basket.put(milk, 4);   // total 40
 
-        double maxDiscountAmount = maxDiscount.calculateMaxDiscountForBasket(basket);
+        double maxDiscountAmount = maxDiscount.calculateDiscountForBasket(basket);
 
         // Expect max discount 6.8 from milk discount (17% of 40)
-        assertEquals(6.8, maxDiscountAmount, 0.001);
+        assertEquals(43.0, maxDiscountAmount, 0.001);
     }
 
 
@@ -99,13 +99,13 @@ public class MaxDiscountTest {
 
         // The 5% discount is activated by coupon, but 10% store discount is active by default
         // max between 5% of 60=3 and 10% of 60=6 is 6
-        assertEquals(6.0, discountAmount, 0.001);
+        assertEquals(54.0, discountAmount, 0.001);
     }
 
     @Test
     public void shouldReturnZeroDiscount_WhenBasketIsEmpty() {
         MaxDiscount maxDiscount = new MaxDiscount(List.of());
-        double discountAmount = maxDiscount.calculateMaxDiscountForBasket(new HashMap<>());
+        double discountAmount = maxDiscount.calculateDiscountForBasket(new HashMap<>());
         assertEquals(0.0, discountAmount, 0.001);
     }
 
