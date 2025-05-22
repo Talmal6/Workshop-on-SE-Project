@@ -13,5 +13,8 @@ public enum NotificationType {
     /* --- auctions -------------------------------------------------------- */
     AUCTION_BID,               // new highest bid
     AUCTION_OUTBID,            // somebody was just out-bid
-    AUCTION_WIN                // auction finished – winner
+    AUCTION_WIN ,               // auction finished – winner
+    AUCTION_LOSE,
+    AUCTION_START,
+
 }

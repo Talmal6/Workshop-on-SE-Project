@@ -84,8 +84,8 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
             // Create the presenter with the notification sender
             this.presenter = new ProductPresenter(this, productId, storeName, notificationSender);
             this.isOwner = presenter.isOwner();
-            presenter.loadAuctionInfo();
             presenter.loadProductDetails();
+            presenter.loadAuctionInfo();
         } catch (Exception e) {
             showError("Error loading product: " + e.getMessage());
         }
