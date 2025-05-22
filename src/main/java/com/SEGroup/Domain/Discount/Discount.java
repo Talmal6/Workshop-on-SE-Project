@@ -49,6 +49,9 @@ public abstract class Discount {
         return isActive;
     }
 
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
+    }
     public void ApplyCoupon(String coupon) {
         if (coupon.equals(Coupon))
             this.isActive = true;

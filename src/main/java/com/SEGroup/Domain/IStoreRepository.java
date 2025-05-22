@@ -289,8 +289,8 @@ public interface IStoreRepository {
         void addSimpleDiscountToEntireStore(String storeName, String operatorEmail,int percentage,String Coupon);
         void addSimpleDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon);
         void addSimpleDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon);
-        void addConditionalDiscountToEntireStore(String storeName, String operatorEmail, int percentage, String coupon);
-        void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon);
-        void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon);
+        void addConditionalDiscountToEntireStore(String storeName, String operatorEmail, int percentage,int minimumPrice, String coupon);
+        void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage,int minimumPrice, String coupon);
+        void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage,int minimumPrice,int minAmount ,String coupon);
         void applyCouponToCart(List<BasketDTO> basketDTOList,String Coupon);
 }

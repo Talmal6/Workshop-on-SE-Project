@@ -1,5 +1,6 @@
 package com.SEGroup.Domain.Discount.Numerical;
 
+import com.SEGroup.Domain.Discount.ConditionalDiscount;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 
@@ -27,6 +28,18 @@ public abstract class NumericalComposite {
     public void applyCoupon(String coupon) {
         for (Discount discount : discounts) {
             discount.ApplyCoupon(coupon);
+        }
+    }
+    public void activateDiscount(int minprice){
+        for (Discount discount : discounts) {
+            if(discount instanceof ConditionalDiscount)
+                ((ConditionalDiscount) discount).Activate(minprice);
+        }
+    }
+    public void deactivateDiscount(){
+        for (Discount discount : discounts) {
+            if(discount instanceof ConditionalDiscount)
+                ((ConditionalDiscount) discount).deActivate();
         }
     }
 }

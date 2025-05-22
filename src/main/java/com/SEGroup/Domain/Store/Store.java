@@ -613,22 +613,22 @@ public class Store {
         discounts.add(new SimpleDiscount(DiscountType.PRODUCT, percentage,productId, coupon));
     }
 
-    public void addConditionalDiscountToEntireStore(String operatorEmail, int percentage, String coupon) {
+    public void addConditionalDiscountToEntireStore(String operatorEmail, int percentage,int minPrice ,String coupon) {
         if (!isOwnerOrHasManagerPermissions(operatorEmail))
             throw new IllegalArgumentException("Only owners can control discount");
-        discounts.add(new ConditionalDiscount(DiscountType.STORE, percentage,  p -> true,null, coupon));
+        discounts.add(new ConditionalDiscount(DiscountType.STORE, percentage,  minPrice,-1,null, coupon));
     }
 
-    public void addConditionalDiscountToEntireCategoryInStore(String operatorEmail, String category, int percentage, String coupon) {
+    public void addConditionalDiscountToEntireCategoryInStore(String operatorEmail, String category, int percentage,int minPrice , String coupon) {
         if (!isOwnerOrHasManagerPermissions(operatorEmail))
             throw new IllegalArgumentException("Only owners can control discount");
-        discounts.add(new ConditionalDiscount(DiscountType.CATEGORY, percentage, p -> true,category ,coupon));
+        discounts.add(new ConditionalDiscount(DiscountType.CATEGORY, percentage, minPrice,-1,category ,coupon));
     }
 
-    public void addConditionalDiscountToSpecificProductInStorePercentage(String operatorEmail, String productId, int percentage, String coupon) {
+    public void addConditionalDiscountToSpecificProductInStorePercentage(String operatorEmail, String productId, int percentage,int minPrice,int minAmount, String coupon) {
         if (!isOwnerOrHasManagerPermissions(operatorEmail))
             throw new IllegalArgumentException("Only owners can control discount");
-        discounts.add(new ConditionalDiscount(DiscountType.PRODUCT, percentage, p -> true,productId, coupon));
+        discounts.add(new ConditionalDiscount(DiscountType.PRODUCT, percentage, minPrice,minAmount,productId, coupon));
     }
 
     /**
@@ -643,5 +643,10 @@ public class Store {
     public void applyCoupon(String coupon) {
         this.discounts.applyCoupon(coupon);
     }
-
+    public void activateConditionDiscount(int minPrice){
+        this.discounts.activateDiscount(minPrice);
+    }
+    public void deactivateConditionDiscount(){
+        this.discounts.deactivateDiscount();
+    }
 }

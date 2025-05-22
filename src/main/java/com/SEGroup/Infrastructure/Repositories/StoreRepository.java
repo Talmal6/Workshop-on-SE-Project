@@ -490,6 +490,8 @@ public class StoreRepository implements IStoreRepository {
 
         for (BasketDTO basketDTO : basketDTOList) {
             Store store = findByName(basketDTO.storeId());
+            double price = calculatePrice(store,basketDTO);
+            store.activateConditionDiscount((int) price);
             for (Map.Entry<String, Integer> entry : basketDTO.prod2qty().entrySet()) {
                 String productId = entry.getKey();
                 int quantity = entry.getValue();
@@ -505,11 +507,26 @@ public class StoreRepository implements IStoreRepository {
 
                 discountedPrices.put(productId, finalPrice);
             }
+            store.deactivateConditionDiscount();
         }
 
         return discountedPrices;
     }
+    private double calculatePrice(Store store, BasketDTO basketDTO) {
+        double total = 0.0;
+        for (Map.Entry<String, Integer> entry : basketDTO.prod2qty().entrySet()) {
+            String productId = entry.getKey();
+            int quantity = entry.getValue();
 
+            ShoppingProduct product = store.getProduct(productId);
+            if (product == null) {
+                throw new RuntimeException("Product not found: " + productId);
+            }
+
+            total += product.getPrice() * quantity;
+        }
+        return total;
+    }
     @Override
     public void rollBackItemsToStores(List<BasketDTO> basketDTOList) {
         for (BasketDTO basketDTO : basketDTOList) {
@@ -898,21 +915,21 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void addConditionalDiscountToEntireStore(String storeName, String operatorEmail, int percentage, String coupon) {
+    public void addConditionalDiscountToEntireStore(String storeName, String operatorEmail, int percentage,int minPrice,String coupon) {
         Store store = findByName(storeName);
-        store.addConditionalDiscountToEntireStore(operatorEmail, percentage, coupon);
+        store.addConditionalDiscountToEntireStore(operatorEmail, percentage,minPrice, coupon);
     }
 
     @Override
-    public void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon) {
+    public void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage,int minPrice, String coupon) {
         Store store = findByName(storeName);
-        store.addConditionalDiscountToEntireCategoryInStore(operatorEmail, category, percentage, coupon);
+        store.addConditionalDiscountToEntireCategoryInStore(operatorEmail, category, percentage,minPrice, coupon);
     }
 
     @Override
-    public void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon) {
+    public void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage,int minimumPrice,int minAmount , String coupon) {
         Store store = findByName(storeName);
-        store.addConditionalDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage, coupon);
+        store.addConditionalDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage,minimumPrice,minAmount,coupon);
     }
 
     @Override
@@ -923,8 +940,8 @@ public class StoreRepository implements IStoreRepository {
             Store store = findByName(basketDTO.storeId());
            store.applyCoupon(Coupon);
         }
+    }
+    }
 
-    }
-    }
 
 

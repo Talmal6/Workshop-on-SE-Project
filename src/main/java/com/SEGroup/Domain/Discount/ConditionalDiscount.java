@@ -8,21 +8,25 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class ConditionalDiscount extends Discount {
-    private final Predicate<ShoppingProduct> predicate;
+    private final int minPrice;
+    private final int minAmount;
 
-    public ConditionalDiscount(DiscountType type, double percent, Predicate<ShoppingProduct> predicate,String scopeKey,String Coupon) {
+    public ConditionalDiscount(DiscountType type, double percent,int minPrice,int minAmount,String scopeKey,String Coupon) {
         super(type, percent,scopeKey,Coupon);
-        this.predicate = predicate;
+        this.minPrice = minPrice;
+        this.minAmount = minAmount;
+        this.setActive(false);
     }
 
     @Override
     public double calculate(ShoppingProduct product,int quantity) {
-        if(getCoupon()!=null && !isActive()) {
-            throw new IllegalArgumentException("Coupon is not active.");
-        }
-        if (!predicate.test(product)) {
+        if(getCoupon()!=null && !isActive() ) {
             return product.getPrice() * quantity;
         }
+        if(!isActive() || quantity < minAmount) {
+            return product.getPrice() * quantity;
+        }
+
         double baseTotal = product.getPrice() * quantity;
         switch (getType()) {
             case STORE:
@@ -44,6 +48,14 @@ public class ConditionalDiscount extends Discount {
         }
         // no discount applies
         return baseTotal;
+    }
+    public void Activate(int price){
+        if(this.minPrice <= price) {
+            this.setActive(true);
+        }
+    }
+    public void deActivate(){
+        this.setActive(false);
     }
 }
 
