@@ -366,7 +366,28 @@ public class CartPresenter {
     }
 
     public Result<Void> applyCoupon(String value) {
+        Result<Void> result = transactionService.applyCouponToCart(SecurityContextHolder.token(), value);
+        if (result.isSuccess()) {
+            view.showSuccess("Coupon applied successfully");
+            loadCart(); // Reload the cart to show updated prices
+        } else {
+            view.showError("Failed to apply coupon: " + result.getErrorMessage());
+        }
+        return result;
+    }
 
-        return null;
+    public double getCartTotalAfterDiscount() {
+        Result<Map<String, Double>> result = transactionService.getDiscountsForCart(SecurityContextHolder.token());
+        if (!result.isSuccess()) {
+            view.showError("Failed to get discounts: " + result.getErrorMessage());
+        }else {
+            Map<String, Double> discounts = result.getData();
+            double totalAfterDiscount = 0;
+            for (double discountedPrice : discounts.values()) {
+                totalAfterDiscount += discountedPrice;
+            }
+            return totalAfterDiscount;
+        }
+        return cartTotal;
     }
 }

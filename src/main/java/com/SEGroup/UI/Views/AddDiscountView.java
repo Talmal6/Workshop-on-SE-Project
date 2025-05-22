@@ -147,7 +147,15 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
             Integer percent  = percentageField.getValue();
             boolean couponOn = Boolean.TRUE.equals(useCouponCheckbox.getValue());
             boolean conditionalOn = Boolean.TRUE.equals(isConditionalDiscount.getValue());
-            Integer minimumP = Integer.parseInt(minimumPrice.getValue());
+            Integer minimumP = 0;
+            if (conditionalOn) {
+                try {
+                    minimumP = Integer.parseInt(minimumPrice.getValue());
+                } catch (NumberFormatException e) {
+                    minimumPrice.setInvalid(true);
+                    return;
+                }
+            }
             String  coupon   = couponField.getValue();
             Result<Void> result = Result.failure("Unknown error");
 

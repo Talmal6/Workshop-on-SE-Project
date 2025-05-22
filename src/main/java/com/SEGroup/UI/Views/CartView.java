@@ -215,7 +215,8 @@ public class CartView extends VerticalLayout {
         }
 
         totalPriceLabel.setText(String.format("Total: $%.2f", totalPrice));
-        totalAfterDiscountLabel.setText(String.format("Total after discount: $%.2f", totalPrice)); // TODO: Update with actual discount calculation
+        double discountedPrice = presenter.getCartTotalAfterDiscount();
+        totalAfterDiscountLabel.setText(String.format("Total after discount: $%.2f", discountedPrice)); // TODO: Update with actual discount calculation
         checkoutButton.setEnabled(!cartItems.isEmpty());
     }
 
