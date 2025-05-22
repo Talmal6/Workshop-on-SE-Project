@@ -1,9 +1,6 @@
 package com.SEGroup.Domain.Discount;
 
-import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Domain.User.ShoppingCart;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 public abstract class Discount {
     /**

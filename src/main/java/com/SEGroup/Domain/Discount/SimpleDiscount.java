@@ -26,7 +26,6 @@ public class SimpleDiscount extends Discount {
                 return baseTotal * (100 - getPercent()) / 100.0;
             case PRODUCT:
                 // only if matching product ID
-                String skopekey=getScopeKey();
                 if (product.getProductId().equals(getScopeKey())) {
                     return baseTotal * (100 - getPercent()) / 100.0;
                 }

@@ -1,11 +1,8 @@
 package com.SEGroup.Domain.Discount;
 
-import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 public class ConditionalDiscount extends Discount {
     private final int minPrice;

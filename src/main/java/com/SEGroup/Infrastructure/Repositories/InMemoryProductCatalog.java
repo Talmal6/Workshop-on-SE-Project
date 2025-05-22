@@ -39,7 +39,7 @@ public class InMemoryProductCatalog implements IProductCatalog {
     @Override
     public void addCatalogProduct(String catalogID, String name, String brand, String description,
             List<String> categories) {
-        CatalogProduct product = new CatalogProduct(catalogID, name, brand, description);
+        CatalogProduct product = new CatalogProduct(catalogID, name, brand, description,categories);
         catalogIDtoCatalogProduct.put(catalogID, product);
 
         for (String category : categories) {
