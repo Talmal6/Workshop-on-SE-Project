@@ -943,8 +943,9 @@ public class StoreService {
     public Result<Void> addSimpleDiscountToEntireStore(String sessionKey, String storeName, int percentage,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.addSimpleDiscountToEntireStore(authenticationService.getUserBySession(sessionKey),storeName,percentage,Coupon);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.addSimpleDiscountToEntireStore(storeName,email,percentage,Coupon);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -953,8 +954,9 @@ public class StoreService {
     public Result<Void> addSimpleDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.addSimpleDiscountToEntireCategoryInStore(authenticationService.getUserBySession(sessionKey),storeName,category,percentage,Coupon);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.addSimpleDiscountToEntireCategoryInStore(storeName,email,category,percentage,Coupon);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -964,8 +966,9 @@ public class StoreService {
     public Result<Void> addSimpleDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.addSimpleDiscountToSpecificProductInStorePercentage(authenticationService.getUserBySession(sessionKey),storeName,product_id,percentage,Coupon);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.addSimpleDiscountToSpecificProductInStorePercentage(storeName,email,product_id,percentage,Coupon);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -975,8 +978,9 @@ public class StoreService {
     public Result<Void> addConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage,int minimumPrice,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.addConditionalDiscountToEntireStore(authenticationService.getUserBySession(sessionKey),storeName,percentage,minimumPrice,Coupon);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.addConditionalDiscountToEntireStore(storeName,email,percentage,minimumPrice,Coupon);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -985,8 +989,9 @@ public class StoreService {
     public Result<Void> addConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage,int minimumPrice,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.addConditionalDiscountToEntireCategoryInStore(authenticationService.getUserBySession(sessionKey),storeName,category,percentage,minimumPrice,Coupon);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.addConditionalDiscountToEntireCategoryInStore(storeName,email,category,percentage,minimumPrice,Coupon);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
@@ -996,8 +1001,9 @@ public class StoreService {
     public Result<Void> addConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage,int minAmount,int minPrice,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            storeRepository.addConditionalDiscountToSpecificProductInStorePercentage(authenticationService.getUserBySession(sessionKey),storeName,product_id,percentage,minPrice,minAmount,Coupon);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.addConditionalDiscountToSpecificProductInStorePercentage(storeName,email,product_id,percentage,minPrice,minAmount,Coupon);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
