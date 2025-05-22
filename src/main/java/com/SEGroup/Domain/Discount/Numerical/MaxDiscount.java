@@ -1,12 +1,11 @@
 package com.SEGroup.Domain.Discount.Numerical;
 
 
-import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A discount that returns the maximum value from a set of discounts.
@@ -29,4 +28,20 @@ public class MaxDiscount extends NumericalComposite {
         }
         return maxDiscount;
     }
+
+    public double calculateMaxDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
+        double maxDiscountOverall = 0.0;
+
+        for (var entry : productsWithQuantities.entrySet()) {
+            ShoppingProduct product = entry.getKey();
+            int quantity = entry.getValue();
+            double discountAmount = calculate(product, quantity);
+            if (discountAmount > maxDiscountOverall) {
+                maxDiscountOverall = discountAmount;
+            }
+        }
+
+        return maxDiscountOverall;
+    }
+
 }

@@ -10,11 +10,11 @@ import java.util.Set;
 
 import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.Discount.Discount;
+import com.SEGroup.Domain.Discount.DiscountType;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.Store.*;
 import com.SEGroup.Mapper.StoreMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.RequestParam;
 ;
 
 //implement iStore
@@ -941,7 +941,8 @@ public class StoreRepository implements IStoreRepository {
            store.applyCoupon(Coupon);
         }
     }
-    }
+
+}
 
 
 

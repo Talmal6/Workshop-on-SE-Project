@@ -599,7 +599,6 @@ public class Store {
         if(!isOwnerOrHasManagerPermissions(operatorEmail))
             throw new IllegalArgumentException("Only owners can control discount");
         this.discounts.add(new SimpleDiscount(DiscountType.STORE,percentage,null,Coupon));
-
     }
     public void addSimpleDiscountToEntireCategoryInStore(String operatorEmail, String category, int percentage, String coupon) {
         if (!isOwnerOrHasManagerPermissions(operatorEmail))
@@ -630,6 +629,19 @@ public class Store {
             throw new IllegalArgumentException("Only owners can control discount");
         discounts.add(new ConditionalDiscount(DiscountType.PRODUCT, percentage, minPrice,minAmount,productId, coupon));
     }
+
+    /**
+     * Sets the store discounts to a MaxDiscount composed of the given discounts.
+     *
+     * @param discountList List of discounts to be combined with MaxDiscount.
+     */
+    public void addMaxDiscounts(List<Discount> discountList) {
+        if (!isOwnerOrHasManagerPermissions(founderEmail)) {
+            throw new IllegalArgumentException("Only owners can control discount");
+        }
+        this.discounts = new MaxDiscount(discountList);
+    }
+
 
     /**
      * Calculate the maximum discount amount for the given product based on all store discounts.

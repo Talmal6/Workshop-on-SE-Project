@@ -1,46 +1,70 @@
-//package com.SEGroup.UnitTests.Discount.Numerical;
-//
-//import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-//import com.SEGroup.Domain.Discount.Discount;
-//import com.SEGroup.Domain.Discount.Numerical.SumDiscount;
-//import com.SEGroup.Domain.Discount.SimpleDiscount;
-//import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
-//import org.junit.jupiter.api.Test;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//import static org.junit.Assert.assertEquals;
-//
-//public class SumDiscountTest {
-//
-//    @Test
-//    public void shouldApplySumDiscountSuccessfully_WhenScopesAreDairyAndVegetablesSeparately() {
-//        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-//
-//        List<String> dairy = List.of("dairy");
-//        List<String> vegetables = List.of("vegetables");
-//
-//        catalog.addCatalogProduct("c1", "Milk", "Tnuva", "Fresh", dairy);
-//        catalog.addCatalogProduct("c2", "Cheese", "Tnuva", "Yellow", dairy);
-//        catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 10.0, 2, 4.0, "Milk");   // 20
-//        catalog.addStoreProductEntry("c2", "YuvalStore", "p2", 10.0, 2, 4.0, "Cheese"); // 20
-//
-//        catalog.addCatalogProduct("c3", "Tomatoes", "OrganicFarm", "Red", vegetables);
-//        catalog.addStoreProductEntry("c3", "YuvalStore", "p3", 20.0, 3, 4.5, "Tomatoes"); // 60
-//
-//        StoreSearchEntry[] entries = catalog.search("", new ArrayList<>(), "YuvalStore", null).toArray(new StoreSearchEntry[0]);
-//
-//        DiscountScope dairyScope = new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy");
-//        Discount dairyDiscount = new SimpleDiscount(10, dairyScope);
-//
-//        DiscountScope vegScope = new DiscountScope(DiscountScope.ScopeType.CATEGORY, "vegetables");
-//        Discount vegDiscount = new SimpleDiscount(20, vegScope);
-//
-//        Discount totalDiscount = new SumDiscount(List.of(dairyDiscount, vegDiscount));
-//
-//        double result = totalDiscount.calculate(entries, catalog);
-//
-//        assertEquals(16.0, result, 0.001); // 10% of 40 + 20% of 60 = 4 + 12 = 16
-//    }
-//}
+package com.SEGroup.UnitTests.Discount.Numerical;
+
+import com.SEGroup.Domain.Discount.DiscountType;
+import com.SEGroup.Domain.Discount.Numerical.SumDiscount;
+import com.SEGroup.Domain.Discount.SimpleDiscount;
+import com.SEGroup.Domain.Store.ShoppingProduct;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class SumDiscountTest {
+
+    @Test
+    public void shouldCalculateSumDiscountForSingleProduct_WithMultipleDiscounts() {
+        List<String> categories = List.of("electronics");
+
+        ShoppingProduct product = new ShoppingProduct(
+                "StoreA", "cat1", "p1", "Gadget", "desc", 100.0, 2, "", categories
+        ); // total 200
+
+        SimpleDiscount discount10 = new SimpleDiscount(DiscountType.STORE, 10, null, null); // 10% discount
+        SimpleDiscount discount5 = new SimpleDiscount(DiscountType.CATEGORY, 5, "electronics", null); // 5% discount
+
+        SumDiscount sumDiscount = new SumDiscount(List.of(discount10, discount5));
+
+        double totalDiscount = sumDiscount.calculate(product, product.getQuantity());
+
+        // Expected discount: 10% of 200 = 20 + 5% of 200 = 10 => total 30
+        assertEquals(30.0, totalDiscount, 0.001);
+    }
+
+    @Test
+    public void shouldCalculateSumDiscount_WithInactiveDiscounts() {
+        List<String> categories = List.of("books");
+
+        ShoppingProduct product = new ShoppingProduct(
+                "StoreB", "cat2", "p2", "Book", "desc", 50.0, 1, "", categories
+        );
+
+        SumDiscount sumDiscount = new SumDiscount(List.of());
+
+        double totalDiscount = sumDiscount.calculate(product, product.getQuantity());
+
+        assertEquals(0.0, totalDiscount, 0.001);
+    }
+
+    @Test
+    public void shouldCalculateSumDiscounts_WithInactiveDiscounts() {
+        List<String> categories = List.of("toys");
+
+        ShoppingProduct product = new ShoppingProduct(
+                "StoreC", "cat3", "p3", "Toy", "desc", 40.0, 5, "", categories
+        ); // total 200
+
+        SimpleDiscount discountActive = new SimpleDiscount(DiscountType.STORE, 10, null, null);
+        SimpleDiscount discountInactive = new SimpleDiscount(DiscountType.CATEGORY, 5, "toys", "COUPON1");
+
+        discountInactive.ApplyCoupon("COUPON1");
+
+        SumDiscount sumDiscount = new SumDiscount(List.of(discountActive, discountInactive));
+
+        double totalDiscount = sumDiscount.calculate(product, product.getQuantity());
+
+        // Both discounts are active, sum of 10% and 5% of 200 = 30
+        assertEquals(30.0, totalDiscount, 0.001);
+    }
+
+}

@@ -1,23 +1,23 @@
-//package com.SEGroup.Domain.Conditions;
-//
-//import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-//
-//import java.util.List;
-//import java.util.function.Predicate;
-//
-//public class OrCondition extends CompositeCondition{
-//
-//    public OrCondition(List<Predicate<StoreSearchEntry[]>> conditions){
-//        super(conditions);
-//    }
-//
-//    @Override
-//    public boolean test(StoreSearchEntry[] entries) {
-//        for (Predicate<StoreSearchEntry[]> condition : conditions) {
-//            if (condition.test(entries)) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-//}
+package com.SEGroup.Domain.Conditions;
+
+import com.SEGroup.Domain.Store.ShoppingProduct;
+
+import java.util.List;
+import java.util.function.Predicate;
+
+public class OrCondition extends CompositeCondition {
+
+    public OrCondition(List<Predicate<List<ShoppingProduct>>> conditions) {
+        super(conditions);
+    }
+
+    @Override
+    public boolean test(List<ShoppingProduct> products) {
+        for (Predicate<List<ShoppingProduct>> cond : conditions) {
+            if (cond.test(products)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}

@@ -1,182 +1,236 @@
-//package com.SEGroup.acceptance;
+package com.SEGroup.acceptance;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.SEGroup.Domain.Conditions.AndCondition;
+import com.SEGroup.Domain.Discount.ConditionalDiscount;
+import com.SEGroup.Domain.Discount.Discount;
+import com.SEGroup.Domain.Discount.DiscountType;
+import com.SEGroup.Domain.Discount.Numerical.MaxDiscount;
+import com.SEGroup.Domain.Discount.Numerical.SequentialDiscount;
+import com.SEGroup.Domain.Discount.SimpleDiscount;
+import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
+import com.SEGroup.Domain.Store.ShoppingProduct;
+import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Domain.User.Basket;
+import com.SEGroup.Infrastructure.Repositories.*;
+import com.SEGroup.Domain.Report.ReportCenter;
+
+import com.SEGroup.Infrastructure.Security;
+import com.SEGroup.Infrastructure.SecurityAdapter;
+import com.SEGroup.Service.*;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
+import javax.crypto.SecretKey;
+import java.util.*;
+
+public class DiscountAcceptanceTest {
+
+    private static String VALID_SESSION = "valid-session";
+    private static final String OWNER_EMAIL = "owner@example.com";
+    private static final String OWNER = "owner";
+    private static final String OWNER_PASS = "pass123";
+    private static final String STORE_NAME = "DiscountStore";
+    private static final String CATALOG_ID = "cat001";
+
+    StoreService storeService;
+    StoreRepository storeRepository;
+    IAuthenticationService authenticationService;
+    InMemoryProductCatalog productCatalog;
+    IUserRepository userRepository;
+    UserService userService;
+    NotificationCenter notificationService;
+    ReportCenter reportCenter;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        storeRepository = new StoreRepository();
+        productCatalog = new InMemoryProductCatalog();
+        Security security = new Security();
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        security.setKey(key);
+        authenticationService = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
+        ((SecurityAdapter) authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
+        notificationService = new NotificationCenter(authenticationService);
+        userRepository = new UserRepository();
+        reportCenter = new ReportCenter();
+        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,
+                notificationService);
+        userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository,
+                authenticationService, reportCenter);
+        VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS);
+    }
+
+    public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
+        userService.register(userName, email, password);
+        return authenticationService.authenticate(email);
+    }
+
+    @Test
+    public void purchase_WithProductLevelDiscount_ShouldApplyDiscountCorrectly() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.addProductToCatalog(CATALOG_ID, "Shoes", "Nike", "Comfortable running shoes",
+                Collections.singletonList("Footwear"));
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "Shoes", "Nike running", 200.0, 1, "")
+                .getData();
+
+        Store store = storeRepository.findByName(STORE_NAME);
+
+        store.addSimpleDiscountToSpecificProductInStorePercentage(
+                OWNER_EMAIL,
+                productId,
+                10,
+                null
+        );
+
+        ShoppingProduct product = store.getProduct(productId);
+        int quantity = product.getQuantity();
+
+        double discountedPrice = store.calculateDiscount(product, quantity);
+
+        assertEquals(20.0, discountedPrice, 0.001);
+    }
+
+    @Test
+    public void purchase_WithCategoryLevelSimpleDiscount_ShouldApplyDiscountCorrectly() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.addProductToCatalog("cat10", "Laptop", "Dell", "Powerful Laptop", Collections.singletonList("electronics"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat10", "Laptop", "Dell XPS", 1000.0, 1, "").getData();
+
+        Store store = storeRepository.findByName(STORE_NAME);
+        store.addSimpleDiscountToEntireCategoryInStore(OWNER_EMAIL, "electronics", 15, null);
+
+        ShoppingProduct product = store.getProduct(productId);
+        int quantity = product.getQuantity();
+
+        double discountAmount = store.calculateDiscount(product, quantity);
+
+        assertEquals(150.0, discountAmount, 0.001);
+    }
+
+    @Test
+    public void purchase_WithConditionalDiscount_ShouldApplyOnlyIfConditionMet() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.addProductToCatalog("cat20", "TV", "Samsung", "Smart TV", Collections.singletonList("electronics"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat20", "TV", "Samsung TV", 800.0, 1, "").getData();
+
+        Store store = storeRepository.findByName(STORE_NAME);
+        store.addConditionalDiscountToSpecificProductInStorePercentage(OWNER_EMAIL, productId, 10, 500, 1, null);
+
+        ShoppingProduct product = store.getProduct(productId);
+        int quantity = product.getQuantity();
+
+        // Condition minimum price is 500, actual total is 800*1=800 -> discount applies
+        double discountAmount = store.calculateDiscount(product, quantity);
+        assertEquals(80.0, discountAmount, 0.001);
+    }
+
+    @Test
+    public void purchase_WithConditionalDiscount_ShouldNotApplyIfConditionNotMet() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.addProductToCatalog("cat21", "Phone", "Apple", "iPhone", Collections.singletonList("electronics"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat21", "Phone", "iPhone 14", 400.0, 1, "").getData();
+
+        Store store = storeRepository.findByName(STORE_NAME);
+        store.addConditionalDiscountToSpecificProductInStorePercentage(OWNER_EMAIL, productId, 10, 500, 1, null);
+
+        ShoppingProduct product = store.getProduct(productId);
+        int quantity = product.getQuantity();
+
+        // Condition minimum price is 500, actual total is 400*1=400 -> discount does not apply
+        double discountAmount = store.calculateDiscount(product, quantity);
+        assertEquals(0.0, discountAmount, 0.001);
+    }
+
+//    @Test
+//    public void purchase_WithMaxDiscount_ShouldChooseMaxFromMultiple() throws Exception {
+//        storeService.createStore(VALID_SESSION, STORE_NAME);
+//        storeService.addProductToCatalog("cat30", "Juice", "Tropicana", "Fresh Juice", Collections.singletonList("drinks"));
+//        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat30", "Juice", "Orange Juice", 10.0, 10, "").getData();
 //
-//import static org.junit.jupiter.api.Assertions.assertEquals;
+//        Store store = storeRepository.findByName(STORE_NAME);
 //
-//import com.SEGroup.Domain.Conditions.AndCondition;
-//import com.SEGroup.Domain.Discount.ConditionalDiscount;
-//import com.SEGroup.Domain.Discount.Discount;
-//import com.SEGroup.Domain.Discount.SimpleDiscount;
-//import com.SEGroup.Domain.IAuthenticationService;
-//import com.SEGroup.Domain.IUserRepository;
-//import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-//import com.SEGroup.Domain.Store.Store;
-//import com.SEGroup.Domain.User.Basket;
-//import com.SEGroup.Infrastructure.Repositories.*;
-//import com.SEGroup.Domain.Report.ReportCenter;
+//        MaxDiscount maxDiscount = new MaxDiscount(List.of(
+//                new SimpleDiscount(DiscountType.CATEGORY, 10, "drinks", null),
+//                new SimpleDiscount(DiscountType.STORE, 5, null, null)
+//        ));
 //
-//import com.SEGroup.Infrastructure.Security;
-//import com.SEGroup.Service.*;
-//import io.jsonwebtoken.SignatureAlgorithm;
-//import io.jsonwebtoken.security.Keys;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
-//import javax.crypto.SecretKey;
-//import java.util.*;
-//import java.util.function.Predicate;
+//        store.setDiscounts(maxDiscount);
 //
-//public class DiscountAcceptanceTest {
+//        ShoppingProduct product = store.getProduct(productId);
+//        int quantity = product.getQuantity();
 //
-//    private static String VALID_SESSION = "valid-session";
-//    private static final String OWNER_EMAIL = "owner@example.com";
-//    private static final String OWNER = "owner";
-//    private static final String OWNER_PASS = "pass123";
-//    private static final String STORE_NAME = "DiscountStore";
-//    private static final String CATALOG_ID = "cat001";
+//        double priceBefore = product.getPrice() * quantity;
+//        double discountedPrice = store.calculateDiscount(product, quantity);
+//        double discountAmount = priceBefore - discountedPrice;
 //
-//    StoreService storeService;
-//    StoreRepository storeRepository;
-//    IAuthenticationService authenticationService;
-//    InMemoryProductCatalog productCatalog;
-//    IUserRepository userRepository;
-//    UserService userService;
-//    NotificationCenter notificationService;
-//    ReportCenter reportCenter;
-//
-//    @BeforeEach
-//    public void setUp() throws Exception {
-//        storeRepository = new StoreRepository();
-//        productCatalog = new InMemoryProductCatalog();
-//        Security security = new Security();
-//        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-//        security.setKey(key);
-//        authenticationService = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
-//        ((SecurityAdapter) authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
-//        notificationService = new NotificationCenter(authenticationService);
-//        userRepository = new UserRepository();
-//        reportCenter = new ReportCenter();
-//        storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,
-//                notificationService);
-//        userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository,
-//                authenticationService, reportCenter);
-//        VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS);
-//    }
-//
-//    public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
-//        userService.register(userName, email, password);
-//        return authenticationService.authenticate(email);
+//        // Discount should be max(10%, 5%) = 10%
+//        assertEquals(priceBefore * 0.10, discountAmount, 0.01);
 //    }
 //
 //    @Test
-//    public void purchase_WithProductLevelDiscount_ShouldApplyDiscountCorrectly() throws Exception {
-//        // Create store and add product
+//    public void purchase_WithSequentialDiscount_ShouldApplyAllSequentially() throws Exception {
 //        storeService.createStore(VALID_SESSION, STORE_NAME);
-//        storeService.addProductToCatalog(CATALOG_ID, "Shoes", "Nike", "Comfortable running shoes",
-//                Collections.singletonList("Footwear"));
-//        String productId = storeService
-//                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "Shoes", "Nike running", 200.0, 1,"").getData();
+//        storeService.addProductToCatalog("cat40", "Pasta", "Barilla", "Italian Pasta", Collections.singletonList("pasta"));
+//        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat40", "Pasta", "Spaghetti", 30.0, 3, "").getData();
 //
-//        // Add 10% discount on this product
 //        Store store = storeRepository.findByName(STORE_NAME);
-//        store.addDiscount(new SimpleDiscount(10.0, new DiscountScope(DiscountScope.ScopeType.PRODUCT, productId)));
 //
-//        // Simulate purchase
-//        Map<String, Integer> productMap = new HashMap<>();
-//        productMap.put(productId, 1);
-//        double discountedPrice = store.calculateFinalPriceAfterDiscount(productMap, productCatalog);
+//        SequentialDiscount sequentialDiscount = new SequentialDiscount(List.of(
+//                new SimpleDiscount(DiscountType.CATEGORY, 10, "pasta", null),
+//                new SimpleDiscount(DiscountType.STORE, 20, null, null)
+//        ));
 //
-//        // Assert 10% discount applied on 200 -> 180
-//        assertEquals(180.0, discountedPrice, 0.001);
+//        store.setDiscounts(sequentialDiscount);
+//
+//        ShoppingProduct product = store.getProduct(productId);
+//        int quantity = product.getQuantity();
+//
+//        double priceBefore = product.getPrice() * quantity;
+//        double discountedPrice = store.calculateDiscount(product, quantity);
+//        double discountAmount = priceBefore - discountedPrice;
+//
+//        // Total discount = 1 - (0.9 * 0.8) = 0.28 or 28%
+//        assertEquals(priceBefore * 0.28, discountAmount, 0.01);
 //    }
 //
 //    @Test
-//    public void purchase_WithConditionalDiscount_UsingBasket_ShouldApplyDiscountOnMatchingProduct() throws Exception {
-//        // Arrange: create store, register catalog, and add products
+//    public void purchase_WithMaxAndSequentialDiscountCombination_ShouldApplyCorrectly() throws Exception {
 //        storeService.createStore(VALID_SESSION, STORE_NAME);
-//        storeService.addProductToCatalog("cat1", "Tomato", "FreshCo", "Fresh tomatoes", List.of("Vegetables"));
-//        storeService.addProductToCatalog("cat2", "Cucumber", "FreshCo", "Fresh cucumbers", List.of("Vegetables"));
-//
-//        String tomatoId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Tomato", "Fresh", 100.0, 2,"")
-//                .getData();
-//        String cucumberId = storeService
-//                .addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Cucumber", "Fresh", 50.0, 2,"").getData();
-//
-//        // Prepare conditional discount: if total purchase > 200, 10% discount on
-//        // tomatoes
-//        Store store = storeRepository.findByName(STORE_NAME);
-//        DiscountScope tomatoScope = new DiscountScope(DiscountScope.ScopeType.PRODUCT, tomatoId);
-//        Discount discountOnTomato = new SimpleDiscount(10.0, tomatoScope);
-//
-//        Predicate<StoreSearchEntry[]> condition = arr -> {
-//            double total = 0;
-//            for (StoreSearchEntry e : arr)
-//                total += e.getPrice() * e.getQuantity();
-//            return total > 200;
-//        };
-//
-//        Discount tomatoConditionalDiscount = new ConditionalDiscount(condition, discountOnTomato);
-//        store.addDiscount(tomatoConditionalDiscount);
-//
-//        // Act: use Basket to represent user's purchase
-//        Basket basket = new Basket(STORE_NAME);
-//        basket.add(tomatoId, 2); // 2 x 100 = 200
-//        basket.add(cucumberId, 2); // 2 x 50 = 100
-//
-//        double finalPrice = store.calculateFinalPriceAfterDiscount(basket.snapshot(), productCatalog);
-//
-//        // Assert: tomato price becomes 180, cucumber stays 100, total = 280
-//        assertEquals(280.0, finalPrice, 0.001);
-//    }
-//
-//    @Test
-//    public void purchase_WithCompositeConditionUsingUserBasket_ShouldApplyDairyDiscount() throws Exception {
-//        storeService.createStore(VALID_SESSION, STORE_NAME);
-//
-//        productCatalog.addCatalogProduct("c1", "Pasta A", "Barilla", "500g", List.of("pasta"));
-//        productCatalog.addCatalogProduct("c2", "Pasta B", "Barilla", "Spaghetti", List.of("pasta"));
-//        productCatalog.addCatalogProduct("c3", "Milk", "Tnuva", "1L", List.of("dairy"));
-//
-//        String p1 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c1", "Pasta A", "desc", 20.0, 10,"")
-//                .getData();
-//        String p2 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c2", "Pasta B", "desc", 25.0, 10,"")
-//                .getData();
-//        String p3 = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "c3", "Milk", "desc", 10.0, 10,"").getData();
-//
-//        Basket userBasket = new Basket(STORE_NAME);
-//        userBasket.add(p1, 2); // 2 x 20 = 40
-//        userBasket.add(p2, 1); // 1 x 25 = 25
-//        userBasket.add(p3, 5); // 5 x 10 = 50
-//
-//        Predicate<StoreSearchEntry[]> over100 = arr -> {
-//            double total = 0;
-//            for (StoreSearchEntry e : arr) {
-//                total += e.getPrice() * e.getQuantity();
-//            }
-//            return total > 100;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> atLeast3Pastas = arr -> {
-//            int count = 0;
-//            for (StoreSearchEntry e : arr) {
-//                if (productCatalog.getCategoriesOfProduct(e.getCatalogID()).contains("pasta")) {
-//                    count += e.getQuantity();
-//                }
-//            }
-//            return count >= 3;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> combined = new AndCondition(List.of(over100, atLeast3Pastas));
-//
-//        Discount dairyDiscount = new SimpleDiscount(5, new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy"));
-//        Discount conditional = new ConditionalDiscount(combined, dairyDiscount);
+//        storeService.addProductToCatalog("cat50", "Yogurt", "DairyFarm", "Fresh Yogurt", Collections.singletonList("dairy"));
+//        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat50", "Yogurt", "Fresh Yogurt", 10.0, 5, "").getData();
 //
 //        Store store = storeRepository.findByName(STORE_NAME);
-//        store.addDiscount(conditional);
 //
-//        double finalPrice = store.calculateFinalPriceAfterDiscount(userBasket.snapshot(), productCatalog);
+//        MaxDiscount maxDiscount = new MaxDiscount(List.of(
+//                new SimpleDiscount(DiscountType.CATEGORY, 5, "dairy", null),
+//                new SimpleDiscount(DiscountType.STORE, 10, null, null)
+//        ));
 //
-//        assertEquals(112.5, finalPrice, 0.001);
+//        SequentialDiscount sequentialDiscount = new SequentialDiscount(List.of(
+//                maxDiscount,
+//                new SimpleDiscount(DiscountType.STORE, 5, null, null)
+//        ));
+//
+//        store.setDiscounts(sequentialDiscount);
+//
+//        ShoppingProduct product = store.getProduct(productId);
+//        int quantity = product.getQuantity();
+//
+//        double priceBefore = product.getPrice() * quantity;
+//        double discountedPrice = store.calculateDiscount(product, quantity);
+//        double discountAmount = priceBefore - discountedPrice;
+//
+//        // sequential discount = maxDiscount (10%) then 5%
+//        // total discount = 1 - (0.9 * 0.95) = 0.145 = 14.5%
+//        assertEquals(priceBefore * 0.145, discountAmount, 0.01);
 //    }
-//
-//}
+
+}
 
