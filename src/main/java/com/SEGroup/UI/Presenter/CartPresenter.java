@@ -376,9 +376,9 @@ public class CartPresenter {
             view.showError("Failed to get discounts: " + result.getErrorMessage());
         }else {
             Map<String, Double> discounts = result.getData();
-            double totalAfterDiscount = cartTotal;
-            for (double discount : discounts.values()) {
-                totalAfterDiscount -= discount;
+            double totalAfterDiscount = 0;
+            for (double discountedPrice : discounts.values()) {
+                totalAfterDiscount += discountedPrice;
             }
             return totalAfterDiscount;
         }
