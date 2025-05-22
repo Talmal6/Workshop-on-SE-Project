@@ -366,7 +366,22 @@ public class CartPresenter {
     }
 
     public Result<Void> applyCoupon(String value) {
-
+        //todo!
         return null;
+    }
+
+    public double getCartTotalAfterDiscount() {
+        Result<Map<String, Double>> result = transactionService.getDiscountsForCart(SecurityContextHolder.token());
+        if (!result.isSuccess()) {
+            view.showError("Failed to get discounts: " + result.getErrorMessage());
+        }else {
+            Map<String, Double> discounts = result.getData();
+            double totalAfterDiscount = cartTotal;
+            for (double discount : discounts.values()) {
+                totalAfterDiscount -= discount;
+            }
+            return totalAfterDiscount;
+        }
+        return cartTotal;
     }
 }
