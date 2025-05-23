@@ -50,6 +50,7 @@ public class GeneralCatalogView extends VerticalLayout implements BeforeEnterObs
     private List<CatalogProductDTO> currentProducts;
     private final Button createStoreBtn = new Button("Create Store", VaadinIcon.PLUS_CIRCLE.create());
     private final Button manageStoresBtn = new Button("Manage Stores", VaadinIcon.COGS.create());
+    private final Button addCatalogBtn = new Button("Add to Base Catalog", VaadinIcon.PLUS.create());
 
     public GeneralCatalogView() {
         this.presenter = new GeneralCatalogPresenter(this);
@@ -72,14 +73,15 @@ public class GeneralCatalogView extends VerticalLayout implements BeforeEnterObs
         manageStoresBtn.addClickListener(e -> UI.getCurrent().navigate("all-stores"));
         add(adminButtons);
 
-        // Filters
+        addCatalogBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addCatalogBtn.setVisible(false);  // will be flipped in updateAdminButtons()
+        addCatalogBtn.addClickListener(e -> openNewCatalogDialog());
+        adminButtons.add(addCatalogBtn);
         add(createFilterBar());
 
-        // Grid
         configureCatalogGrid();
         add(catalogGrid);
 
-        // Load data & permissions
         presenter.loadBaseCatalog();
         updateAdminButtons();
     }
@@ -330,9 +332,10 @@ public class GeneralCatalogView extends VerticalLayout implements BeforeEnterObs
                 && ServiceLocator.getUserService()
                 .rolesOf(SecurityContextHolder.email())
                 .contains(Role.STORE_OWNER);
-        boolean show = isAdmin || isOwner;
-        createStoreBtn.setVisible(show);
-        manageStoresBtn.setVisible(show);
+
+        createStoreBtn.setVisible(isAdmin || isOwner);
+        manageStoresBtn.setVisible(isAdmin || isOwner);
+        addCatalogBtn.setVisible(isAdmin);
     }
 
     private void showProductDetailsDialog(CatalogProductDTO p) {
@@ -376,4 +379,51 @@ public class GeneralCatalogView extends VerticalLayout implements BeforeEnterObs
         var n = Notification.show(msg, 3000, Notification.Position.TOP_END);
         n.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
     }
+
+    private void openNewCatalogDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Add New Base-Catalog Product");
+
+        TextField idF          = new TextField("Catalog ID");
+        TextField nameF        = new TextField("Name");
+        TextField brandF       = new TextField("Brand");
+        TextField descF        = new TextField("Description");
+        TextField categoriesF  = new TextField("Categories (comma-separated)");
+
+        // enforce non-empty fields
+        idF.setRequired(true);
+        nameF.setRequired(true);
+
+        VerticalLayout form = new VerticalLayout(idF, nameF, brandF, descF, categoriesF);
+        form.setPadding(false);
+        form.setSpacing(true);
+
+        Button cancel = new Button("Cancel", e -> dialog.close());
+        Button confirm = new Button("Add", e -> {
+            if (idF.isEmpty() || nameF.isEmpty()) {
+                showError("Catalog ID and Name are required");
+                return;
+            }
+            // split categories on commas & trim
+            List<String> cats = Arrays.stream(categoriesF.getValue().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+
+            presenter.addNewCatalogProduct(
+                    idF.getValue(),
+                    nameF.getValue(),
+                    brandF.getValue(),
+                    descF.getValue(),
+                    cats
+            );
+            dialog.close();
+        });
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        dialog.add(form);
+        dialog.getFooter().add(cancel, confirm);
+        dialog.open();
+    }
+
 }

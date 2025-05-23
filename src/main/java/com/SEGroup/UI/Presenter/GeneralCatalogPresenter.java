@@ -58,6 +58,28 @@ public class GeneralCatalogPresenter {
         }
     }
 
+    public void addNewCatalogProduct(String catalogId,
+                                     String name,
+                                     String brand,
+                                     String description,
+                                     List<String> categories) {
+        try {
+            Result<String> res = storeService.addProductToCatalog(
+                    catalogId,
+                    name,
+                    brand,
+                    description,
+                    categories
+            );
+            if (res.isSuccess()) {
+                view.showSuccess("Added “" + name + "” to BASE catalog (ID: " + catalogId + ")");
+            } else {
+                view.showError("Could not add to catalog: " + res.getErrorMessage());
+            }
+        } catch (Exception ex) {
+            view.showError("Error adding catalog product: " + ex.getMessage());
+        }
+    }
     /**
      * Adds a product from the base catalog to a specific store.
      */

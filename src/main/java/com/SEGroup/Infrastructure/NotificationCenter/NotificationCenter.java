@@ -18,8 +18,6 @@ public class NotificationCenter implements Runnable, INotificationCenter {
 
 
 
-    /* ------------ internal state ------------ */
-
     private final Queue<Notification> queue      = new ArrayDeque<>();
     private final Object               lock       = new Object();
     private final ExecutorService      pool       = Executors.newFixedThreadPool(8);
