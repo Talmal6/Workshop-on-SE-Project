@@ -4,6 +4,7 @@ import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 
+import com.SEGroup.Domain.Store.ShoppingProduct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -248,5 +249,39 @@ public class StoreRepositoryTests {
             .filter(p -> p.getCatalogID().equals(catalogID))
             .findFirst().orElseThrow();
         assertEquals(2, dto.getQuantity());
+    }
+    @Test
+    @DisplayName("Two baskets try to buy the last item — only one should succeed, second triggers rollback")
+    public void Given_TwoBaskets_When_BuyingLastProduct_Then_OnlyOneSucceedsAndRollbackHappens() throws Exception {
+        // Arrange
+        String productId = repo.addProductToStore(founderEmail, storeName, "CID", "OnlyOne", "Only 1 available", 20.0, 1, false, "", List.of());
+
+        // Basket 1 wants to buy 1 of the product
+        BasketDTO basket1 = new BasketDTO(storeName, Map.of(productId, 1));
+
+        // Basket 2 also wants to buy 1 of the same product
+        BasketDTO basket2 = new BasketDTO(storeName, Map.of(productId, 1));
+
+        // Prepare the list of baskets (both try to buy)
+        List<BasketDTO> baskets = List.of(basket1, basket2);
+
+        // Act & Assert
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            repo.removeItemsFromStores(baskets);
+        });
+
+        // Verify: message should mention lack of quantity
+        assertTrue(ex.getMessage().contains("Not enough quantity"));
+
+        // Use reflection to access internal Store instance for verification
+        Field storesField = StoreRepository.class.getDeclaredField("stores");
+        storesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<Store> storeList = (List<Store>) storesField.get(repo);
+        Store internalStore = storeList.stream().filter(s -> s.getName().equals(storeName)).findFirst().orElseThrow();
+
+        // Verify: rollback occurred, product quantity remains 1
+        ShoppingProduct product = internalStore.getProduct(productId);
+        assertEquals(1, product.getQuantity(), "Product quantity should remain unchanged after rollback");
     }
 }

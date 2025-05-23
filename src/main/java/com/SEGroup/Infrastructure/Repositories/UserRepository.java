@@ -70,6 +70,7 @@ public class UserRepository implements IUserRepository {
             throw new IllegalArgumentException("User already exists: " + email);
 
         User u = new User(email, username, passwordHash);
+        u.addAdminRole();
         users.put(email, u);
     }
 
