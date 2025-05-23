@@ -66,8 +66,9 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
     public  final Button rolesBtn          = new Button("Manage Permissions", VaadinIcon.KEY.create());
     public  final Button showReviewsBtn    = new Button("Show Reviews", VaadinIcon.KEY.create());
     private final Button addDiscountBtn    = new Button("Add Discount", VaadinIcon.TAGS.create());
+    private final Button complexCondDiscountBtn = new Button("Add Complex Conditional Discount", VaadinIcon.TAGS.create());
     private final HorizontalLayout adminButtons =
-            new HorizontalLayout(manageStoreBtn, addProductBtn, ownersBtn, rolesBtn, addDiscountBtn);
+            new HorizontalLayout(manageStoreBtn, addProductBtn, ownersBtn, rolesBtn, addDiscountBtn, complexCondDiscountBtn);
     // Search and filter components
     private final TextField searchField = new TextField();
     private final ComboBox<String> categoryFilter = new ComboBox<>("Category");
@@ -124,6 +125,11 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         // Configure add discount button
         addDiscountBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addDiscountBtn.addClickListener(e -> UI.getCurrent().navigate("add-discount/" + storeName));
+
+        complexCondDiscountBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        complexCondDiscountBtn.addClickListener(e ->
+                UI.getCurrent().navigate("add-complex-Cond-discount/" + storeName)
+        );
 
         // Search and filter bar
         HorizontalLayout searchAndFilterBar = createSearchAndFilterBar();
@@ -185,7 +191,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         storeRating.add(starIcon);
 
         // 1) Build a little title‐and‐buttons bar:
-        HorizontalLayout titleBar = new HorizontalLayout(storeNameHeader, ownersBtn, rolesBtn, showReviewsBtn, addDiscountBtn);
+        HorizontalLayout titleBar = new HorizontalLayout(storeNameHeader, ownersBtn, rolesBtn, showReviewsBtn, addDiscountBtn, complexCondDiscountBtn);
         titleBar.setAlignItems(FlexComponent.Alignment.CENTER);
         titleBar.setSpacing(true);
 
@@ -667,6 +673,7 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
             manageStoreBtn.setVisible(canManageStore);
             addProductBtn .setVisible(canManageStore);
             addDiscountBtn.setVisible(canManageStore || isOwner);
+            complexCondDiscountBtn.setVisible(canManageStore || isOwner);
 
             // 2) per-store owner bits only if they actually own this store:
             ownersBtn.setVisible(isOwner);
