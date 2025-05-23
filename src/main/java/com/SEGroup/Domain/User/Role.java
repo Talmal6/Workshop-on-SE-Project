@@ -10,6 +10,6 @@ public enum Role {
     STORE_MANAGER ,
     STORE_OWNER,
     STORE_FOUNDER,
-    SYSTEM_MANAGER
-
+    SYSTEM_MANAGER,
+    ADMIN
 }

@@ -17,7 +17,7 @@ public class User {
     private       String passwordHash;
     private final ConcurrentMap<String, EnumSet<Role>> storeRoles = new ConcurrentHashMap<>();
     private final String username;
-
+    private Role isAdmin;
     private volatile ShoppingCart cart; // Ensure ShoppingCart is defined or imported
     private final List<String> purchaseHistory = new LinkedList<>();
 
@@ -152,6 +152,9 @@ public class User {
     public String          getEmail()     { return email; }
     public List<String>    getHistory()   { return List.copyOf(purchaseHistory); }
     public String          getUserName()  { return username; }
+    public void addAdminRole() {
+        isAdmin = Role.ADMIN;
+    }
 
     
 }
