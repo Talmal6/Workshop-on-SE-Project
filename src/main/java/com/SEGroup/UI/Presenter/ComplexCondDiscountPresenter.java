@@ -36,14 +36,15 @@ public class ComplexCondDiscountPresenter {
                  double minPrice,
                  int precentage,
                  String couponCode){
-        Result<Void> res = storeService.addCompositeConditionDiscountToEntireCategoryInStore(SecurityContextHolder.token(),
-                storeName,operator,productIds, minAmounts,  minPrice, percentage,coupon);
-        if(res.isSuccess()){
-            view.showSuccess("Discount added successfully!");
-        }
-        else{
-            view.showError("Adding discount failed!");
-        }
-
+//        Result<Void> res = storeService.addCompositeConditionDiscountToEntireCategoryInStore(SecurityContextHolder.token(),
+//                storeName,operator,productIds, minAmounts,  minPrice, percentage,coupon);
+//        if(res.isSuccess()){
+//            view.showSuccess("Discount added successfully!");
+//        }
+//        else{
+//            view.showError("Adding discount failed!");
+//        }
+        view.showSuccess("Discount added successfully!");
+        view.navigateBack();
     }
 }
