@@ -36,7 +36,7 @@ public class RoleManagementPresenter {
      */
     public void loadManagers() {
         try {
-            if(!storeService.isOwner(SecurityContextHolder.email(),storeName) ||
+            if(!storeService.isOwner(SecurityContextHolder.email(),storeName) &&
             !SecurityContextHolder.isAdmin()){
                 view.showError("You don't have a permission to manage roles");
                 return;
