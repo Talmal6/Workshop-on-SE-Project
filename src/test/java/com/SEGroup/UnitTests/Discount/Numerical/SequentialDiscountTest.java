@@ -1,5 +1,7 @@
 package com.SEGroup.UnitTests.Discount.Numerical;
-
+import com.SEGroup.Domain.Conditions.AndCondition;
+import com.SEGroup.Domain.Conditions.Condition;
+import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Discount.DiscountType;
 import com.SEGroup.Domain.Discount.Numerical.SequentialDiscount;
 import com.SEGroup.Domain.Discount.SimpleDiscount;
@@ -38,7 +40,7 @@ public class SequentialDiscountTest {
     }
 
     @Test
-    public void shouldApplySequentialDiscountAcrossMultipleProducts() {
+    public void shouldApplySequentialDiscountAcrossMultipleProducts_WhenCategoryAndStoreDiscountsArePresent() {
         List<String> dairy = List.of("dairy");
         List<String> pasta = List.of("pasta");
         ShoppingProduct milk = new ShoppingProduct(
@@ -74,7 +76,7 @@ public class SequentialDiscountTest {
     }
 
     @Test
-    public void shouldReturnOriginalPrice_WhenNoDiscountsArePresent() {
+    public void shouldReturnOriginalPrice_WhenNoDiscountsArePresentInSequentialDiscount() {
         List<String> dairy = List.of("dairy");
         ShoppingProduct milk = new ShoppingProduct(
                 "YuvalStore", "cat1", "p1", "Milk", "Fresh Milk", 50.0, 1, "", dairy
@@ -91,5 +93,45 @@ public class SequentialDiscountTest {
         // No discounts applied, should return original price
         assertEquals(50.0, finalPrice, 0.001);
     }
+    @Test
+    public void shouldApplyCompositeConditionAsPartOfSequentialDiscount_WhenTotalPriceMeetsThreshold() {
+        List<String> sweets = List.of("sweets");
 
+        ShoppingProduct chocolate = new ShoppingProduct(
+                "YuvalStore", "cat1", "p1", "Chocolate", "Sweet Chocolate", 40.0, 2, "", sweets
+        );
+
+        Condition minPriceCondition = new Condition() {
+            @Override
+            public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+                double total = 0.0;
+                for (int i = 0; i < products.size(); i++) {
+                    total += products.get(i).getPrice() * amounts.get(i);
+                }
+                return total >= 50; // will be satisfied: 2 * 40 = 80
+            }
+        };
+
+        Discount compositeDiscount = new AndCondition(
+                List.of(minPriceCondition),
+                DiscountType.CATEGORY,
+                25,
+                "sweets",
+                null
+        );
+
+        Discount storeDiscount = new SimpleDiscount(DiscountType.STORE, 10, null, null);
+
+        SequentialDiscount sequentialDiscount = new SequentialDiscount(List.of(compositeDiscount, storeDiscount));
+
+        Map<ShoppingProduct, Integer> basket = new HashMap<>();
+        basket.put(chocolate, 2); // total before: 80.0
+
+        Map<String, Double> result = sequentialDiscount.calculateDiscountForBasket(basket);
+        double finalPrice = result.get("p1");
+
+        // 1. 25% → 80 * 0.75 = 60
+        // 2. 10%  60 → 60 * 0.9 = 54
+        assertEquals(54.0, finalPrice, 0.001);
+    }
 }

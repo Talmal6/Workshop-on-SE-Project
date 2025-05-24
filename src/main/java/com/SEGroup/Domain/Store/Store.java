@@ -894,4 +894,7 @@ public class Store {
             }
         };
     }
+    public void setDiscounts(NumericalComposite discounts) {
+        this.discounts = discounts;
+    }
 }

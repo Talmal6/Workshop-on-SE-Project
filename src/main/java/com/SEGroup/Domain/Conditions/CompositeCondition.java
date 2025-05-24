@@ -66,7 +66,28 @@ public abstract class CompositeCondition extends Discount {
 
         return basePrice - discountAmount;
     }
+    public double calculateWithBasket(ShoppingProduct targetProduct,
+                                      int quantity,
+                                      List<ShoppingProduct> basketProducts,
+                                      List<Integer> basketQuantities) {
+        if (!isActive() || !isSatisfiedBy(basketProducts, basketQuantities)) {
+            return targetProduct.getPrice() * quantity;
+        }
 
+        double basePrice = targetProduct.getPrice() * quantity;
+        boolean applies = switch (getType()) {
+            case STORE -> true;
+            case CATEGORY -> targetProduct.getCategories().contains(getScopeKey());
+            case PRODUCT -> targetProduct.getProductId().equals(getScopeKey());
+        };
+
+        if (applies) {
+            double discountAmount = basePrice * (getPercent() / 100.0);
+            return basePrice - discountAmount;
+        } else {
+            return basePrice;
+        }
+    }
     public List<Condition> getConditions() {
         return conditions;
     }

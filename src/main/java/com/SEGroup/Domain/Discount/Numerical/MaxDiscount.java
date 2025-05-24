@@ -1,12 +1,15 @@
 package com.SEGroup.Domain.Discount.Numerical;
 
 
+import com.SEGroup.Domain.Conditions.CompositeCondition;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A discount that returns the maximum value from a set of discounts.
@@ -36,32 +39,56 @@ public class MaxDiscount extends NumericalComposite {
         double maxDiscount = 0.0;
         ShoppingProduct maxDiscountProduct = null;
 
-        // Step 1: Find the product with the maximum discount
+        List<ShoppingProduct> allProducts = new ArrayList<>(productsWithQuantities.keySet());
+        List<Integer> allQuantities = allProducts.stream()
+                .map(productsWithQuantities::get)
+                .collect(Collectors.toList());
+
         for (Map.Entry<ShoppingProduct, Integer> entry : productsWithQuantities.entrySet()) {
             ShoppingProduct product = entry.getKey();
             int quantity = entry.getValue();
 
             double base = product.getPrice() * quantity;
-            double discounted = calculate(product, quantity);
-            double discountAmount = base - discounted;
+            double bestDiscounted = base;
 
+            for (Discount d : discounts) {
+                double discounted = d instanceof CompositeCondition
+                        ? ((CompositeCondition) d).calculateWithBasket(product, quantity, allProducts, allQuantities)
+                        : d.calculate(product, quantity);
+
+                double discountAmount = base - discounted;
+                if (discountAmount > base - bestDiscounted) {
+                    bestDiscounted = discounted;
+                }
+            }
+
+            double discountAmount = base - bestDiscounted;
             if (discountAmount > maxDiscount) {
                 maxDiscount = discountAmount;
                 maxDiscountProduct = product;
             }
         }
 
-        // Step 2: Build the result map
         for (Map.Entry<ShoppingProduct, Integer> entry : productsWithQuantities.entrySet()) {
             ShoppingProduct product = entry.getKey();
             int quantity = entry.getValue();
+            double baseTotal = product.getPrice() * quantity;
 
             if (product.equals(maxDiscountProduct)) {
-                double discountedTotal = calculate(product, quantity); // apply discount
-                result.put(product.getProductId(), discountedTotal);
+                double finalPrice = 0.0;
+                for (Discount d : discounts) {
+                    double discounted = d instanceof CompositeCondition
+                            ? ((CompositeCondition) d).calculateWithBasket(product, quantity, allProducts, allQuantities)
+                            : d.calculate(product, quantity);
+
+                    if (baseTotal - discounted == maxDiscount) {
+                        finalPrice = discounted;
+                        break;
+                    }
+                }
+                result.put(product.getProductId(), finalPrice);
             } else {
-                double baseTotal = product.getPrice() * quantity;
-                result.put(product.getProductId(), baseTotal); // no discount
+                result.put(product.getProductId(), baseTotal);
             }
         }
 

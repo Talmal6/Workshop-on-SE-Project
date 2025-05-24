@@ -1,11 +1,14 @@
 package com.SEGroup.Domain.Discount.Numerical;
 
+import com.SEGroup.Domain.Conditions.CompositeCondition;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SequentialDiscount extends NumericalComposite {
 
@@ -23,31 +26,32 @@ public class SequentialDiscount extends NumericalComposite {
     public Map<String, Double> calculateDiscountForBasket(Map<ShoppingProduct, Integer> basket) {
         Map<String, Double> result = new HashMap<>();
 
-        // Handle empty basket
         if (basket == null || basket.isEmpty()) {
             return result;
         }
 
-        // Calculate discounted price for each product
+        // Extract lists from the basket map
+        List<ShoppingProduct> allProducts = new ArrayList<>(basket.keySet());
+        List<Integer> allQuantities = allProducts.stream()
+                .map(basket::get)
+                .collect(Collectors.toList());
+
         for (Map.Entry<ShoppingProduct, Integer> entry : basket.entrySet()) {
             ShoppingProduct product = entry.getKey();
             int quantity = entry.getValue();
 
-            // Start with original total price for this product
-            double currentPrice = product.getPrice() * quantity;
+            double basePrice = product.getPrice() * quantity;
+            double currentPrice = basePrice;
 
-            // Apply each discount sequentially to this specific product
             for (Discount discount : discounts) {
-                // Calculate what the discount saves on the current price
-                double originalProductTotal = product.getPrice() * quantity;
-                double discountSavings = originalProductTotal - discount.calculate(product, quantity);
+                double discounted = discount instanceof CompositeCondition
+                        ? ((CompositeCondition) discount).calculateWithBasket(product, quantity, allProducts, allQuantities)
+                        : discount.calculate(product, quantity);
 
-                // Apply the discount percentage to current price
-                double discountRatio = discountSavings / originalProductTotal;
-                currentPrice = currentPrice * (1.0 - discountRatio);
+                double discountRatio = discounted / basePrice;
+                currentPrice *= discountRatio;
             }
 
-            // Store the final price for this product
             result.put(product.getProductId(), currentPrice);
         }
 

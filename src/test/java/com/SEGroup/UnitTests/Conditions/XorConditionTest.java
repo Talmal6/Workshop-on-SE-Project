@@ -1,125 +1,105 @@
-//package com.SEGroup.UnitTests.Conditions;
-//import com.SEGroup.Domain.Discount.ConditionalDiscount;
-//import com.SEGroup.Domain.Discount.Discount;
-//import com.SEGroup.Domain.Discount.SimpleDiscount;
-//import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-//import com.SEGroup.Domain.Conditions.XorCondition;
-//import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
-//
-//import static org.junit.jupiter.api.Assertions.assertEquals;
-//import org.junit.jupiter.api.Test;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.function.Predicate;
-//
-//public class XorConditionTest {
-//
-//    @Test
-//    public void shouldApplyXorCategoryDiscountSuccessfully_WhenOnlyDairyOrBakeryExists_WithoutTieBreaker() {
-//        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-//
-//        List<String> dairy = new ArrayList<>();
-//        dairy.add("dairy");
-//        List<String> bakery = new ArrayList<>();
-//        bakery.add("bakery");
-//
-//        catalog.addCatalogProduct("c1", "Milk", "Tnuva", "Fresh Milk", dairy);
-//        catalog.addCatalogProduct("c2", "Bread", "YuvalBread", "Sliced bread", bakery);
-//
-//        catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 10.0, 1, 4.0, "Milk");
-//
-//        StoreSearchEntry[] entries = catalog.search("", new ArrayList<>(), "YuvalStore", null).toArray(new StoreSearchEntry[0]);
-//
-//        Predicate<StoreSearchEntry[]> hasDairy = arr -> {
-//            for (StoreSearchEntry e : arr) {
-//                List<String> categories = catalog.getCategoriesOfProduct(e.getCatalogID());
-//                if (categories.contains("dairy")) return true;
-//            }
-//            return false;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> hasBakery = arr -> {
-//            for (StoreSearchEntry e : arr) {
-//                List<String> categories = catalog.getCategoriesOfProduct(e.getCatalogID());
-//                if (categories.contains("bakery")) return true;
-//            }
-//            return false;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> xorCondition = new XorCondition(List.of(hasDairy, hasBakery), hasDairy);
-//
-//        DiscountScope scope = new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy");
-//        Discount dairyDiscount = new SimpleDiscount(10, scope);
-//        Discount conditional = new ConditionalDiscount(xorCondition, dairyDiscount);
-//
-//        double result = conditional.calculate(entries, catalog);
-//        assertEquals(1.0, result, 0.001); // 10% of 10 is 1
-//    }
-//
-//    @Test
-//    public void shouldApplyXorCategoryDiscountSuccessfully_WhenTieBreakerChoosesBakeryOverDairy() {
-//        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-//
-//        List<String> dairy = new ArrayList<>();
-//        dairy.add("dairy");
-//
-//        List<String> bakery = new ArrayList<>();
-//        bakery.add("bakery");
-//
-//        catalog.addCatalogProduct("c1", "Milk", "Tnuva", "Fresh Milk", dairy);
-//        catalog.addCatalogProduct("c2", "Bread", "YuvalBread", "Sliced bread", bakery);
-//
-//        catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 10.0, 1, 4.0, "Milk");   // dairy
-//        catalog.addStoreProductEntry("c2", "YuvalStore", "p2", 20.0, 1, 4.0, "Bread");  // bakery
-//
-//        StoreSearchEntry[] entries = catalog.search("", new ArrayList<>(), "YuvalStore", null).toArray(new StoreSearchEntry[0]);
-//
-//        Predicate<StoreSearchEntry[]> hasDairy = arr -> {
-//            for (StoreSearchEntry e : arr) {
-//                List<String> categories = catalog.getCategoriesOfProduct(e.getCatalogID());
-//                if (categories.contains("dairy")) return true;
-//            }
-//            return false;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> hasBakery = arr -> {
-//            for (StoreSearchEntry e : arr) {
-//                List<String> categories = catalog.getCategoriesOfProduct(e.getCatalogID());
-//                if (categories.contains("bakery")) return true;
-//            }
-//            return false;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> preferAlphabeticallyFirst = arr -> {
-//            boolean dairyExists = false;
-//            boolean bakeryExists = false;
-//
-//            for (StoreSearchEntry e : arr) {
-//                List<String> categories = catalog.getCategoriesOfProduct(e.getCatalogID());
-//                if (categories.contains("dairy")) dairyExists = true;
-//                if (categories.contains("bakery")) bakeryExists = true;
-//            }
-//
-//            if (dairyExists && bakeryExists) {
-//                return "bakery".compareTo("dairy") < 0;  // bakery < dairy --> true
-//            }
-//
-//            return dairyExists;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> xorCondition = new XorCondition(List.of(hasDairy, hasBakery), preferAlphabeticallyFirst);
-//
-//        Discount dairyDiscount = new SimpleDiscount(10, new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy"));
-//        Discount bakeryDiscount = new SimpleDiscount(10, new DiscountScope(DiscountScope.ScopeType.CATEGORY, "bakery"));
-//
-//        Discount selectedDiscount = bakeryDiscount;
-//        Discount conditional = new ConditionalDiscount(xorCondition, selectedDiscount);
-//
-//        double result = conditional.calculate(entries, catalog);
-//
-//        assertEquals(2.0, result, 0.001); // 10% of 20 is 2
-//    }
-//
-//
-//}
+package com.SEGroup.UnitTests.Conditions;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import com.SEGroup.Domain.Conditions.XorCondition;
+import com.SEGroup.Domain.Conditions.Condition;
+import com.SEGroup.Domain.Store.ShoppingProduct;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class XorConditionTest {
+
+    private static class HasAtLeast5RollsCondition implements Condition {
+        @Override
+        public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+            int count = 0;
+            for (int i = 0; i < products.size(); i++) {
+                ShoppingProduct p = products.get(i);
+                int quantity = amounts.get(i);
+                if (p.getName().toLowerCase().contains("roll")) {
+                    count += quantity;
+                }
+            }
+            return count >= 5;
+        }
+    }
+
+    private static class HasAtLeast2BreadsCondition implements Condition {
+        @Override
+        public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+            int count = 0;
+            for (int i = 0; i < products.size(); i++) {
+                ShoppingProduct p = products.get(i);
+                int quantity = amounts.get(i);
+                if (p.getName().toLowerCase().contains("bread")) {
+                    count += quantity;
+                }
+            }
+            return count >= 2;
+        }
+    }
+
+    @Test
+    public void shouldReturnTrue_WhenExactlyOneConditionIsMet() {
+        List<ShoppingProduct> products = new ArrayList<>();
+        List<Integer> amounts = new ArrayList<>();
+
+        products.add(new ShoppingProduct("StoreX", "cat1", "p1", "Soft Roll", "Desc", 1.0, 0, "", List.of("bakery")));
+        amounts.add(5); // 5 rolls
+
+        products.add(new ShoppingProduct("StoreX", "cat2", "p2", "Whole Bread", "Desc", 2.0, 0, "", List.of("bakery")));
+        amounts.add(1); // 1 bread
+
+        XorCondition xorCondition = new XorCondition(List.of(
+                new HasAtLeast5RollsCondition(),
+                new HasAtLeast2BreadsCondition()
+        ), null, 0, null, null);
+
+        boolean result = xorCondition.isSatisfiedBy(products, amounts);
+        assertTrue(result);
+    }
+
+    @Test
+    public void shouldReturnFalse_WhenBothConditionsAreMet() {
+        List<ShoppingProduct> products = new ArrayList<>();
+        List<Integer> amounts = new ArrayList<>();
+
+        products.add(new ShoppingProduct("StoreX", "cat1", "p1", "Soft Roll", "Desc", 1.0, 0, "", List.of("bakery")));
+        amounts.add(5); // 5 rolls
+
+        products.add(new ShoppingProduct("StoreX", "cat2", "p2", "Whole Bread", "Desc", 2.0, 0, "", List.of("bakery")));
+        amounts.add(2); // 2 breads
+
+        XorCondition xorCondition = new XorCondition(List.of(
+                new HasAtLeast5RollsCondition(),
+                new HasAtLeast2BreadsCondition()
+        ), null, 0, null, null);
+
+        boolean result = xorCondition.isSatisfiedBy(products, amounts);
+        assertFalse(result);
+    }
+
+    @Test
+    public void shouldReturnFalse_WhenNeitherConditionIsMet() {
+        List<ShoppingProduct> products = new ArrayList<>();
+        List<Integer> amounts = new ArrayList<>();
+
+        products.add(new ShoppingProduct("StoreX", "cat3", "p3", "Cookie", "Desc", 1.0, 0, "", List.of("bakery")));
+        amounts.add(10);
+
+        products.add(new ShoppingProduct("StoreX", "cat4", "p4", "Milk", "Desc", 2.0, 0, "", List.of("dairy")));
+        amounts.add(5);
+
+        XorCondition xorCondition = new XorCondition(List.of(
+                new HasAtLeast5RollsCondition(),
+                new HasAtLeast2BreadsCondition()
+        ), null, 0, null, null);
+
+        boolean result = xorCondition.isSatisfiedBy(products, amounts);
+        assertFalse(result);
+    }
+}
