@@ -14,6 +14,7 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Review;
+import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
 
 import org.springframework.stereotype.Service;
@@ -1011,10 +1012,26 @@ public class StoreService {
         }
     }
 
-
-
-
+    public Result<Void> addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, List<ShoppingProduct> products, List<Integer> amounts, int minPrice, String logicType, String coupon) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(storeName, email, product_id, percentage, products, amounts, minPrice, coupon, logicType);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
 
 
 
 }
+
+
+
+
+
+
+
+

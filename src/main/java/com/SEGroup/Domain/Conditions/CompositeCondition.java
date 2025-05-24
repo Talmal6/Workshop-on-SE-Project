@@ -1,20 +1,27 @@
 package com.SEGroup.Domain.Conditions;
 
 import com.SEGroup.Domain.Store.ShoppingProduct;
+
 import java.util.List;
-import java.util.function.Predicate;
 
-/**
- * Abstract composite condition, holds a list of child conditions.
- */
-public abstract class CompositeCondition implements Predicate<List<ShoppingProduct>> {
-    protected final List<Predicate<List<ShoppingProduct>>> conditions;
+public abstract class CompositeCondition implements Condition {
+    protected final List<Condition> conditions;
 
-    public CompositeCondition(List<Predicate<List<ShoppingProduct>>> conditions) {
+    public CompositeCondition(List<Condition> conditions) {
+        if (conditions == null || conditions.isEmpty()) {
+            throw new IllegalArgumentException("Conditions list cannot be null or empty");
+        }
         this.conditions = conditions;
     }
 
-    // Abstract test method, subclasses יגדירו את הלוגיקה המתאימה
+    /**
+     * Evaluate if the composite condition is satisfied by the given list of products and their amounts.
+     * The concrete subclasses implement this according to their logic (AND, OR, XOR).
+     *
+     * @param products list of ShoppingProduct in the basket
+     * @param amounts corresponding amounts per product, same indices as products
+     * @return true if the composite condition is satisfied, false otherwise
+     */
     @Override
-    public abstract boolean test(List<ShoppingProduct> products);
+    public abstract boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts);
 }

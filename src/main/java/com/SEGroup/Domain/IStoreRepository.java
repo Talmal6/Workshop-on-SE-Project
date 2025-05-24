@@ -7,6 +7,7 @@ import java.util.Map;
 import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.Store.Bid;
 import com.SEGroup.Domain.Store.Review;
+import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
 import com.SEGroup.UI.Views.AddProductDialog;
@@ -293,4 +294,6 @@ public interface IStoreRepository {
         void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage,int minimumPrice, String coupon);
         void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage,int minimumPrice,int minAmount ,String coupon);
         void applyCouponToCart(List<BasketDTO> basketDTOList,String Coupon);
+
+        void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email, String productId, int percentage, List<ShoppingProduct> products, List<Integer> amounts, int minPrice, String coupon, String logicType);
 }

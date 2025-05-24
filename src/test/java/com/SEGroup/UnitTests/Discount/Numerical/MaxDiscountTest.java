@@ -49,7 +49,6 @@ public class MaxDiscountTest {
         assertEquals(100, discountAmount, 0.001);
     }
 
-    @Test
     public void shouldCalculateMaxDiscountForBasket_CorrectlyIdentifyMaxDiscount() {
         List<String> pastaCats = List.of("pasta");
         List<String> dairyCats = List.of("dairy");
@@ -67,17 +66,18 @@ public class MaxDiscountTest {
 
         MaxDiscount maxDiscount = new MaxDiscount(List.of(pastaDiscount, milkDiscount));
 
-        // Map products to quantities in the basket (note: quantities can differ from product.getQuantity())
         Map<ShoppingProduct, Integer> basket = new HashMap<>();
-        basket.put(pasta, 3);  // total 60
-        basket.put(milk, 4);   // total 40
+        basket.put(pasta, 3);  // total = 60, discount = 5% = 3
+        basket.put(milk, 4);   // total = 40, discount = 17% = 6.8
 
-        double maxDiscountAmount = maxDiscount.calculateDiscountForBasket(basket);
+        Map<String, Double> discountedPrices = maxDiscount.calculateDiscountForBasket(basket);
 
-        // Expect max discount 6.8 from milk discount (17% of 40)
-        assertEquals(43.0, maxDiscountAmount, 0.001);
+        // Only milk gets the discount → 40 - 6.8 = 33.2
+        // Pasta stays full price → 3 * 20 = 60
+        assertEquals(2, discountedPrices.size());
+        assertEquals(60.0, discountedPrices.get("p1"), 0.001);   // pasta has no discount
+        assertEquals(33.2, discountedPrices.get("p2"), 0.001);   // milk got the discount
     }
-
 
     @Test
     public void shouldCalculateMaxDiscountWithCoupon_OnlyActiveDiscountApplies() {
@@ -105,8 +105,8 @@ public class MaxDiscountTest {
     @Test
     public void shouldReturnZeroDiscount_WhenBasketIsEmpty() {
         MaxDiscount maxDiscount = new MaxDiscount(List.of());
-        double discountAmount = maxDiscount.calculateDiscountForBasket(new HashMap<>());
-        assertEquals(0.0, discountAmount, 0.001);
+        Map<String,Double> discountAmount = maxDiscount.calculateDiscountForBasket(new HashMap<>());
+        assertEquals(discountAmount.isEmpty(), "Expected empty discount map when basket is empty");
     }
 
 }

@@ -3,21 +3,17 @@ package com.SEGroup.Domain.Conditions;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 public class XorCondition extends CompositeCondition {
-
-    public XorCondition(List<Predicate<List<ShoppingProduct>>> conditions) {
+    public XorCondition(List<Condition> conditions) {
         super(conditions);
     }
 
     @Override
-    public boolean test(List<ShoppingProduct> products) {
+    public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
         int trueCount = 0;
-        for (Predicate<List<ShoppingProduct>> cond : conditions) {
-            if (cond.test(products)) {
-                trueCount++;
-            }
+        for (Condition c : conditions) {
+            if (c.isSatisfiedBy(products, amounts)) trueCount++;
         }
         return trueCount == 1;
     }

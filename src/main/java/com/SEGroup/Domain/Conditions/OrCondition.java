@@ -3,20 +3,16 @@ package com.SEGroup.Domain.Conditions;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 public class OrCondition extends CompositeCondition {
-
-    public OrCondition(List<Predicate<List<ShoppingProduct>>> conditions) {
+    public OrCondition(List<Condition> conditions) {
         super(conditions);
     }
 
     @Override
-    public boolean test(List<ShoppingProduct> products) {
-        for (Predicate<List<ShoppingProduct>> cond : conditions) {
-            if (cond.test(products)) {
-                return true;
-            }
+    public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+        for (Condition c : conditions) {
+            if (c.isSatisfiedBy(products, amounts)) return true;
         }
         return false;
     }

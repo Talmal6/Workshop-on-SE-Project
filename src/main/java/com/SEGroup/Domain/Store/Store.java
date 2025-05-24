@@ -1,4 +1,5 @@
 package com.SEGroup.Domain.Store;
+import com.SEGroup.Domain.Conditions.CompositeCondition;
 import com.SEGroup.Domain.Discount.ConditionalDiscount;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Discount.DiscountType;
@@ -630,6 +631,12 @@ public class Store {
         discounts.add(new ConditionalDiscount(DiscountType.PRODUCT, percentage, minPrice,minAmount,productId, coupon));
     }
 
+    public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String operatorEmail, String productId, int percentage, int minPrice, List<ShoppingProduct> products, List<Integer> amounts, String coupon, String logicType) {
+        if (!isOwnerOrHasManagerPermissions(operatorEmail))
+            throw new IllegalArgumentException("Only owners can control discount");
+//        .add(new CompositeCondition(DiscountType.PRODUCT, productId, percentage, minPrice, minPrice, products, amounts ,coupon, logicType));
+    }
+
     /**
      * Sets the store discounts to a MaxDiscount composed of the given discounts.
      *
@@ -651,9 +658,6 @@ public class Store {
     public double calculateDiscount(ShoppingProduct product,int quantity) {
         return this.discounts.calculate(product, quantity);
     }
-    public double calculateDiscount(Map<ShoppingProduct, Integer> productsWithQuantities) {
-        return this.discounts.calculateDiscountForBasket(productsWithQuantities);
-    }
     public void applyCoupon(String coupon) {
         this.discounts.applyCoupon(coupon);
     }
@@ -662,5 +666,8 @@ public class Store {
     }
     public void deactivateConditionDiscount(){
         this.discounts.deactivateDiscount();
+    }
+    public Map<String, Double> calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
+        return this.discounts.calculateDiscountForBasket(productsWithQuantities);
     }
 }

@@ -31,24 +31,41 @@ public class MaxDiscount extends NumericalComposite {
     }
 
     @Override
-    public double calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
+    public Map<String, Double> calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
+        Map<String, Double> result = new HashMap<>();
         double maxDiscount = 0.0;
-        double totalPrice  = 0.0;
+        ShoppingProduct maxDiscountProduct = null;
 
-        for (var entry : productsWithQuantities.entrySet()) {
+        // Step 1: Find the product with the maximum discount
+        for (Map.Entry<ShoppingProduct, Integer> entry : productsWithQuantities.entrySet()) {
             ShoppingProduct product = entry.getKey();
             int quantity = entry.getValue();
 
-            double baseTotal     = product.getPrice() * quantity;
-            totalPrice += baseTotal;
+            double base = product.getPrice() * quantity;
+            double discounted = calculate(product, quantity);
+            double discountAmount = base - discounted;
 
-            double discountAmount = calculate(product, quantity);
             if (discountAmount > maxDiscount) {
                 maxDiscount = discountAmount;
+                maxDiscountProduct = product;
             }
         }
 
-        return totalPrice - maxDiscount;
+        // Step 2: Build the result map
+        for (Map.Entry<ShoppingProduct, Integer> entry : productsWithQuantities.entrySet()) {
+            ShoppingProduct product = entry.getKey();
+            int quantity = entry.getValue();
+
+            if (product.equals(maxDiscountProduct)) {
+                double discountedTotal = calculate(product, quantity); // apply discount
+                result.put(product.getProductId(), discountedTotal);
+            } else {
+                double baseTotal = product.getPrice() * quantity;
+                result.put(product.getProductId(), baseTotal); // no discount
+            }
+        }
+
+        return result;
     }
 
 }

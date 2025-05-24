@@ -490,8 +490,9 @@ public class StoreRepository implements IStoreRepository {
 
         for (BasketDTO basketDTO : basketDTOList) {
             Store store = findByName(basketDTO.storeId());
-            double price = calculatePrice(store,basketDTO);
-            store.activateConditionDiscount((int) price);
+
+            // Prepare input for the calculateDiscountForBasket method
+            Map<ShoppingProduct, Integer> productsWithQuantities = new HashMap<>();
             for (Map.Entry<String, Integer> entry : basketDTO.prod2qty().entrySet()) {
                 String productId = entry.getKey();
                 int quantity = entry.getValue();
@@ -501,12 +502,16 @@ public class StoreRepository implements IStoreRepository {
                     throw new RuntimeException("Product not found: " + productId);
                 }
 
-                double baseTotal = product.getPrice() * quantity;
-                double discountAmount = store.calculateDiscount(product, quantity);
-                double finalPrice = baseTotal - discountAmount;
-
-                discountedPrices.put(productId, finalPrice);
+                productsWithQuantities.put(product, quantity);
             }
+
+            double price = calculatePrice(store, basketDTO);
+            store.activateConditionDiscount((int) price);
+
+            // Get discounts from store in bulk
+            Map<String, Double> storeDiscounts = store.calculateDiscountForBasket(productsWithQuantities);
+            discountedPrices.putAll(storeDiscounts);
+
             store.deactivateConditionDiscount();
         }
 
@@ -940,6 +945,12 @@ public class StoreRepository implements IStoreRepository {
             Store store = findByName(basketDTO.storeId());
            store.applyCoupon(Coupon);
         }
+    }
+
+    @Override
+    public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email, String productId, int percentage, List<ShoppingProduct> products, List<Integer> amounts, int minPrice, String coupon, String logicType) {
+        Store store = findByName(storeName);
+        store.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(email, productId, percentage, minPrice, products, amounts,coupon, logicType);
     }
 
 }

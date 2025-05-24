@@ -7,17 +7,14 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class AndCondition extends CompositeCondition {
-
-    public AndCondition(List<Predicate<List<ShoppingProduct>>> conditions) {
+    public AndCondition(List<Condition> conditions) {
         super(conditions);
     }
 
     @Override
-    public boolean test(List<ShoppingProduct> products) {
-        for (Predicate<List<ShoppingProduct>> cond : conditions) {
-            if (!cond.test(products)) {
-                return false;
-            }
+    public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+        for (Condition c : conditions) {
+            if (!c.isSatisfiedBy(products, amounts)) return false;
         }
         return true;
     }
