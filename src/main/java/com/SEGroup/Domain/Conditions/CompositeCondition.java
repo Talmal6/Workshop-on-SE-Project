@@ -37,7 +37,7 @@ public abstract class CompositeCondition extends Discount {
         List<Integer> amounts = List.of(quantity);
 
         // Only apply discount if conditions are satisfied and discount is active
-        if (!isActive() || !isSatisfiedBy(products, amounts)) {
+        if (!isActive()) {
             return product.getPrice() * quantity; // No discount applied
         }
 

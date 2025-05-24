@@ -19,6 +19,7 @@ public class XorCondition extends CompositeCondition {
     public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
         int satisfiedCount = 0;
 
+
         // Count how many conditions are satisfied
         for (Condition condition : conditions) {
             if (condition.isSatisfiedBy(products, amounts)) {

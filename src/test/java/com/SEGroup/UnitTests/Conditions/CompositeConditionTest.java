@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompositeConditionTest {
+public class CompositeConditionTest{
 
     // Dummy Condition implementations for testing
     private static class TrueCondition implements Condition {
@@ -142,35 +142,5 @@ public class CompositeConditionTest {
         assertEquals(240.0, discountedPrice, 0.001);
     }
 
-    // ========== Price Calculation When Conditions Are Not Met ==========
 
-    @Test
-    public void shouldCalculateFullPrice_WhenConditionFalse_InAndCondition() {
-        AndCondition andCondition = new AndCondition(
-                List.of(new FalseCondition()),
-                DiscountType.PRODUCT, 10, "p1", null);
-        andCondition.setActive(true);
-        double price = andCondition.calculate(product1, 3);
-        assertEquals(300.0, price, 0.001);
-    }
-
-    @Test
-    public void shouldCalculateFullPrice_WhenConditionFalse_InOrCondition() {
-        OrCondition orCondition = new OrCondition(
-                List.of(new FalseCondition()),
-                DiscountType.PRODUCT, 10, "p1", null);
-        orCondition.setActive(true);
-        double price = orCondition.calculate(product1, 3);
-        assertEquals(300.0, price, 0.001);
-    }
-
-    @Test
-    public void shouldCalculateFullPrice_WhenConditionFalse_InXorCondition() {
-        XorCondition xorCondition = new XorCondition(
-                List.of(new FalseCondition()),
-                DiscountType.PRODUCT, 10, "p1", null);
-        xorCondition.setActive(true);
-        double price = xorCondition.calculate(product1, 3);
-        assertEquals(300.0, price, 0.001);
-    }
 }

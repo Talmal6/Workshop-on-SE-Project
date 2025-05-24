@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MaxDiscountTest {
 
@@ -109,7 +110,7 @@ public class MaxDiscountTest {
     public void shouldReturnZeroDiscount_WhenBasketIsEmpty() {
         MaxDiscount maxDiscount = new MaxDiscount(List.of());
         Map<String,Double> discountAmount = maxDiscount.calculateDiscountForBasket(new HashMap<>());
-        assertEquals(discountAmount.isEmpty(), "Expected empty discount map when basket is empty");
+        assertTrue(discountAmount.isEmpty(), "Expected empty discount map when basket is empty");
     }
     @Test
     public void shouldNotApplyCompositeDiscount_WhenConditionFails() {
