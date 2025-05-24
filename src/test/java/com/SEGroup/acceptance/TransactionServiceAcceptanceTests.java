@@ -7,11 +7,16 @@ import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Domain.Report.ReportCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 
-import com.SEGroup.Infrastructure.Repositories.*;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.*;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.TransactionRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.UserRepository;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.*;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureAlgorithm;      
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +87,7 @@ public class TransactionServiceAcceptanceTests {
                 reportCenter = new ReportCenter();
                 storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,
                                 notificationService);
-                
+
                 userService = new UserService(new GuestService(new GuestRepository(), authenticationService),
                                 userRepository, authenticationService, reportCenter);
                 SESSION_KEY = regLoginAndGetSession(USER, USER_EMAIL, "password123"); // Register and login to get a
@@ -114,8 +119,7 @@ public class TransactionServiceAcceptanceTests {
                                 "Product 1", // name
                                 100.0, // price
                                 10, // quantity on shelf
-                        ""
-                );
+                                "");
                 ACTUAL_PRODUCT_ID = addProduct.getData();
 
         }
@@ -249,9 +253,10 @@ public class TransactionServiceAcceptanceTests {
                 // Given: Customer trying to purchase an out-of-stock product
                 String newProductName = "newProduct";
                 Result<String> newProductID = storeService.addProductToStore(
-                                SELLER_TOKEN, STORE_ID, CATALOG_ID, newProductName, "Product 1", 100.0, 0,"" // Set
-                                                                                                          // quantity to
-                                                                                                          // 0
+                                SELLER_TOKEN, STORE_ID, CATALOG_ID, newProductName, "Product 1", 100.0, 0, "" // Set
+                                                                                                              // quantity
+                                                                                                              // to
+                                                                                                              // 0
                 );
                 assertTrue(newProductID.isFailure(),
                                 "Failed to add product to store: " + newProductID.getErrorMessage());
@@ -404,7 +409,7 @@ public class TransactionServiceAcceptanceTests {
                 TransactionDTO tx = history.getData().get(0);
                 assertEquals("buystock@example.com", tx.buyersEmail);
                 assertEquals(STORE_ID, tx.getSellerStore());
-                assertEquals(75.0 , tx.getCost());
+                assertEquals(75.0, tx.getCost());
         }
 
         @Test
@@ -422,12 +427,15 @@ public class TransactionServiceAcceptanceTests {
                 List<BidDTO> remaining = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData();
                 assertTrue(remaining.isEmpty(), "Expected no bids after rejection");
         }
+
         @Test
         public void executeAuction_WithValidBid_ShouldSucceed() throws Exception {
                 // Arrange
                 storeService.createStore(SELLER_TOKEN, STORE_ID);
                 productCatalog.addCatalogProduct(CATALOG_ID, PRODUCT_ID, "Brand", "Desc", List.of("Electronics"));
-                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3,"").getData();
+                String productId = storeService
+                                .addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3, "")
+                                .getData();
 
                 // Simulate an auction and a bid
                 Date futureDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60); // 1 hour in the future
@@ -440,14 +448,17 @@ public class TransactionServiceAcceptanceTests {
                 Result<Void> result = transactionService.executeAuction(SELLER_TOKEN, STORE_ID, bid);
 
                 // Assert
-                assertTrue(result.isSuccess(),"User is not authorized to execute auction bid");
+                assertTrue(result.isSuccess(), "User is not authorized to execute auction bid");
         }
+
         @Test
         public void executeAuction_ByNonOwner_ShouldFail() throws Exception {
                 // Arrange
                 storeService.createStore(SELLER_TOKEN, STORE_ID);
                 productCatalog.addCatalogProduct(CATALOG_ID, PRODUCT_ID, "Brand", "Desc", List.of("Electronics"));
-                String productId = storeService.addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3,"").getData();
+                String productId = storeService
+                                .addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3, "")
+                                .getData();
 
                 // Start an auction
                 Date futureDate = new Date(System.currentTimeMillis() + 60 * 60 * 1000); // 1 hour ahead
@@ -466,8 +477,8 @@ public class TransactionServiceAcceptanceTests {
                 assertFalse(result.isSuccess(), "Expected failure when unauthorized user attempts to execute auction");
                 assertTrue(result.getErrorMessage().toLowerCase().contains("not authorized")
                                 || result.getErrorMessage().toLowerCase().contains("permission"),
-                        "Expected error message to indicate lack of permissions");
+                                "Expected error message to indicate lack of permissions");
         }
-    // Inject error
+        // Inject error
 
 }

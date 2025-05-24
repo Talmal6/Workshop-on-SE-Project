@@ -3,7 +3,12 @@ package com.SEGroup.UI;
 import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.MockPaymentGateway;
 import com.SEGroup.Infrastructure.PasswordEncoder;
-import com.SEGroup.Infrastructure.Repositories.*;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.*;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.TransactionRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.UserRepository;
 import com.SEGroup.Domain.IShippingService;
 import com.SEGroup.Service.MockShippingService;
 import jakarta.annotation.PostConstruct;
@@ -16,6 +21,7 @@ import java.util.List;
 
 @Component
 class BootstrapData {
+        //a
 
     private String getProductImage(String keyword) {
         String key = (keyword == null) ? "" : keyword.toLowerCase();
