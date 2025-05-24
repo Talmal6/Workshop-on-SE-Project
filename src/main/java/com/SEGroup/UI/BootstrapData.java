@@ -3,7 +3,7 @@ package com.SEGroup.UI;
 import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.MockPaymentGateway;
 import com.SEGroup.Infrastructure.PasswordEncoder;
-import com.SEGroup.Infrastructure.Repositories.*;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.*;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
