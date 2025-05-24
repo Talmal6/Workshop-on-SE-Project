@@ -23,7 +23,7 @@ public abstract class NumericalComposite {
      * @return computed numeric result
      */
     public abstract double calculate(ShoppingProduct product,int quantity);
-    public abstract double calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities);
+    public abstract Map<String, Double> calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities);
     public void add(Discount discount) {
         discounts.add(discount);
     }

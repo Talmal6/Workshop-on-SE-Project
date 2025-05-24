@@ -1,10 +1,14 @@
 package com.SEGroup.Domain.Discount.Numerical;
 
+import com.SEGroup.Domain.Conditions.CompositeCondition;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SequentialDiscount extends NumericalComposite {
 
@@ -19,35 +23,39 @@ public class SequentialDiscount extends NumericalComposite {
      * @return The total discount amount applied sequentially.
      */
     @Override
-    public double calculateDiscountForBasket(Map<ShoppingProduct, Integer> basket) {
-        // Calculate total price before discount
-        double totalBefore = 0.0;
+    public Map<String, Double> calculateDiscountForBasket(Map<ShoppingProduct, Integer> basket) {
+        Map<String, Double> result = new HashMap<>();
+
+        if (basket == null || basket.isEmpty()) {
+            return result;
+        }
+
+        // Extract lists from the basket map
+        List<ShoppingProduct> allProducts = new ArrayList<>(basket.keySet());
+        List<Integer> allQuantities = allProducts.stream()
+                .map(basket::get)
+                .collect(Collectors.toList());
+
         for (Map.Entry<ShoppingProduct, Integer> entry : basket.entrySet()) {
             ShoppingProduct product = entry.getKey();
             int quantity = entry.getValue();
-            totalBefore += product.getPrice() * quantity;
-        }
 
-        if (totalBefore == 0) return 0.0;
+            double basePrice = product.getPrice() * quantity;
+            double currentPrice = basePrice;
 
-        double ratio = 1.0;
+            for (Discount discount : discounts) {
+                double discounted = discount instanceof CompositeCondition
+                        ? ((CompositeCondition) discount).calculateWithBasket(product, quantity, allProducts, allQuantities)
+                        : discount.calculate(product, quantity);
 
-        // For each discount, calculate total discount amount on the basket,
-        // compute fraction of amount left after this discount,
-        // multiply ratios for sequential application.
-        for (Discount d : discounts) {
-            double discountValue = 0.0;
-            for (Map.Entry<ShoppingProduct, Integer> entry : basket.entrySet()) {
-                ShoppingProduct product = entry.getKey();
-                int quantity = entry.getValue();
-                discountValue += product.getPrice() * quantity - d.calculate(product, quantity);
+                double discountRatio = discounted / basePrice;
+                currentPrice *= discountRatio;
             }
-            double fraction = 1.0 - (discountValue / totalBefore);
-            ratio *= fraction;
+
+            result.put(product.getProductId(), currentPrice);
         }
 
-        double totalAfter = totalBefore * ratio;
-        return totalAfter;
+        return result;
     }
 
     @Override

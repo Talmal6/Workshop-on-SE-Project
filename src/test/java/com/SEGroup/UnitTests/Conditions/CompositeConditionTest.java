@@ -1,118 +1,146 @@
-//package com.SEGroup.UnitTests.Conditions;
-//import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-//import com.SEGroup.Domain.Discount.ConditionalDiscount;
-//import com.SEGroup.Domain.Conditions.AndCondition;
-//import com.SEGroup.Domain.Discount.Discount;
-//import com.SEGroup.Domain.Discount.SimpleDiscount;
-//import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
-//
-//import org.junit.jupiter.api.Test;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.function.Predicate;
-//
-//import static org.junit.Assert.assertEquals;
-//
-//public class CompositeConditionTest {
-//
-//    @Test
-//    public void shouldApplyConditionalCategoryDiscountSuccessfully_WhenBasketOver100AndHasAtLeast3Pastas() {
-//        InMemoryProductCatalog catalog;
-//        catalog = new InMemoryProductCatalog();
-//
-//        List<String> dairy = List.of("dairy");
-//        List<String> pasta = List.of("pasta");
-//
-//        catalog.addCatalogProduct("c1", "Pasta 1", "Barilla", "500g", pasta);
-//        catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 20.0, 2, 4.0, "Pasta 1");
-//
-//        catalog.addCatalogProduct("c2", "Pasta 2", "Barilla", "Spaghetti - 500g", pasta);
-//        catalog.addStoreProductEntry("c2", "YuvalStore", "p2", 25.0, 1, 4.0, "Pasta 2");
-//
-//        catalog.addCatalogProduct("c3", "Milk", "Tnuva", "1% fat", dairy);
-//        catalog.addStoreProductEntry("c3", "YuvalStore", "p3", 10.0, 10, 4.0, "Milk");
-//
-//        StoreSearchEntry[] entries = catalog.search("", new ArrayList<>(), "YuvalStore", null).toArray(new StoreSearchEntry[0]);
-//
-//        Predicate<StoreSearchEntry[]> basketOver100 = arr -> {
-//            double total = 0;
-//            for (StoreSearchEntry e : arr) {
-//                total += e.getPrice() * e.getQuantity();
-//            }
-//            return total > 100;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> has3Pastas = arr -> {
-//            int count = 0;
-//            for (StoreSearchEntry e : arr) {
-//                if (e.getName().toLowerCase().contains("pasta")) {
-//                    count += e.getQuantity();
-//                }
-//            }
-//            return count >= 3;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> condition = new AndCondition(List.of(basketOver100, has3Pastas));
-//
-//        DiscountScope dairyScope = new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy");
-//        Discount dairyDiscount = new SimpleDiscount(5, dairyScope);
-//
-//        Discount conditional = new ConditionalDiscount(condition, dairyDiscount);
-//
-//        double result = conditional.calculate(entries, catalog);
-//
-//        assertEquals(5.0, result, 0.001);
-//    }
-//
-//    @Test
-//    public void shouldNotApplyConditionalDiscount_WhenOnlyOneCompositeConditionIsSatisfied() {
-//        InMemoryProductCatalog catalog;
-//        catalog = new InMemoryProductCatalog();
-//
-//        List<String> dairy = List.of("dairy");
-//        List<String> pasta = List.of("pasta");
-//
-//        catalog.addCatalogProduct("c1", "Pasta 1", "Barilla", "500g", pasta);
-//        catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 20.0, 2, 4.0, "Pasta 1");
-//
-//        catalog.addCatalogProduct("c2", "Pasta 2", "Barilla", "Spaghetti - 500g", pasta);
-//        catalog.addStoreProductEntry("c2", "YuvalStore", "p2", 25.0, 1, 4.0, "Pasta 2");
-//
-//        catalog.addCatalogProduct("c3", "Milk", "Tnuva", "1% fat", dairy);
-//        catalog.addStoreProductEntry("c3", "YuvalStore", "p3", 10.0, 1, 4.0, "Milk");
-//
-//        StoreSearchEntry[] entries = catalog.search("", new ArrayList<>(), "YuvalStore", null).toArray(new StoreSearchEntry[0]);
-//
-//        Predicate<StoreSearchEntry[]> basketOver100 = arr -> {
-//            double total = 0;
-//            for (StoreSearchEntry e : arr) {
-//                total += e.getPrice() * e.getQuantity();
-//            }
-//            return total > 100;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> has3Pastas = arr -> {
-//            int count = 0;
-//            for (StoreSearchEntry e : arr) {
-//                if (e.getName().toLowerCase().contains("pasta")) {
-//                    count += e.getQuantity();
-//                }
-//            }
-//            return count >= 3;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> condition = new AndCondition(List.of(basketOver100, has3Pastas));
-//
-//        DiscountScope dairyScope = new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy");
-//        Discount dairyDiscount = new SimpleDiscount(5, dairyScope);
-//
-//        Discount conditional = new ConditionalDiscount(condition, dairyDiscount);
-//
-//        double result = conditional.calculate(entries, catalog);
-//
-//        assertEquals(0.0, result, 0.001);
-//    }
-//
-//
-//}
+package com.SEGroup.UnitTests.Conditions;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.SEGroup.Domain.Conditions.AndCondition;
+import com.SEGroup.Domain.Conditions.OrCondition;
+import com.SEGroup.Domain.Conditions.XorCondition;
+import com.SEGroup.Domain.Conditions.Condition;
+import com.SEGroup.Domain.Discount.DiscountType;
+import com.SEGroup.Domain.Store.ShoppingProduct;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class CompositeConditionTest{
+
+    // Dummy Condition implementations for testing
+    private static class TrueCondition implements Condition {
+        @Override
+        public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+            return true;
+        }
+    }
+
+    private static class FalseCondition implements Condition {
+        @Override
+        public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+            return false;
+        }
+    }
+
+    private ShoppingProduct product1;
+    private ShoppingProduct product2;
+    private List<ShoppingProduct> basketProducts;
+    private List<Integer> basketAmounts;
+
+    @BeforeEach
+    public void setup() {
+        product1 = new ShoppingProduct("StoreA", "cat1", "p1", "Product1", "desc", 100.0, 0, "", List.of("cat1"));
+        product2 = new ShoppingProduct("StoreA", "cat2", "p2", "Product2", "desc", 50.0, 0, "", List.of("cat2"));
+
+        basketProducts = new ArrayList<>();
+        basketAmounts = new ArrayList<>();
+
+        basketProducts.add(product1);
+        basketAmounts.add(3); // 3 units of product1
+
+        basketProducts.add(product2);
+        basketAmounts.add(4); // 4 units of product2
+    }
+
+    // ========== AndCondition Tests ==========
+
+    @Test
+    public void shouldReturnTrue_WhenAllConditionsAreTrue_InAndCondition() {
+        AndCondition andCondition = new AndCondition(
+                List.of(new TrueCondition(), new TrueCondition()),
+                DiscountType.PRODUCT, 10, "p1", null);
+        assertTrue(andCondition.isSatisfiedBy(basketProducts, basketAmounts));
+    }
+
+    @Test
+    public void shouldReturnFalse_WhenAnyConditionIsFalse_InAndCondition() {
+        AndCondition andCondition = new AndCondition(
+                List.of(new TrueCondition(), new FalseCondition()),
+                DiscountType.PRODUCT, 10, "p1", null);
+        assertFalse(andCondition.isSatisfiedBy(basketProducts, basketAmounts));
+    }
+
+    // ========== OrCondition Tests ==========
+
+    @Test
+    public void shouldReturnTrue_WhenAnyConditionIsTrue_InOrCondition() {
+        OrCondition orCondition = new OrCondition(
+                List.of(new FalseCondition(), new TrueCondition()),
+                DiscountType.PRODUCT, 10, "p1", null);
+        assertTrue(orCondition.isSatisfiedBy(basketProducts, basketAmounts));
+    }
+
+    @Test
+    public void shouldReturnFalse_WhenAllConditionsAreFalse_InOrCondition() {
+        OrCondition orCondition = new OrCondition(
+                List.of(new FalseCondition(), new FalseCondition()),
+                DiscountType.PRODUCT, 10, "p1", null);
+        assertFalse(orCondition.isSatisfiedBy(basketProducts, basketAmounts));
+    }
+
+    // ========== XorCondition Tests ==========
+
+    @Test
+    public void shouldReturnTrue_WhenExactlyOneConditionIsTrue_InXorCondition() {
+        XorCondition xorCondition = new XorCondition(
+                List.of(new TrueCondition(), new FalseCondition(), new FalseCondition()),
+                DiscountType.PRODUCT, 10, "p1", null);
+        assertTrue(xorCondition.isSatisfiedBy(basketProducts, basketAmounts));
+    }
+
+    @Test
+    public void shouldReturnFalse_WhenZeroOrMoreThanOneConditionIsTrue_InXorCondition() {
+        XorCondition xorConditionZeroTrue = new XorCondition(
+                List.of(new FalseCondition(), new FalseCondition()),
+                DiscountType.PRODUCT, 10, "p1", null);
+        assertFalse(xorConditionZeroTrue.isSatisfiedBy(basketProducts, basketAmounts));
+
+        XorCondition xorConditionTwoTrue = new XorCondition(
+                List.of(new TrueCondition(), new TrueCondition()),
+                DiscountType.PRODUCT, 10, "p1", null);
+        assertFalse(xorConditionTwoTrue.isSatisfiedBy(basketProducts, basketAmounts));
+    }
+
+    // ========== Discount Calculation Tests ==========
+
+    @Test
+    public void shouldCalculateDiscountCorrectly_WhenActiveAndConditionTrue_InAndCondition() {
+        AndCondition andCondition = new AndCondition(
+                List.of(new TrueCondition()),
+                DiscountType.PRODUCT, 10, "p1", null);
+        andCondition.setActive(true);
+        double discountedPrice = andCondition.calculate(product1, 3);
+        assertEquals(270.0, discountedPrice, 0.001);
+    }
+
+    @Test
+    public void shouldCalculateDiscountCorrectly_WhenActiveAndConditionTrue_InOrCondition() {
+        OrCondition orCondition = new OrCondition(
+                List.of(new TrueCondition()),
+                DiscountType.PRODUCT, 15, "p1", null);
+        orCondition.setActive(true);
+        double discountedPrice = orCondition.calculate(product1, 3);
+        assertEquals(255.0, discountedPrice, 0.001);
+    }
+
+    @Test
+    public void shouldCalculateDiscountCorrectly_WhenActiveAndConditionTrue_InXorCondition() {
+        XorCondition xorCondition = new XorCondition(
+                List.of(new TrueCondition()),
+                DiscountType.PRODUCT, 20, "p1", null);
+        xorCondition.setActive(true);
+        double discountedPrice = xorCondition.calculate(product1, 3);
+        assertEquals(240.0, discountedPrice, 0.001);
+    }
+
+
+}

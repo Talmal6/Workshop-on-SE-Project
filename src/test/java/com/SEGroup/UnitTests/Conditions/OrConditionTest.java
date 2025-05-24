@@ -1,67 +1,105 @@
-//package com.SEGroup.UnitTests.Conditions;
-//
-//import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-//import com.SEGroup.Domain.Discount.ConditionalDiscount;
-//import com.SEGroup.Domain.Conditions.OrCondition;
-//import com.SEGroup.Domain.Discount.Discount;
-//import com.SEGroup.Domain.Discount.SimpleDiscount;
-//import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
-//import org.junit.jupiter.api.Test;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.function.Predicate;
-//
-//import static org.junit.Assert.assertEquals;
-//
-//public class OrConditionTest {
-//
-//    @Test
-//    public void shouldApplyCategoryDiscountSuccessfully_WhenBasketContainsEither3CottageOr2Yogurts() {
-//        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-//
-//        List<String> dairy = List.of("dairy");
-//
-//        catalog.addCatalogProduct("c1", "Cottage Cheese", "Tnuva", "3% fat", dairy);
-//        catalog.addStoreProductEntry("c1", "YuvalStore", "p1", 5.0, 3, 4.0, "Cottage Cheese");
-//
-//        catalog.addCatalogProduct("c2", "Yogurt", "Tnuva", "Vanilla", dairy);
-//        catalog.addStoreProductEntry("c2", "YuvalStore", "p2", 4.0, 1, 4.0, "Yogurt");
-//
-//        catalog.addCatalogProduct("c3", "Milk", "Tnuva", "1% fat", dairy);
-//        catalog.addStoreProductEntry("c3", "YuvalStore", "p3", 6.0, 1, 4.0, "Milk");
-//
-//        StoreSearchEntry[] entries = catalog.search("", new ArrayList<>(), "YuvalStore", null).toArray(new StoreSearchEntry[0]);
-//
-//        Predicate<StoreSearchEntry[]> has3Cottage = arr -> {
-//            int total = 0;
-//            for (StoreSearchEntry e : arr) {
-//                if (e.getName().toLowerCase().contains("cottage")) {
-//                    total += e.getQuantity();
-//                }
-//            }
-//            return total >= 3;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> has2Yogurts = arr -> {
-//            int total = 0;
-//            for (StoreSearchEntry e : arr) {
-//                if (e.getName().toLowerCase().contains("yogurt")) {
-//                    total += e.getQuantity();
-//                }
-//            }
-//            return total >= 2;
-//        };
-//
-//        Predicate<StoreSearchEntry[]> orCondition = new OrCondition(List.of(has3Cottage, has2Yogurts));
-//
-//        DiscountScope scope = new DiscountScope(DiscountScope.ScopeType.CATEGORY, "dairy");
-//        Discount dairyDiscount = new SimpleDiscount(5, scope);
-//        Discount conditional = new ConditionalDiscount(orCondition, dairyDiscount);
-//
-//        double result = conditional.calculate(entries, catalog);
-//        assertEquals(1.25, result, 0.001); // 5% of (15+4+6) is 1.25
-//    }
-//
-//
-//}
+package com.SEGroup.UnitTests.Conditions;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import com.SEGroup.Domain.Conditions.OrCondition;
+import com.SEGroup.Domain.Conditions.Condition;
+import com.SEGroup.Domain.Store.ShoppingProduct;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class OrConditionTest {
+
+    private static class HasAtLeast5RollsCondition implements Condition {
+        @Override
+        public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+            int count = 0;
+            for (int i = 0; i < products.size(); i++) {
+                ShoppingProduct p = products.get(i);
+                int quantity = amounts.get(i);
+                if (p.getName().toLowerCase().contains("roll")) {
+                    count += quantity;
+                }
+            }
+            return count >= 5;
+        }
+    }
+
+    private static class HasAtLeast2BreadsCondition implements Condition {
+        @Override
+        public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+            int count = 0;
+            for (int i = 0; i < products.size(); i++) {
+                ShoppingProduct p = products.get(i);
+                int quantity = amounts.get(i);
+                if (p.getName().toLowerCase().contains("bread")) {
+                    count += quantity;
+                }
+            }
+            return count >= 2;
+        }
+    }
+
+    @Test
+    public void shouldReturnTrue_WhenBasketContainsAtLeast5Rolls() {
+        List<ShoppingProduct> products = new ArrayList<>();
+        List<Integer> amounts = new ArrayList<>();
+
+        products.add(new ShoppingProduct("StoreX", "cat1", "p1", "Soft Roll", "Desc", 1.0, 0, "", List.of("bakery")));
+        amounts.add(5); // 5 rolls
+
+        products.add(new ShoppingProduct("StoreX", "cat2", "p2", "Whole Bread", "Desc", 2.0, 0, "", List.of("bakery")));
+        amounts.add(1); // 1 bread
+
+        OrCondition orCondition = new OrCondition(List.of(
+                new HasAtLeast5RollsCondition(),
+                new HasAtLeast2BreadsCondition()
+        ), null, 0, null, null);
+
+        boolean result = orCondition.isSatisfiedBy(products, amounts);
+        assertTrue(result);
+    }
+
+    @Test
+    public void shouldReturnTrue_WhenBasketContainsAtLeast2Breads() {
+        List<ShoppingProduct> products = new ArrayList<>();
+        List<Integer> amounts = new ArrayList<>();
+
+        products.add(new ShoppingProduct("StoreX", "cat1", "p1", "Soft Roll", "Desc", 1.0, 0, "", List.of("bakery")));
+        amounts.add(3); // 3 rolls
+
+        products.add(new ShoppingProduct("StoreX", "cat2", "p2", "Whole Bread", "Desc", 2.0, 0, "", List.of("bakery")));
+        amounts.add(2); // 2 breads
+
+        OrCondition orCondition = new OrCondition(List.of(
+                new HasAtLeast5RollsCondition(),
+                new HasAtLeast2BreadsCondition()
+        ), null, 0, null, null);
+
+        boolean result = orCondition.isSatisfiedBy(products, amounts);
+        assertTrue(result);
+    }
+
+    @Test
+    public void shouldReturnFalse_WhenBasketHasNeitherEnoughRollsNorBreads() {
+        List<ShoppingProduct> products = new ArrayList<>();
+        List<Integer> amounts = new ArrayList<>();
+
+        products.add(new ShoppingProduct("StoreX", "cat3", "p3", "Cookie", "Desc", 1.0, 0, "", List.of("bakery")));
+        amounts.add(10);
+
+        products.add(new ShoppingProduct("StoreX", "cat4", "p4", "Milk", "Desc", 2.0, 0, "", List.of("dairy")));
+        amounts.add(5);
+
+        OrCondition orCondition = new OrCondition(List.of(
+                new HasAtLeast5RollsCondition(),
+                new HasAtLeast2BreadsCondition()
+        ), null, 0, null, null);
+
+        boolean result = orCondition.isSatisfiedBy(products, amounts);
+        assertFalse(result);
+    }
+}

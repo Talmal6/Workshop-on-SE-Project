@@ -27,19 +27,31 @@ public class SumDiscount extends NumericalComposite {
         return totalDiscount;
     }
 
-    @Override
-    public double calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
-        double totalBase = productsWithQuantities.entrySet().stream()
-                .mapToDouble(e -> e.getKey().getPrice() * e.getValue())
-                .sum();
 
-        double totalDiscount = 0.0;
-        for (var entry : productsWithQuantities.entrySet()) {
-            totalDiscount += calculate(entry.getKey(), entry.getValue());
+    @Override
+    public Map<String, Double> calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
+        Map<String, Double> result = new HashMap<>();
+
+        // Handle empty basket
+        if (productsWithQuantities == null || productsWithQuantities.isEmpty()) {
+            return result;
         }
 
-        // don’t allow discount to exceed totalBase
-        return Math.min(totalDiscount, totalBase);
+        // Calculate final price for each product after applying sum discounts
+        for (var entry : productsWithQuantities.entrySet()) {
+            ShoppingProduct product = entry.getKey();
+            int quantity = entry.getValue();
+
+            double baseTotal = product.getPrice() * quantity;
+            double discountAmount = calculate(product, quantity);
+
+            // Don't allow discount to exceed the base price for this product
+            double finalPrice = Math.max(0.0, baseTotal - Math.min(discountAmount, baseTotal));
+
+            result.put(product.getProductId(), finalPrice);
+        }
+
+        return result;
     }
     public Map<ShoppingProduct, Double> calculateFinalPricesForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
         Map<ShoppingProduct, Double> finalPrices = new HashMap<>();
