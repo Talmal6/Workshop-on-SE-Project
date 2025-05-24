@@ -21,6 +21,7 @@ import java.util.List;
 
 @Component
 class BootstrapData {
+        //a
 
     private String getProductImage(String keyword) {
         String key = (keyword == null) ? "" : keyword.toLowerCase();
