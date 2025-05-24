@@ -1012,12 +1012,35 @@ public class StoreService {
         }
     }
 
-    public Result<Void> addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, List<ShoppingProduct> products, List<Integer> amounts, int minPrice, String logicType, String coupon) {
+    public Result<Void> addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, List<String> products, List<Integer> amounts, int minPrice, String logicType, String coupon) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             String email = authenticationService.getUserBySession(sessionKey);
             userRepository.checkUserSuspension(email);
             storeRepository.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(storeName, email, product_id, percentage, products, amounts, minPrice, coupon, logicType);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+    public Result<Void> addLogicalCompositeConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage, List<String> products, List<Integer> amounts, int minPrice, String logicType, String coupon) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.addLogicalCompositeConditionalDiscountToEntireStore(storeName, email, percentage, products, amounts, minPrice, coupon, logicType);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    public Result<Void> addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage, List<String> products, List<Integer> amounts, int minPrice, String logicType, String coupon) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(storeName, email, category, percentage, products, amounts, minPrice, coupon, logicType);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());

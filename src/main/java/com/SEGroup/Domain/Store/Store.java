@@ -1,5 +1,5 @@
 package com.SEGroup.Domain.Store;
-import com.SEGroup.Domain.Conditions.CompositeCondition;
+import com.SEGroup.Domain.Conditions.*;
 import com.SEGroup.Domain.Discount.ConditionalDiscount;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Discount.DiscountType;
@@ -631,12 +631,223 @@ public class Store {
         discounts.add(new ConditionalDiscount(DiscountType.PRODUCT, percentage, minPrice,minAmount,productId, coupon));
     }
 
-    public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String operatorEmail, String productId, int percentage, int minPrice, List<ShoppingProduct> products, List<Integer> amounts, String coupon, String logicType) {
+    public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(
+            String operatorEmail,
+            String productId,
+            int percentage,
+            int minPrice,
+            List<String> productids,
+            List<Integer> amounts,
+            String coupon,
+            String logicType) {
+
         if (!isOwnerOrHasManagerPermissions(operatorEmail))
             throw new IllegalArgumentException("Only owners can control discount");
-//        .add(new CompositeCondition(DiscountType.PRODUCT, productId, percentage, minPrice, minPrice, products, amounts ,coupon, logicType));
-    }
 
+        // Validate input parameters
+        if (productids == null || amounts == null || productids.size() != amounts.size()) {
+            throw new IllegalArgumentException("Product IDs and amounts lists must be non-null and same size");
+        }
+
+        if (productids.isEmpty()) {
+            throw new IllegalArgumentException("At least one product condition must be specified");
+        }
+
+        // Create individual conditions for each product-amount pair
+        List<Condition> conditions = new ArrayList<>();
+
+        // Add minimum price condition if minPrice > 0
+        if (minPrice > 0) {
+            Condition minPriceCondition = createMinPriceCondition(minPrice);
+            conditions.add(minPriceCondition);
+        }
+
+        // Add product-amount conditions
+        for (int i = 0; i < productids.size(); i++) {
+            String conditionProductId = productids.get(i);
+            Integer requiredAmount = amounts.get(i);
+
+            // Create a condition that checks if the basket contains the specified product with at least the required amount
+            Condition productAmountCondition = new Condition() {
+                @Override
+                public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> productAmounts) {
+                    for (int j = 0; j < products.size(); j++) {
+                        ShoppingProduct product = products.get(j);
+                        Integer amount = productAmounts.get(j);
+
+                        // Check if this product matches the condition and has sufficient quantity
+                        if (product.getProductId().equals(conditionProductId) && amount >= requiredAmount) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            };
+
+            conditions.add(productAmountCondition);
+        }
+
+        // Create the appropriate composite condition based on logic type
+        CompositeCondition compositeDiscount;
+        switch (logicType.toUpperCase()) {
+            case "AND":
+                compositeDiscount = new AndCondition(
+                        conditions,
+                        DiscountType.PRODUCT,
+                        percentage,
+                        productId,
+                        coupon
+                );
+                break;
+            case "OR":
+                compositeDiscount = new OrCondition(
+                        conditions,
+                        DiscountType.PRODUCT,
+                        percentage,
+                        productId,
+                        coupon
+                );
+                break;
+            case "XOR":
+                compositeDiscount = new XorCondition(
+                        conditions,
+                        DiscountType.PRODUCT,
+                        percentage,
+                        productId,
+                        coupon
+                );
+                break;
+            default:
+                throw new IllegalArgumentException("Logic type must be AND, OR, or XOR");
+        }
+
+        // Add the composite discount to the store's discount list
+        // Assuming you have a discounts collection in your store class
+        discounts.add(compositeDiscount);
+    }
+    public void addLogicalCompositeConditionalDiscountToEntireStore(
+            String operatorEmail,
+            int percentage,
+            int minPrice,
+            List<String> productIds,
+            List<Integer> amounts,
+            String coupon,
+            String logicType) {
+
+        if (!isOwnerOrHasManagerPermissions(operatorEmail))
+            throw new IllegalArgumentException("Only owners can control discount");
+
+        if (productIds == null || amounts == null || productIds.size() != amounts.size()) {
+            throw new IllegalArgumentException("Product IDs and amounts lists must be non-null and same size");
+        }
+
+        if (productIds.isEmpty()) {
+            throw new IllegalArgumentException("At least one product condition must be specified");
+        }
+
+        List<Condition> conditions = new ArrayList<>();
+
+        if (minPrice > 0) {
+            conditions.add(createMinPriceCondition(minPrice));
+        }
+
+        for (int i = 0; i < productIds.size(); i++) {
+            String pid = productIds.get(i);
+            int qty = amounts.get(i);
+
+            Condition c = new Condition() {
+                @Override
+                public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> productAmounts) {
+                    for (int j = 0; j < products.size(); j++) {
+                        if (products.get(j).getProductId().equals(pid) && productAmounts.get(j) >= qty)
+                            return true;
+                    }
+                    return false;
+                }
+            };
+
+            conditions.add(c);
+        }
+
+        CompositeCondition discount;
+        switch (logicType.toUpperCase()) {
+            case "AND":
+                discount = new AndCondition(conditions, DiscountType.STORE, percentage, null, coupon);
+                break;
+            case "OR":
+                discount = new OrCondition(conditions, DiscountType.STORE, percentage, null, coupon);
+                break;
+            case "XOR":
+                discount = new XorCondition(conditions, DiscountType.STORE, percentage, null, coupon);
+                break;
+            default:
+                throw new IllegalArgumentException("Logic type must be AND, OR, or XOR");
+        }
+
+        discounts.add(discount);
+    }
+    public void addLogicalCompositeConditionalDiscountToEntireCategoryInStore(
+            String operatorEmail,
+            String category,
+            int percentage,
+            int minPrice,
+            List<String> productIds,
+            List<Integer> amounts,
+            String coupon,
+            String logicType) {
+
+        if (!isOwnerOrHasManagerPermissions(operatorEmail))
+            throw new IllegalArgumentException("Only owners can control discount");
+
+        if (productIds == null || amounts == null || productIds.size() != amounts.size()) {
+            throw new IllegalArgumentException("Product IDs and amounts lists must be non-null and same size");
+        }
+
+        if (productIds.isEmpty()) {
+            throw new IllegalArgumentException("At least one product condition must be specified");
+        }
+
+        List<Condition> conditions = new ArrayList<>();
+
+        if (minPrice > 0) {
+            conditions.add(createMinPriceCondition(minPrice));
+        }
+
+        for (int i = 0; i < productIds.size(); i++) {
+            String pid = productIds.get(i);
+            int qty = amounts.get(i);
+
+            Condition c = new Condition() {
+                @Override
+                public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> productAmounts) {
+                    for (int j = 0; j < products.size(); j++) {
+                        if (products.get(j).getProductId().equals(pid) && productAmounts.get(j) >= qty)
+                            return true;
+                    }
+                    return false;
+                }
+            };
+
+            conditions.add(c);
+        }
+
+        CompositeCondition discount;
+        switch (logicType.toUpperCase()) {
+            case "AND":
+                discount = new AndCondition(conditions, DiscountType.CATEGORY, percentage, category, coupon);
+                break;
+            case "OR":
+                discount = new OrCondition(conditions, DiscountType.CATEGORY, percentage, category, coupon);
+                break;
+            case "XOR":
+                discount = new XorCondition(conditions, DiscountType.CATEGORY, percentage, category, coupon);
+                break;
+            default:
+                throw new IllegalArgumentException("Logic type must be AND, OR, or XOR");
+        }
+
+        discounts.add(discount);
+    }
     /**
      * Sets the store discounts to a MaxDiscount composed of the given discounts.
      *
@@ -669,5 +880,18 @@ public class Store {
     }
     public Map<String, Double> calculateDiscountForBasket(Map<ShoppingProduct, Integer> productsWithQuantities) {
         return this.discounts.calculateDiscountForBasket(productsWithQuantities);
+    }
+    // Helper method to create a minimum price condition if needed
+    private Condition createMinPriceCondition(int minPrice) {
+        return new Condition() {
+            @Override
+            public boolean isSatisfiedBy(List<ShoppingProduct> products, List<Integer> amounts) {
+                double totalPrice = 0.0;
+                for (int i = 0; i < products.size(); i++) {
+                    totalPrice += products.get(i).getPrice() * amounts.get(i);
+                }
+                return totalPrice >= minPrice;
+            }
+        };
     }
 }
