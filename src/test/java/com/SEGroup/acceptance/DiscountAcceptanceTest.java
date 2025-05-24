@@ -15,7 +15,7 @@ import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Domain.User.Basket;
-import com.SEGroup.Infrastructure.Repositories.*;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.*;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
@@ -90,8 +90,7 @@ public class DiscountAcceptanceTest {
                 OWNER_EMAIL,
                 productId,
                 10,
-                null
-        );
+                null);
 
         ShoppingProduct product = store.getProduct(productId);
         int quantity = product.getQuantity();
@@ -104,8 +103,10 @@ public class DiscountAcceptanceTest {
     @Test
     public void purchase_WithCategoryLevelSimpleDiscount_ShouldApplyDiscountCorrectly() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
-        storeService.addProductToCatalog("cat10", "Laptop", "Dell", "Powerful Laptop", Collections.singletonList("electronics"));
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat10", "Laptop", "Dell XPS", 1000.0, 1, "").getData();
+        storeService.addProductToCatalog("cat10", "Laptop", "Dell", "Powerful Laptop",
+                Collections.singletonList("electronics"));
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, "cat10", "Laptop", "Dell XPS", 1000.0, 1, "").getData();
 
         Store store = storeRepository.findByName(STORE_NAME);
         store.addSimpleDiscountToEntireCategoryInStore(OWNER_EMAIL, "electronics", 15, null);
@@ -121,15 +122,17 @@ public class DiscountAcceptanceTest {
     @Test
     public void purchase_WithConditionalDiscount_ShouldApplyOnlyIfConditionMet() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
-        storeService.addProductToCatalog("cat20", "TV", "Samsung", "Smart TV", Collections.singletonList("electronics"));
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat20", "TV", "Samsung TV", 800.0, 1, "").getData();
+        storeService.addProductToCatalog("cat20", "TV", "Samsung", "Smart TV",
+                Collections.singletonList("electronics"));
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, "cat20", "TV", "Samsung TV", 800.0, 1, "").getData();
 
         Store store = storeRepository.findByName(STORE_NAME);
         store.addConditionalDiscountToSpecificProductInStorePercentage(OWNER_EMAIL, productId, 10, 500, 1, null);
 
         ShoppingProduct product = store.getProduct(productId);
         int quantity = product.getQuantity();
-        double price = product.getPrice()*quantity;
+        double price = product.getPrice() * quantity;
         store.activateConditionDiscount((int) price);
         // Condition minimum price is 500, actual total is 800*1=800 -> discount applies
         double discountAmount = store.calculateDiscount(product, quantity);
@@ -140,7 +143,8 @@ public class DiscountAcceptanceTest {
     public void purchase_WithConditionalDiscount_ShouldNotApplyIfConditionNotMet() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         storeService.addProductToCatalog("cat21", "Phone", "Apple", "iPhone", Collections.singletonList("electronics"));
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat21", "Phone", "iPhone 14", 400.0, 1, "").getData();
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, "cat21", "Phone", "iPhone 14", 400.0, 1, "").getData();
 
         Store store = storeRepository.findByName(STORE_NAME);
         store.addConditionalDiscountToSpecificProductInStorePercentage(OWNER_EMAIL, productId, 10, 500, 1, null);
@@ -148,94 +152,104 @@ public class DiscountAcceptanceTest {
         ShoppingProduct product = store.getProduct(productId);
         int quantity = product.getQuantity();
 
-        // Condition minimum price is 500, actual total is 400*1=400 -> discount does not apply
+        // Condition minimum price is 500, actual total is 400*1=400 -> discount does
+        // not apply
         double discountAmount = store.calculateDiscount(product, quantity);
         assertEquals(400.0, discountAmount, 0.001);
     }
 
-//    @Test
-//    public void purchase_WithMaxDiscount_ShouldChooseMaxFromMultiple() throws Exception {
-//        storeService.createStore(VALID_SESSION, STORE_NAME);
-//        storeService.addProductToCatalog("cat30", "Juice", "Tropicana", "Fresh Juice", Collections.singletonList("drinks"));
-//        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat30", "Juice", "Orange Juice", 10.0, 10, "").getData();
-//
-//        Store store = storeRepository.findByName(STORE_NAME);
-//
-//        MaxDiscount maxDiscount = new MaxDiscount(List.of(
-//                new SimpleDiscount(DiscountType.CATEGORY, 10, "drinks", null),
-//                new SimpleDiscount(DiscountType.STORE, 5, null, null)
-//        ));
-//
-//        store.setDiscounts(maxDiscount);
-//
-//        ShoppingProduct product = store.getProduct(productId);
-//        int quantity = product.getQuantity();
-//
-//        double priceBefore = product.getPrice() * quantity;
-//        double discountedPrice = store.calculateDiscount(product, quantity);
-//        double discountAmount = priceBefore - discountedPrice;
-//
-//        // Discount should be max(10%, 5%) = 10%
-//        assertEquals(priceBefore * 0.10, discountAmount, 0.01);
-//    }
-//
-//    @Test
-//    public void purchase_WithSequentialDiscount_ShouldApplyAllSequentially() throws Exception {
-//        storeService.createStore(VALID_SESSION, STORE_NAME);
-//        storeService.addProductToCatalog("cat40", "Pasta", "Barilla", "Italian Pasta", Collections.singletonList("pasta"));
-//        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat40", "Pasta", "Spaghetti", 30.0, 3, "").getData();
-//
-//        Store store = storeRepository.findByName(STORE_NAME);
-//
-//        SequentialDiscount sequentialDiscount = new SequentialDiscount(List.of(
-//                new SimpleDiscount(DiscountType.CATEGORY, 10, "pasta", null),
-//                new SimpleDiscount(DiscountType.STORE, 20, null, null)
-//        ));
-//
-//        store.setDiscounts(sequentialDiscount);
-//
-//        ShoppingProduct product = store.getProduct(productId);
-//        int quantity = product.getQuantity();
-//
-//        double priceBefore = product.getPrice() * quantity;
-//        double discountedPrice = store.calculateDiscount(product, quantity);
-//        double discountAmount = priceBefore - discountedPrice;
-//
-//        // Total discount = 1 - (0.9 * 0.8) = 0.28 or 28%
-//        assertEquals(priceBefore * 0.28, discountAmount, 0.01);
-//    }
-//
-//    @Test
-//    public void purchase_WithMaxAndSequentialDiscountCombination_ShouldApplyCorrectly() throws Exception {
-//        storeService.createStore(VALID_SESSION, STORE_NAME);
-//        storeService.addProductToCatalog("cat50", "Yogurt", "DairyFarm", "Fresh Yogurt", Collections.singletonList("dairy"));
-//        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat50", "Yogurt", "Fresh Yogurt", 10.0, 5, "").getData();
-//
-//        Store store = storeRepository.findByName(STORE_NAME);
-//
-//        MaxDiscount maxDiscount = new MaxDiscount(List.of(
-//                new SimpleDiscount(DiscountType.CATEGORY, 5, "dairy", null),
-//                new SimpleDiscount(DiscountType.STORE, 10, null, null)
-//        ));
-//
-//        SequentialDiscount sequentialDiscount = new SequentialDiscount(List.of(
-//                maxDiscount,
-//                new SimpleDiscount(DiscountType.STORE, 5, null, null)
-//        ));
-//
-//        store.setDiscounts(sequentialDiscount);
-//
-//        ShoppingProduct product = store.getProduct(productId);
-//        int quantity = product.getQuantity();
-//
-//        double priceBefore = product.getPrice() * quantity;
-//        double discountedPrice = store.calculateDiscount(product, quantity);
-//        double discountAmount = priceBefore - discountedPrice;
-//
-//        // sequential discount = maxDiscount (10%) then 5%
-//        // total discount = 1 - (0.9 * 0.95) = 0.145 = 14.5%
-//        assertEquals(priceBefore * 0.145, discountAmount, 0.01);
-//    }
+    // @Test
+    // public void purchase_WithMaxDiscount_ShouldChooseMaxFromMultiple() throws
+    // Exception {
+    // storeService.createStore(VALID_SESSION, STORE_NAME);
+    // storeService.addProductToCatalog("cat30", "Juice", "Tropicana", "Fresh
+    // Juice", Collections.singletonList("drinks"));
+    // String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME,
+    // "cat30", "Juice", "Orange Juice", 10.0, 10, "").getData();
+    //
+    // Store store = storeRepository.findByName(STORE_NAME);
+    //
+    // MaxDiscount maxDiscount = new MaxDiscount(List.of(
+    // new SimpleDiscount(DiscountType.CATEGORY, 10, "drinks", null),
+    // new SimpleDiscount(DiscountType.STORE, 5, null, null)
+    // ));
+    //
+    // store.setDiscounts(maxDiscount);
+    //
+    // ShoppingProduct product = store.getProduct(productId);
+    // int quantity = product.getQuantity();
+    //
+    // double priceBefore = product.getPrice() * quantity;
+    // double discountedPrice = store.calculateDiscount(product, quantity);
+    // double discountAmount = priceBefore - discountedPrice;
+    //
+    // // Discount should be max(10%, 5%) = 10%
+    // assertEquals(priceBefore * 0.10, discountAmount, 0.01);
+    // }
+    //
+    // @Test
+    // public void purchase_WithSequentialDiscount_ShouldApplyAllSequentially()
+    // throws Exception {
+    // storeService.createStore(VALID_SESSION, STORE_NAME);
+    // storeService.addProductToCatalog("cat40", "Pasta", "Barilla", "Italian
+    // Pasta", Collections.singletonList("pasta"));
+    // String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME,
+    // "cat40", "Pasta", "Spaghetti", 30.0, 3, "").getData();
+    //
+    // Store store = storeRepository.findByName(STORE_NAME);
+    //
+    // SequentialDiscount sequentialDiscount = new SequentialDiscount(List.of(
+    // new SimpleDiscount(DiscountType.CATEGORY, 10, "pasta", null),
+    // new SimpleDiscount(DiscountType.STORE, 20, null, null)
+    // ));
+    //
+    // store.setDiscounts(sequentialDiscount);
+    //
+    // ShoppingProduct product = store.getProduct(productId);
+    // int quantity = product.getQuantity();
+    //
+    // double priceBefore = product.getPrice() * quantity;
+    // double discountedPrice = store.calculateDiscount(product, quantity);
+    // double discountAmount = priceBefore - discountedPrice;
+    //
+    // // Total discount = 1 - (0.9 * 0.8) = 0.28 or 28%
+    // assertEquals(priceBefore * 0.28, discountAmount, 0.01);
+    // }
+    //
+    // @Test
+    // public void
+    // purchase_WithMaxAndSequentialDiscountCombination_ShouldApplyCorrectly()
+    // throws Exception {
+    // storeService.createStore(VALID_SESSION, STORE_NAME);
+    // storeService.addProductToCatalog("cat50", "Yogurt", "DairyFarm", "Fresh
+    // Yogurt", Collections.singletonList("dairy"));
+    // String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME,
+    // "cat50", "Yogurt", "Fresh Yogurt", 10.0, 5, "").getData();
+    //
+    // Store store = storeRepository.findByName(STORE_NAME);
+    //
+    // MaxDiscount maxDiscount = new MaxDiscount(List.of(
+    // new SimpleDiscount(DiscountType.CATEGORY, 5, "dairy", null),
+    // new SimpleDiscount(DiscountType.STORE, 10, null, null)
+    // ));
+    //
+    // SequentialDiscount sequentialDiscount = new SequentialDiscount(List.of(
+    // maxDiscount,
+    // new SimpleDiscount(DiscountType.STORE, 5, null, null)
+    // ));
+    //
+    // store.setDiscounts(sequentialDiscount);
+    //
+    // ShoppingProduct product = store.getProduct(productId);
+    // int quantity = product.getQuantity();
+    //
+    // double priceBefore = product.getPrice() * quantity;
+    // double discountedPrice = store.calculateDiscount(product, quantity);
+    // double discountAmount = priceBefore - discountedPrice;
+    //
+    // // sequential discount = maxDiscount (10%) then 5%
+    // // total discount = 1 - (0.9 * 0.95) = 0.145 = 14.5%
+    // assertEquals(priceBefore * 0.145, discountAmount, 0.01);
+    // }
 
 }
-
