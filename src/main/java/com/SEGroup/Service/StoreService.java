@@ -14,7 +14,8 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Review;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
+
 import org.springframework.stereotype.Service;
 
 import javax.print.DocFlavor;

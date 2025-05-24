@@ -3,7 +3,8 @@ package com.SEGroup.UnitTests.StoreTests;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Domain.Discount.SimpleDiscount;
 import com.SEGroup.Domain.Store.*;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

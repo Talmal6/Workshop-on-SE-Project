@@ -1,4 +1,4 @@
-package com.SEGroup.Infrastructure.Repositories;
+package com.SEGroup.Infrastructure.Repositories.InMemoryRepositories;
 
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.Store.ManagerPermission;

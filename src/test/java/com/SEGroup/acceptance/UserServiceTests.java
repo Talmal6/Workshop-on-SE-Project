@@ -7,14 +7,13 @@ import com.SEGroup.Domain.IUserRepository;
 
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
-
-import com.SEGroup.Infrastructure.Repositories.GuestRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
-import com.SEGroup.Infrastructure.Repositories.StoreRepository;
-import com.SEGroup.Infrastructure.Repositories.UserRepository;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.UserRepository;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;

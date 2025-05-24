@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
 
 
 public class InMemoryProductCatalogTests {

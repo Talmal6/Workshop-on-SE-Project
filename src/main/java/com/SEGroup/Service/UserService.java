@@ -15,6 +15,8 @@ import com.SEGroup.Domain.Report.Report;
 import com.SEGroup.Domain.Report.ReportCenter;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 /**
  * UserService handles user-related operations such as login, registration, cart
@@ -56,6 +58,7 @@ public class UserService {
      * @return A Result object containing the guest session ID if successful, or an
      *         error message.
      */
+    @Transactional
     public Result<String> guestLogin() {
         LoggerWrapper.info("Creating a guest session."); // Log the creation of guest session
         return guestService.createGuestSession();
@@ -70,6 +73,7 @@ public class UserService {
      * @param password The password of the user to register.
      * @return A Result object indicating success or failure of the registration.
      */
+    @Transactional
     public Result<Void> register(String username, String email, String password) {
         try {
             userRepository.addUser(username, email, passwordEncoder.encrypt(password));
@@ -91,6 +95,7 @@ public class UserService {
      * @return A Result object containing the session key if successful, or an error
      *         message.
      */
+    @Transactional
     public Result<String> login(String email, String password) {
         try {
             User user = userRepository.findUserByEmail(email);
@@ -112,6 +117,7 @@ public class UserService {
      * @return A Result object indicating success or failure of the logout
      *         operation.
      */
+    @Transactional
     public Result<Void> logout(String sessionKey) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -131,6 +137,7 @@ public class UserService {
      * @param email The email of the user to delete.
      * @return A Result object indicating success or failure of the deletion.
      */
+    @Transactional
     public Result<Void> deleteUser(String AuthKey, String email) {
         try {
             if (!userRepository.userIsAdmin(authenticationService.getUserBySession(AuthKey))) {
@@ -161,6 +168,7 @@ public class UserService {
      * @param storeName  The name of the store where the product is located.
      * @return A Result object indicating success or failure of the operation.
      */
+    @Transactional
     public Result<String> addToUserCart(String sessionKey, String email, String productID, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -188,6 +196,7 @@ public class UserService {
      * @param storeName  The name of the store where the product is located.
      * @return A Result object indicating success or failure of the operation.
      */
+    @Transactional
     public Result<String> addToGuestCart(String guestToken, String productId, String storeName) {
         try {
             ShoppingCart cart = guestService.cart(guestToken); // Retrieve guest's cart
@@ -213,6 +222,7 @@ public class UserService {
      * @return A Result object indicating success or failure of the purchase
      *         operation.
      */
+    @Transactional
     public Result<Void> purchaseShoppingCart(String sessionKey, String email) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -238,6 +248,7 @@ public class UserService {
      * @param storeName  The name of the store where the product is located.
      * @return A Result object indicating success or failure of the operation.
      */
+    @Transactional
     public Result<String> removeFromUserCart(String sessionKey, String email, String productID, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -266,6 +277,7 @@ public class UserService {
      * @param quantity   The new quantity of the product.
      * @return A Result object indicating success or failure of the operation.
      */
+    @Transactional
     public Result<String> modifyProductQuantityInCartItem(
             String sessionKey,
             String email,
@@ -287,6 +299,7 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Result<List<BasketDTO>> getUserCart(String sessionKey, String email) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -298,6 +311,7 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Result<String> getUserName(String sessionKey, String email) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -309,6 +323,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public Result<String> suspendUser(String sessionKey, String email, Integer duration, String reason) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -326,6 +341,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public Result<String> unsuspendUser(String sessionKey, String email) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -340,6 +356,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public Result<Void> setAsAdmin(String sessionKey, String email) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -353,6 +370,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public Result<Void> removeAdmin(String sessionKey, String email) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -375,6 +393,7 @@ public class UserService {
      * @param storeName  The store name
      * @return Result object with success or failure
      */
+    @Transactional
     public Result<String> addToCart(String sessionKey,
             String productId,
             String storeName) {
@@ -403,6 +422,7 @@ public class UserService {
      * @param storeName  The name of the store where the product is located.
      * @return A Result object indicating success or failure of the operation.
      */
+    @Transactional
     public Result<String> removeFromCart(String sessionKey,
             String productId,
             String storeName) {
@@ -419,6 +439,7 @@ public class UserService {
      * @param newQty     The new quantity of the product.
      * @return A Result object indicating success or failure of the operation.
      */
+    @Transactional
     public Result<String> changeCartQuantity(String sessionKey,
             String productId,
             String storeName,
@@ -441,6 +462,13 @@ public class UserService {
         }
     }
 
+    /**
+     * Checks if the user is an admin.
+     *
+     * @param sessionKey The session key of the user.
+     * @return A Result object indicating whether the user is an admin or not.
+     */
+    @Transactional(readOnly = true)
     public Result<Boolean> isAdmin(String sessionKey) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -457,6 +485,7 @@ public class UserService {
     }
 
     //throw exception if the user is suspended
+    @Transactional(readOnly = true)
     public Result<Void> isSuspended(String sessionKey) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -469,6 +498,14 @@ public class UserService {
         }
     }
 
+    /**
+     * Makes a system report.
+     *
+     * @param sessionKey    The session key of the user making the report.
+     * @param reportContent The content of the report.
+     * @return A Result object indicating success or failure of the operation.
+     */
+    @Transactional
     public Result<Void> makeSystemReport(String sessionKey, String reportContent) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -481,6 +518,15 @@ public class UserService {
         }
     }
 
+    /**
+     * Makes a user report.
+     *
+     * @param sessionKey      The session key of the user making the report.
+     * @param reportContent   The content of the report.
+     * @param reportOnUserId  The ID of the user being reported.
+     * @return A Result object indicating success or failure of the operation.
+     */
+    @Transactional
     public Result<Void> makeUserReport(String sessionKey, String reportContent, String reportOnUserId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -493,6 +539,14 @@ public class UserService {
         }
     }
 
+    /**
+     * Retrieves all reports.
+     *
+     * @param sessionKey The session key of the user requesting the reports.
+     * @return A Result object containing a list of reports if successful, or an
+     *         error message.
+     */
+    @Transactional(readOnly = true)
     public Result<List<Report>> getReports(String sessionKey) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -506,6 +560,7 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Result<Report> getReportById(String sessionKey, String reportId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -519,6 +574,14 @@ public class UserService {
         }
     }
 
+    /**
+     * Handles a report.
+     *
+     * @param sessionKey The session key of the user handling the report.
+     * @param reportId   The ID of the report to handle.
+     * @return A Result object indicating success or failure of the operation.
+     */
+    @Transactional
     public Result<Void> handleReport(String sessionKey, String reportId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -533,13 +596,28 @@ public class UserService {
         }
     }
 
+    /**
+     * Retrieves all user emails.
+     *
+     * @return A list of all user emails.
+     */
+    @Transactional(readOnly = true)
     public List<String> allUsersEmails() {
         return userRepository.getAllEmails(); // or return List.of();
     }
 
+    /**
+     * Retrieves all user roles for a specific email.
+     *
+     * @param email The email of the user.
+     * @return A set of roles associated with the user.
+     */
+    @Transactional(readOnly = true)
     public Set<Role> rolesOf(String email) {
         return userRepository.getGlobalRoles(email);
     }
+
+    @Transactional(readOnly = true)
     public List<UserSuspensionDTO> allSuspensions() {
         return userRepository.getAllSuspendedUsers();
     }
