@@ -1,5 +1,6 @@
 package com.SEGroup.UI.Views;
 
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.SignUpPresenter;
 import com.vaadin.flow.component.Component;
@@ -36,6 +37,10 @@ public class SignUpView extends VerticalLayout {
     private final EmailField emailField = new EmailField("Email");
     private final PasswordField passwordField = new PasswordField("Password");
     private final PasswordField confirmPasswordField = new PasswordField("Confirm Password");
+    private final TextField addressField = new TextField("Address");
+    private final TextField cityField = new TextField("City");
+    private final TextField countryField = new TextField("Country");
+    private final TextField zipField = new TextField("ZIP Code");
     private final Binder<UserRegistration> binder = new Binder<>();
 
     public SignUpView() {
@@ -91,12 +96,40 @@ public class SignUpView extends VerticalLayout {
         confirmPasswordField.setWidthFull();
         confirmPasswordField.setRevealButtonVisible(true);
 
+        // Configure address fields
+        addressField.setPlaceholder("Enter your street address");
+        addressField.setPrefixComponent(VaadinIcon.HOME.create());
+        addressField.setWidthFull();
+
+        cityField.setPlaceholder("Enter your city");
+        cityField.setPrefixComponent(VaadinIcon.MAP_MARKER.create());
+        cityField.setWidthFull();
+
+        countryField.setPlaceholder("Enter your country");
+        countryField.setPrefixComponent(VaadinIcon.GLOBE.create());
+        countryField.setWidthFull();
+
+        zipField.setPlaceholder("Enter your ZIP code");
+        zipField.setPrefixComponent(VaadinIcon.MAP_MARKER.create());
+        zipField.setWidthFull();
+
         // Setup validation
         setupValidation();
 
         // Create form layout
         FormLayout formLayout = new FormLayout();
-        formLayout.add(fullNameField, emailField, passwordField, confirmPasswordField);
+        formLayout.add(
+            fullNameField, 
+            emailField, 
+            passwordField, 
+            confirmPasswordField,
+            new Hr(),
+            new H3("Address Information (Optional)"),
+            addressField,
+            cityField,
+            countryField,
+            zipField
+        );
         formLayout.setResponsiveSteps(
                 new FormLayout.ResponsiveStep("0", 1)
         );
@@ -108,12 +141,6 @@ public class SignUpView extends VerticalLayout {
         signUpButton.addClickShortcut(Key.ENTER);
         signUpButton.setWidthFull();
 
-        Button resetButton = new Button("Reset", new Icon(VaadinIcon.REFRESH));
-        resetButton.addClickListener(e -> resetForm());
-        resetButton.setWidthFull();
-
-        HorizontalLayout buttonsLayout = new HorizontalLayout(signUpButton, resetButton);
-        buttonsLayout.setWidthFull();
 
         // Sign in link
         Paragraph signInText = new Paragraph("Already have an account?");
@@ -134,7 +161,7 @@ public class SignUpView extends VerticalLayout {
                 subheader,
                 formLayout,
                 new Div(),  // Spacer
-                buttonsLayout,
+                signUpButton,
                 new Hr(),
                 signInLayout
         );
@@ -163,7 +190,6 @@ public class SignUpView extends VerticalLayout {
                 .bind(UserRegistration::getPassword, UserRegistration::setPassword);
 
         // Password confirmation validation
-        // Password confirmation validation
         binder.forField(confirmPasswordField)
                 .withValidator((value, context) -> {
                     if (passwordField.getValue().equals(value)) {
@@ -172,6 +198,19 @@ public class SignUpView extends VerticalLayout {
                     return ValidationResult.error("Passwords do not match");
                 })
                 .bind(UserRegistration::getPasswordConfirmation, UserRegistration::setPasswordConfirmation);
+
+        // Address fields validation (optional)
+        binder.forField(addressField)
+                .bind(UserRegistration::getAddress, UserRegistration::setAddress);
+
+        binder.forField(cityField)
+                .bind(UserRegistration::getCity, UserRegistration::setCity);
+
+        binder.forField(countryField)
+                .bind(UserRegistration::getCountry, UserRegistration::setCountry);
+
+        binder.forField(zipField)
+                .bind(UserRegistration::getZip, UserRegistration::setZip);
     }
 
     private void submitForm() {
@@ -184,23 +223,30 @@ public class SignUpView extends VerticalLayout {
             UserRegistration registration = new UserRegistration();
             binder.writeBean(registration);
 
+            AddressDTO address = null;
+            if (!registration.getAddress().isEmpty() || 
+                !registration.getCity().isEmpty() || 
+                !registration.getCountry().isEmpty() || 
+                !registration.getZip().isEmpty()) {
+                address = new AddressDTO(
+                    registration.getAddress(),
+                    registration.getCity(),
+                    registration.getCountry(),
+                    registration.getZip()
+                );
+            }
+
             presenter.onSignUp(
                     registration.getFullName(),
                     registration.getEmail(),
-                    registration.getPassword()
+                    registration.getPassword(),
+                    address
             );
         } catch (Exception e) {
             showError("Error during registration: " + e.getMessage());
         }
     }
 
-    private void resetForm() {
-        binder.readBean(new UserRegistration());
-        fullNameField.clear();
-        emailField.clear();
-        passwordField.clear();
-        confirmPasswordField.clear();
-    }
 
     public void showSuccess(String message) {
         Notification notification = Notification.show(message, 3000, Notification.Position.TOP_END);
@@ -217,6 +263,10 @@ public class SignUpView extends VerticalLayout {
         private String email = "";
         private String password = "";
         private String passwordConfirmation = "";
+        private String address = "";
+        private String city = "";
+        private String country = "";
+        private String zip = "";
 
         public String getFullName() {
             return fullName;
@@ -248,6 +298,38 @@ public class SignUpView extends VerticalLayout {
 
         public void setPasswordConfirmation(String passwordConfirmation) {
             this.passwordConfirmation = passwordConfirmation;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
+        public void setCity(String city) {
+            this.city = city;
+        }
+
+        public String getCountry() {
+            return country;
+        }
+
+        public void setCountry(String country) {
+            this.country = country;
+        }
+
+        public String getZip() {
+            return zip;
+        }
+
+        public void setZip(String zip) {
+            this.zip = zip;
         }
     }
 }
