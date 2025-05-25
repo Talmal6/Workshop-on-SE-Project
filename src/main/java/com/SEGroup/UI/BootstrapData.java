@@ -1,7 +1,7 @@
 package com.SEGroup.UI;
 
 import com.SEGroup.Domain.*;
-import com.SEGroup.Infrastructure.MockPaymentGateway;
+import com.SEGroup.Infrastructure.ExternalPaymentService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.*;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
@@ -383,7 +383,7 @@ class BootstrapData {
                 new TransactionRepository(),      // transactions
                 stores,                           // stores
                 catalog,                          // catalog
-                new MockPaymentGateway()         // payment
+                new ExternalPaymentService()         // payment
 //                shippingService                   // shipping service
         );
 

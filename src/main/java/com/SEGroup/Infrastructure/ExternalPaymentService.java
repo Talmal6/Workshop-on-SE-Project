@@ -1,6 +1,8 @@
 package com.SEGroup.Infrastructure;
 
 import com.SEGroup.Domain.IPaymentGateway;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -10,6 +12,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -44,7 +47,10 @@ public class ExternalPaymentService implements IPaymentGateway {
     @Override
     public void processPayment(String paymentDetails, double amount) {
         Map<String, String> toSend = parsePayment(paymentDetails);
-        int ok = parseInt(sendPost(toSend));
+        System.out.println("YehudaaaaaaaPayment: " + toSend);
+        String result=sendPost(toSend);
+        System.out.println("YehudaaaaaaaPayment result: " + result);
+        int ok = parseInt(result);
         if (ok < 0){
             throw new RuntimeException("The transaction has failed");
         }
@@ -74,8 +80,15 @@ public class ExternalPaymentService implements IPaymentGateway {
     }
 
     public Map<String, String> parsePayment(String rawPayment) {
-        Map<String, String> paymentDetails = Map.of();
-        return paymentDetails;
+        try {
+            // keeps insertion order; change to HashMap if you don't care
+            return new ObjectMapper().readValue(
+                    rawPayment,
+                    new TypeReference<LinkedHashMap<String, String>>() {}
+            );
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid payment JSON", e);
+        }
     }
 
     private static String sendPost(Map<String, String> formParams) {
@@ -91,6 +104,7 @@ public class ExternalPaymentService implements IPaymentGateway {
                 .timeout(Duration.ofSeconds(10))
                 .build();
 
+        System.out.println("Yehudaa"+request.toString());
         try {
             HttpResponse<String> resp = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             return resp.body();
