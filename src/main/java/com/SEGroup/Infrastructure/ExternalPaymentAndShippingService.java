@@ -1,6 +1,8 @@
 package com.SEGroup.Infrastructure;
 
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.Domain.IPaymentGateway;
+import com.SEGroup.Domain.IShippingService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -19,12 +21,34 @@ import java.util.StringJoiner;
 import static java.lang.Integer.parseInt;
 //create a new enum
 
-public class ExternalPaymentService implements IPaymentGateway {
+public class ExternalPaymentAndShippingService implements IPaymentGateway , IShippingService {
     private static final String SERVER_URL = "https://damp-lynna-wsep-1984852e.koyeb.app/";
     private static final HttpClient CLIENT = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(10))
             .build();
+
+    @Override
+    public Boolean cancelShipping(int shippingId) {
+        return null;
+    }
+
+    @Override
+    public Integer ship(AddressDTO address_detail, String name) {
+        Map<String, String> toSend = new LinkedHashMap<>();
+        toSend.put("name", name);
+        toSend.put("action_type", Action.SUPPLY.value());
+        toSend.put("address", address_detail.toString());
+        toSend.put("city", address_detail.getCity());
+        toSend.put("country", address_detail.getCountry());
+        toSend.put("zip", address_detail.getZip());
+        String result=sendPost(toSend);
+        int ok = parseInt(result);
+        if (ok < 0){
+            throw new RuntimeException("The transaction has failed");
+        }
+        return ok;
+    }
 
     public enum Action {
         HANDSHAKE("handshake"),
