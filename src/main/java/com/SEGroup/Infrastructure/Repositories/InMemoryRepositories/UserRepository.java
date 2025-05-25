@@ -8,6 +8,8 @@ import com.SEGroup.Domain.User.User;
 import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
+
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
@@ -26,10 +28,10 @@ import java.util.stream.Collectors;
  * carts.
  */
 @Repository
+@Profile("memory")
 public class UserRepository implements IUserRepository {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
-    private final Set<String> admins = ConcurrentHashMap.newKeySet();
     private final Map<String, UserSuspensionDTO> suspendedUsers = new ConcurrentHashMap<>();
 
     /**
@@ -42,7 +44,7 @@ public class UserRepository implements IUserRepository {
     private void createAdmin() {
         //Password is: Admin (Its hashed)
         addUser("Admin","Admin@Admin.Admin","$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
-        admins.add("Admin@Admin.Admin");
+        users.get("Admin@Admin.Admin").addAdminRole();
     }
 
     /**
@@ -70,7 +72,6 @@ public class UserRepository implements IUserRepository {
             throw new IllegalArgumentException("User already exists: " + email);
 
         User u = new User(email, username, passwordHash);
-        u.addAdminRole();
         users.put(email, u);
     }
 
@@ -249,11 +250,11 @@ public class UserRepository implements IUserRepository {
         User u = users.get(email);
         if (u == null)
             throw new IllegalArgumentException("User not found: " + email);
-        if (admins.contains(email))
+        if (u.isAdmin())
             throw new IllegalArgumentException("User is already an admin: " + email);
-        if (!admins.contains(AssigneeUsername))
+        if (!users.get(AssigneeUsername).isAdmin())
             throw new IllegalArgumentException("Assignee is not an admin: " + AssigneeUsername);
-        admins.add(email);
+        u.addAdminRole();
     }
 
     @Override
@@ -263,11 +264,11 @@ public class UserRepository implements IUserRepository {
         User u = users.get(email);
         if (u == null)
             throw new IllegalArgumentException("User not found: " + email);
-        if (!admins.contains(email))
+        if (!u.isAdmin())
             throw new IllegalArgumentException("User is not an admin: " + email);
-        if (!admins.contains(assignee))
+        if (!users.get(assignee).isAdmin())
             throw new IllegalArgumentException("Assignee is not an admin: " + assignee);
-        admins.remove(email);
+        u.removeAdminRole();
     }
 
     @Override
@@ -275,9 +276,7 @@ public class UserRepository implements IUserRepository {
         User u = users.get(username);
         if (u == null)
             return false;
-        if (!admins.contains(username))
-            return false;
-        return true;
+        return u.isAdmin();
 
     }
 
