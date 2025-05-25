@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 
 
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 @EnableVaadin
+@EnableJpaRepositories("com.SEGroup.Infrastructure.Repositories.DataBaseRepositories")
 public class MarketplaceApplication extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {

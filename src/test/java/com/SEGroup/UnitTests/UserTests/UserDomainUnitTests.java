@@ -23,7 +23,7 @@ class UserDomainUnitTests {
     @Nested class BasketTests {
         Basket basket;
 
-        @BeforeEach void newBasket() { basket = new Basket("S-X"); }
+        @BeforeEach void newBasket() { basket = new Basket("S-X","U-123"); }
 
         @Test void Given_EmptyBasket_When_AddItem_Then_SnapshotContainsQty1() {
             basket.add("P1", 1);
@@ -47,7 +47,7 @@ class UserDomainUnitTests {
     @Nested class ShoppingCartTests {
         ShoppingCart cart;
 
-        @BeforeEach void newCart() { cart = new ShoppingCart(); }
+        @BeforeEach void newCart() { cart = new ShoppingCart("someId"); }
 
         @Test void Given_EmptyCart_When_AddItem_Then_StoreAndQtyCreated() {
             cart.add("S1", "P1", 3);
@@ -101,7 +101,7 @@ class UserDomainUnitTests {
     /* ───────────────────────────── Guest ────────────────────────────── */
     @Nested class GuestTests {
         @Test void Given_NewGuest_When_GetId_And_Cart_Then_ValuesReturned() {
-            ShoppingCart c = new ShoppingCart();
+            ShoppingCart c = new ShoppingCart("g-123");
             Guest g = new Guest("g-123", Instant.now(), c);
             assertEquals("g-123", g.id());
             assertSame(c, g.cart());

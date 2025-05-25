@@ -2,6 +2,8 @@ package com.SEGroup.Domain.User;
 
 import com.SEGroup.Domain.Store.Store;
 
+import jakarta.persistence.*;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -11,14 +13,39 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Represents a user in the system, including their email, password hash, roles in different stores,
  * shopping cart, and purchase history.
  */
+@Entity
+@Table(name = "users")
 public class User {
 
+    @Id
+    @Column(name = "email", unique = true, nullable = false)
     private final String email;
+
+    @Column(name = "password_hash", nullable = false)
     private       String passwordHash;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @MapKeyColumn(name = "store_name")
+    @CollectionTable(name = "user_store_roles", joinColumns = @JoinColumn(name = "user_email"))
+    @Column(name = "role")
+    @Enumerated(EnumType.STRING)
+
     private final ConcurrentMap<String, EnumSet<Role>> storeRoles = new ConcurrentHashMap<>();
+
+    @Column(name = "username", nullable = false)
     private final String username;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "is_admin", nullable = false)
     private Role isAdmin;
-    private volatile ShoppingCart cart; // Ensure ShoppingCart is defined or imported
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_id")
+    private ShoppingCart cart;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "purchase_history", joinColumns = @JoinColumn(name = "user_email"))
+    @Column(name = "transaction_id")
     private final List<String> purchaseHistory = new LinkedList<>();
 
     /**
@@ -111,7 +138,7 @@ public class User {
         if (cart == null) {
             synchronized (this) {
                 if (cart == null) {
-                    cart = new ShoppingCart(); // Ensure ShoppingCart constructor is accessible
+                    cart = new ShoppingCart(this.username); // Ensure ShoppingCart constructor is accessible
                 }
             }
         }
@@ -156,5 +183,12 @@ public class User {
         isAdmin = Role.ADMIN;
     }
 
-    
+    public void removeAdminRole() {
+        isAdmin = null;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin == Role.ADMIN;
+    }
+
 }
