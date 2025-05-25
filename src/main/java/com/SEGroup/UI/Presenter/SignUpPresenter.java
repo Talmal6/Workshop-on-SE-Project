@@ -1,5 +1,6 @@
 package com.SEGroup.UI.Presenter;
 
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.Service.LoggerWrapper;
 import com.SEGroup.Service.UserService;
 import com.SEGroup.Service.Result;
@@ -19,9 +20,13 @@ public class SignUpPresenter {
         this.userService = ServiceLocator.getUserService();
     }
 
-    public void onSignUp(String userName, String email, String password) {
+    public void onSignUp(String userName, String email, String password, AddressDTO address) {
         LoggerWrapper.info("Attempting to sign up with email: " + email);
-        Result<Void> result = userService.register(userName, email, password);
+        Result<Void> result;
+        if (address == null){
+            result = userService.register(userName, email, password);
+        }
+        else result = userService.register(userName, email, password, address);
         LoggerWrapper.info("Sign up result: " + result);
 
         if (result.isSuccess()) {

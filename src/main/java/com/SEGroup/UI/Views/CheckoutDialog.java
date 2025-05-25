@@ -30,6 +30,7 @@ public class CheckoutDialog extends Dialog {
     private final TextField city;
     private final TextField zipCode;
     private final TextField country;
+    private final TextField id;
     private final Span totalAmount;
 
     public CheckoutDialog(CartPresenter presenter) {
@@ -114,6 +115,13 @@ public class CheckoutDialog extends Dialog {
         cvv.setAllowedCharPattern("[0-9]");
         cvv.setRequired(true);
 
+        id = new TextField("Buyer Id");
+        id.setPlaceholder("123456789");
+        id.setMaxLength(9);
+        id.setPattern("[0-9]*");
+        id.setAllowedCharPattern("[0-9]");
+        id.setRequired(true);
+
         // Add fields to form
         formLayout.add(shippingTitle, 2);
         formLayout.add(address, 2);
@@ -123,6 +131,7 @@ public class CheckoutDialog extends Dialog {
         formLayout.add(cardNumber, 2);
         formLayout.add(cardHolder, 2);
         formLayout.add(expiryDate, cvv);
+        formLayout.add(id);
 
         // Bind fields
         binder.forField(cardNumber)
@@ -157,6 +166,9 @@ public class CheckoutDialog extends Dialog {
                 .withValidator(new StringLengthValidator("Country is required", 1, null))
                 .bind(CreditCardDetails::getCountry, CreditCardDetails::setCountry);
 
+        binder.forField(id)
+                .withValidator(new StringLengthValidator("Id is required", 9, 9))
+                .bind(CreditCardDetails::getId, CreditCardDetails::setId);
         // Set the bean to be bound
         binder.setBean(creditCardDetails);
 
@@ -168,6 +180,7 @@ public class CheckoutDialog extends Dialog {
             if (binder.validate().isOk()) {
                 // Ensure the bean is updated with the latest values
                 binder.writeBeanIfValid(creditCardDetails);
+                System.out.println("yehuda1fhv\n" + creditCardDetails);
                 boolean success = presenter.onCheckout(creditCardDetails);
                 if (success) {
                     close();
@@ -204,6 +217,7 @@ public class CheckoutDialog extends Dialog {
         private String city;
         private String zipCode;
         private String country;
+        private String id;
 
         public String getCardNumber() { return cardNumber; }
         public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
@@ -221,6 +235,30 @@ public class CheckoutDialog extends Dialog {
         public void setZipCode(String zipCode) { this.zipCode = zipCode; }
         public String getCountry() { return country; }
         public void setCountry(String country) { this.country = country; }
+        public void setId(String id) { this.id = id; }
+        public String getId(){return id;}
+
+        @Override
+        public String toString() {
+            try {
+                return '{' +
+                        "\"card_number\":\"" + cardNumber + "\"," +
+                        "\"holder\":\"" + cardHolder + "\"," +
+                        "\"month\":\"" + expiryDate.substring(0,2) + "\"," +
+                        "\"year\":\"" + expiryDate.substring(3) + "\"," +
+                        "\"cvv\":\"" + cvv + "\"," +
+                        "\"address\":\"" + address + "\"," +
+                        "\"city\":\"" + city + "\"," +
+                        "\"zipCode\":\"" + zipCode + "\"," +
+                        "\"country\":\"" + country + '"' +
+                        '}';
+            }
+            catch (Exception e){
+                return e.toString();
+            }
+
+        }
+
     }
 
     /**
