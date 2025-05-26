@@ -17,7 +17,7 @@ public class ShoppingProductDTO {
     private final int quantity;
     private final double avgRating;
     private String imageUrl;
-    private final List<String> categories = new ArrayList<>();
+    private List<String> categories = new ArrayList<>();
 
     /**
      * Constructs a new ShoppingProductDTO with the specified details.
@@ -40,7 +40,8 @@ public class ShoppingProductDTO {
                               double price,
                               int quantity,
                               double avgRating,
-                              String imageUrl) {
+                              String imageUrl,
+                              List<String> categories) {
         this.storeName   = storeName;
         this.catalogId   = catalogId;
         this.productId   = productId;
@@ -50,6 +51,7 @@ public class ShoppingProductDTO {
         this.quantity    = quantity;
         this.avgRating   = avgRating;
         this.imageUrl    = imageUrl;
+        this.categories = categories;
     }
 
     // --- Getters & setters --------------------------------
@@ -100,10 +102,14 @@ public class ShoppingProductDTO {
      * Replace the entire category list (called from your presenter).
      */
     public void setCategories(List<String> categories) {
-        this.categories.clear();
-        if (categories != null) {
+
+
+            this.categories = (categories == null)
+                    ? new ArrayList<>()
+                    : new ArrayList<>(categories);
+            this.categories.clear();
             this.categories.addAll(categories);
-        }
+
     }
 
     /**

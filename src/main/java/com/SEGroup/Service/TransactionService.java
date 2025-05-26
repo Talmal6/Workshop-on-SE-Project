@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.SEGroup.DTO.AddressDTO;
 import org.checkerframework.checker.units.qual.t;
 
 import com.SEGroup.DTO.BasketDTO;
@@ -111,7 +112,9 @@ public class TransactionService {
                     .sum();
             try {
                 for (BasketDTO basket : cart) {
-                    shippingService.ship(basket, userEmail);
+                    //todo need to create a address DTO from the user address and use the same one for each shipping
+                    //todo need to save all shipping id's so we can cancel them
+                    shippingService.ship(new AddressDTO(), "some_name");
                 }
                 try {
 
@@ -129,7 +132,8 @@ public class TransactionService {
                 }
             } catch (Exception e) {
                 for (BasketDTO basket : cart) {
-                    shippingService.cancelShipping(basket, userEmail); // Rollback items to stores in case of shipping
+                    //todo need to save all shipping id's so we can cancel them
+                    shippingService.cancelShipping(0); // Rollback items to stores in case of shipping
                                                                        // failure
                 }
                 return Result.failure(e.getMessage());
@@ -196,7 +200,8 @@ public class TransactionService {
             storeRepository.acceptBid(storeName, userEmail, bidDTO.getProductId(), bidDTO);
             double cost = bidDTO.getPrice()*1;
             try {
-                shippingService.ship(storeName, userEmail, bidDTO.getProductId());
+                //todo need to create a address DTO from the user address and use the same one for each shipping
+                shippingService.ship(new AddressDTO(), "some_name");
 
             } catch (Exception e) {
                 LoggerWrapper.error("Shipping failed for bid acceptance: " + e.getMessage(), e); // Log shipping failure
@@ -239,7 +244,8 @@ public class TransactionService {
             storeRepository.executeAuctionBid(userEmail, storeName, bidDTO);
             double cost = bidDTO.getPrice();
             try {
-                shippingService.ship(storeName, userEmail, bidDTO.getProductId());
+                //todo need to create a address DTO from the user address and use the same one for each shipping
+                shippingService.ship(new AddressDTO(), "some_name");
 
             } catch (Exception e) {
                 LoggerWrapper.error("Shipping failed for bid acceptance: " + e.getMessage(), e); // Log shipping failure

@@ -1,19 +1,44 @@
 package com.SEGroup.Domain.User;
 
+ 
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import jakarta.persistence.*;
 
 /**
  * Represents a shopping cart that can contain multiple baskets, each associated with a different store.
  * The cart allows adding products to the baskets and changing their quantities.
  */
+@Entity
+@Table(name = "shopping_cart")
 public class ShoppingCart {
 
+    @Id
+    @Column(name = "user_id")
+    private String userId;
+    /**
+     * A map that holds the baskets for each store.
+     * The key is the store ID, and the value is the corresponding Basket object.
+     */
 
-
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "store_baskets", joinColumns = @JoinColumn(name = "cart_id"))
+    @MapKeyColumn(name = "store_id")
+    @Column(name = "basket")
+    @Enumerated(EnumType.STRING)
     private final Map<String, Basket> storeToBasket=new ConcurrentHashMap<>();
 
+
+    public ShoppingCart(String userId) {
+        this.userId = userId;
+    }
+
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
     /**
      * Adds a product to the basket of a specific store.
      * If the store does not exist, a new basket is created.
@@ -24,7 +49,7 @@ public class ShoppingCart {
      */
     public void add(String storeId, String productId, int qty) {
         storeToBasket
-                .computeIfAbsent(storeId, Basket::new)
+                .computeIfAbsent(storeId, k -> new Basket(k, userId))
                 .add(productId, qty);
     }
 

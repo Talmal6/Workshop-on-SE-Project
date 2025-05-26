@@ -23,7 +23,7 @@ public class GuestRepository implements IGuestRepository {
     @Override
     public Guest create() {
         String id = "g-" + UUID.randomUUID();      // <— NOT a JWT!
-        Guest g = new Guest(id, Instant.now(), new ShoppingCart());
+        Guest g = new Guest(id, Instant.now(), new ShoppingCart(id));
         guests.put(id, g);
         return g;
     }

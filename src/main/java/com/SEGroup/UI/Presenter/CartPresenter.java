@@ -9,9 +9,12 @@ import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.CartView;
 import com.SEGroup.UI.Views.CheckoutDialog;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.UI;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -324,7 +327,7 @@ public class CartPresenter {
 
             // Create payment details string from credit card information
             String paymentDetails = createPaymentDetailsString(creditCardDetails);
-
+            System.out.println("yehuda12" + paymentDetails);
             // Use the TransactionService for checkout rather than UserService
             Result<Void> result = transactionService.purchaseShoppingCart(
                     token,
@@ -350,19 +353,34 @@ public class CartPresenter {
     /**
      * Creates a payment details string from credit card information.
      *
-     * @param creditCardDetails The credit card details
      * @return A formatted payment details string
      */
-    private String createPaymentDetailsString(CheckoutDialog.CreditCardDetails creditCardDetails) {
-        // Format payment details as needed by the payment processor
-        return String.format("CARD:%s;NAME:%s;EXP:%s;ADDR:%s,%s,%s,%s",
-                creditCardDetails.getCardNumber(),
-                creditCardDetails.getCardHolder(),
-                creditCardDetails.getExpiryDate(),
-                creditCardDetails.getAddress(),
-                creditCardDetails.getCity(),
-                creditCardDetails.getZipCode(),
-                creditCardDetails.getCountry());
+    private String createPaymentDetailsString(CheckoutDialog.CreditCardDetails cc) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // 1️⃣  split the expiry date (supports “MM/YY” or “MM/YYYY”)
+        String[] exp = cc.getExpiryDate().split("/");
+        String month = exp.length > 0 ? exp[0] : "";
+        String year  = exp.length > 1 ? (exp[1].length() == 2 ? "20" + exp[1] : exp[1]) : "";
+
+        // 2️⃣  build payload
+        Map<String, String> payload = new LinkedHashMap<>();
+        payload.put("action_type", "pay");
+        payload.put("amount",      String.valueOf(getCartTotalAfterDiscount()));
+        payload.put("currency",    "USD");
+        payload.put("card_number", cc.getCardNumber());
+        payload.put("month",       month);
+        payload.put("year",        year);
+        payload.put("holder",      cc.getCardHolder());
+        payload.put("cvv",         cc.getCvv());
+        payload.put("id",          cc.getId());
+
+        // 3️⃣  convert to compact JSON string
+        try {
+            return mapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Could not build payment JSON", e);
+        }
     }
 
     public Result<Void> applyCoupon(String value) {

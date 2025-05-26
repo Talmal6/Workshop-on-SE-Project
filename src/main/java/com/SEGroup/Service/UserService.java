@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.User.Role;
@@ -73,6 +74,12 @@ public class UserService {
      * @param password The password of the user to register.
      * @return A Result object indicating success or failure of the registration.
      */
+
+    @Transactional
+    public Result<Void> register(String username, String email, String password, AddressDTO address) {
+        return Result.failure("User registration with address is not supported yet.");
+    }
+
     @Transactional
     public Result<Void> register(String username, String email, String password) {
         try {
@@ -620,5 +627,18 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<UserSuspensionDTO> allSuspensions() {
         return userRepository.getAllSuspendedUsers();
+    }
+
+    public Result<AddressDTO> getUserAddress(String sessionKey,String email) {
+        //todo: Implement user address retrieval logic
+        return Result.failure("User address retrieval is not supported yet.");
+    }
+    public Result<Void> setUserAddress(String sessionKey, AddressDTO address){
+        //todo: Implement user address setting logic
+        return Result.failure("User address setting is not supported yet.");
+    }
+    public Result<Void> setUserName(String sessionKey, String newName){
+        //todo: Implement user name setting logic
+        return Result.failure("User name setting is not supported yet.");
     }
 }

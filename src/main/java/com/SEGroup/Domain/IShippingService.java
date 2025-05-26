@@ -1,5 +1,6 @@
 package com.SEGroup.Domain;
 
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.DTO.BasketDTO;
 
 public interface IShippingService {
@@ -8,7 +9,8 @@ public interface IShippingService {
      *
      * @return true if the shipping operation was successful; false otherwise.
      */
-    String ship(BasketDTO basket , String userId) throws Exception;
-    String cancelShipping(BasketDTO basket,String userId);
-    String ship(String storeName, String productId, String userId) throws Exception;
+//    String ship(BasketDTO basket , String userId) throws Exception;
+    Boolean cancelShipping(int shippingId);
+
+    Integer ship(AddressDTO address_detail, String name);
 }

@@ -723,10 +723,8 @@ public class StoreService {
     public Result<List<ShoppingProductDTO>> getStoreProducts(String storeName) {
         try {
             LoggerWrapper.info("Fetching products for store: " + storeName);
+            return Result.success(storeRepository.getStoreProducts(storeName));
 
-            // Use the existing searchProducts method with empty query and filters
-
-            return searchProducts("", List.of(), storeName, (List<String>) null);
         } catch (Exception e) {
             LoggerWrapper.error("Error getting store products: " + e.getMessage(), e);
             return Result.failure(e.getMessage());

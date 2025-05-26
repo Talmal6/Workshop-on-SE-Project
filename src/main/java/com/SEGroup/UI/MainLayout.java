@@ -492,6 +492,13 @@ public class MainLayout extends AppLayout {
             System.out.println("Token present: " + (SecurityContextHolder.token() != null));
 
             greeting.setText("Hello " + displayName);
+            greeting.setEnabled(true);
+            greeting.addClickListener(e -> {
+                // Navigate to user profile or settings page
+                UI.getCurrent().navigate("profile/" +
+                        (userEmail != null ? userEmail : "")
+                );
+            });
             if (SecurityContextHolder.isSuspended()) {
                 suspensionBar.setVisible(true);
             } else {
@@ -499,6 +506,7 @@ public class MainLayout extends AppLayout {
             }
         } else {
             greeting.setText("Hello Guest");
+            greeting.setEnabled(false);
             suspensionBar.setVisible(false);
         }
 

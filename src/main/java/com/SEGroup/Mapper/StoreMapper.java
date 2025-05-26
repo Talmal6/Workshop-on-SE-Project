@@ -35,7 +35,8 @@ public class StoreMapper {
                     product.getPrice(),
                     product.getQuantity(),
                     product.averageRating(),
-                    product.getImageUrl()
+                    product.getImageUrl(),
+                    product.getCategories()
             ));
         }
 
