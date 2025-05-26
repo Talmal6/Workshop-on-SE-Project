@@ -102,10 +102,14 @@ public class ShoppingProductDTO {
      * Replace the entire category list (called from your presenter).
      */
     public void setCategories(List<String> categories) {
-        this.categories.clear();
-        if (categories != null) {
+
+
+            this.categories = (categories == null)
+                    ? new ArrayList<>()
+                    : new ArrayList<>(categories);
+            this.categories.clear();
             this.categories.addAll(categories);
-        }
+
     }
 
     /**
