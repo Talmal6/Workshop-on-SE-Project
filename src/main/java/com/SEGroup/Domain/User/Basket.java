@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Represents a shopping basket for a specific store.
@@ -17,6 +19,10 @@ public class Basket {
     @Id
     @Column(name = "store_id")
     private final String storeId;
+
+
+
+    @JdbcTypeCode(SqlTypes.JSON)
     private final Map<String, Integer> product2qty = new ConcurrentHashMap<>();
 
     public Basket(String storeId,String userId) {
