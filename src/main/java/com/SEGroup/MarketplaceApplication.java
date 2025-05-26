@@ -19,7 +19,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @EnableVaadin
-@EnableJpaRepositories("com.SEGroup.Infrastructure.Repositories.DataBaseRepositories")
+//@EnableJpaRepositories("com.SEGroup.Infrastructure.Repositories.DataBaseRepositories")
 public class MarketplaceApplication extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
