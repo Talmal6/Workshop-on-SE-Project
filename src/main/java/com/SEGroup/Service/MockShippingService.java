@@ -25,7 +25,7 @@ public class MockShippingService implements IShippingService {
 //        return null;
 //    }
     @Override
-    public Integer ship(AddressDTO address_detail){
+    public Integer ship(AddressDTO address_detail, String name){
         return 0;
     }
 

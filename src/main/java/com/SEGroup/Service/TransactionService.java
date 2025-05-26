@@ -114,7 +114,7 @@ public class TransactionService {
                 for (BasketDTO basket : cart) {
                     //todo need to create a address DTO from the user address and use the same one for each shipping
                     //todo need to save all shipping id's so we can cancel them
-                    shippingService.ship(new AddressDTO());
+                    shippingService.ship(new AddressDTO(), "some_name");
                 }
                 try {
 
@@ -201,7 +201,7 @@ public class TransactionService {
             double cost = bidDTO.getPrice()*1;
             try {
                 //todo need to create a address DTO from the user address and use the same one for each shipping
-                shippingService.ship(new AddressDTO());
+                shippingService.ship(new AddressDTO(), "some_name");
 
             } catch (Exception e) {
                 LoggerWrapper.error("Shipping failed for bid acceptance: " + e.getMessage(), e); // Log shipping failure
@@ -245,7 +245,7 @@ public class TransactionService {
             double cost = bidDTO.getPrice();
             try {
                 //todo need to create a address DTO from the user address and use the same one for each shipping
-                shippingService.ship(new AddressDTO());
+                shippingService.ship(new AddressDTO(), "some_name");
 
             } catch (Exception e) {
                 LoggerWrapper.error("Shipping failed for bid acceptance: " + e.getMessage(), e); // Log shipping failure

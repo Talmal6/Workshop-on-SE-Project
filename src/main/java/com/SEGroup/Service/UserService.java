@@ -628,4 +628,17 @@ public class UserService {
     public List<UserSuspensionDTO> allSuspensions() {
         return userRepository.getAllSuspendedUsers();
     }
+
+    public Result<AddressDTO> getUserAddress(String sessionKey,String email) {
+        //todo: Implement user address retrieval logic
+        return Result.failure("User address retrieval is not supported yet.");
+    }
+    public Result<Void> setUserAddress(String sessionKey, AddressDTO address){
+        //todo: Implement user address setting logic
+        return Result.failure("User address setting is not supported yet.");
+    }
+    public Result<Void> setUserName(String sessionKey, String newName){
+        //todo: Implement user name setting logic
+        return Result.failure("User name setting is not supported yet.");
+    }
 }

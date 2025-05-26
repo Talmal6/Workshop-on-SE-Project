@@ -12,5 +12,5 @@ public interface IShippingService {
 //    String ship(BasketDTO basket , String userId) throws Exception;
     Boolean cancelShipping(int shippingId);
 
-    Integer ship(AddressDTO address_detail);
+    Integer ship(AddressDTO address_detail, String name);
 }
