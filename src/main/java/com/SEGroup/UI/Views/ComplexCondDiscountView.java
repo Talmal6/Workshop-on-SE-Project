@@ -153,15 +153,27 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
                     .toList();
 
             if(select.getValue().equals("Entire Store")){
+                if(!couponField.isEnabled()) {
+                    presenter.apply_on_entire_store(operator, selectedProducts, minAmounts,
+                            minPrice.getValue(), discountPct.getValue(), null);
+                }
                 presenter.apply_on_entire_store(operator, selectedProducts, minAmounts,
                         minPrice.getValue(), discountPct.getValue(), couponField.getValue());
             }
             else
             if(select.getValue().equals("Product")){
+                if(!couponField.isEnabled()) {
+                    presenter.apply_on_product(operator, products.getValue().getProductId(), selectedProducts, minAmounts,
+                            minPrice.getValue(), discountPct.getValue(), null);
+                }
                 presenter.apply_on_product(operator, products.getValue().getProductId(), selectedProducts, minAmounts,
                         minPrice.getValue(), discountPct.getValue(), couponField.getValue());
             }
             else{
+                if(!couponField.isEnabled()) {
+                    presenter.apply_on_entire_category(operator, categories.getValue(), selectedProducts, minAmounts,
+                                minPrice.getValue(), discountPct.getValue(), null);
+                }
                 presenter.apply_on_entire_category(operator, categories.getValue(), selectedProducts, minAmounts,
                         minPrice.getValue(), discountPct.getValue(), couponField.getValue());
             }
