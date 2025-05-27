@@ -1,9 +1,11 @@
 package com.SEGroup.UI.Views;
 
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.CartPresenter;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H3;
@@ -32,6 +34,7 @@ public class CheckoutDialog extends Dialog {
     private final TextField country;
     private final TextField id;
     private final Span totalAmount;
+    private final Checkbox useAddressOnFile;
 
     public CheckoutDialog(CartPresenter presenter) {
         this.presenter = presenter;
@@ -63,27 +66,6 @@ public class CheckoutDialog extends Dialog {
                 new FormLayout.ResponsiveStep("0", 1),
                 new FormLayout.ResponsiveStep("500px", 2)
         );
-
-        // Shipping information
-        H3 shippingTitle = new H3("Shipping Information");
-        shippingTitle.getStyle().set("margin-top", "1em").set("margin-bottom", "0.5em");
-        shippingTitle.setWidthFull();
-
-        address = new TextField("Shipping Address");
-        address.setPlaceholder("123 Main St");
-        address.setRequired(true);
-
-        city = new TextField("City");
-        city.setPlaceholder("New York");
-        city.setRequired(true);
-
-        zipCode = new TextField("Zip/Postal Code");
-        zipCode.setPlaceholder("10001");
-        zipCode.setRequired(true);
-
-        country = new TextField("Country");
-        country.setPlaceholder("United States");
-        country.setRequired(true);
 
         // Payment information
         H3 paymentTitle = new H3("Payment Information");
@@ -122,16 +104,81 @@ public class CheckoutDialog extends Dialog {
         id.setAllowedCharPattern("[0-9]");
         id.setRequired(true);
 
+        // Add checkbox for address on file
+        useAddressOnFile = new Checkbox("Use address on file");
+        useAddressOnFile.setValue(true); // Default to checked
+
+        // Shipping information
+        H3 shippingTitle = new H3("Shipping Information");
+        shippingTitle.getStyle().set("margin-top", "1em").set("margin-bottom", "0.5em");
+        shippingTitle.setWidthFull();
+
+        address = new TextField("Shipping Address");
+        address.setPlaceholder("123 Main St");
+        address.setRequired(true);
+
+        city = new TextField("City");
+        city.setPlaceholder("New York");
+        city.setRequired(true);
+
+        zipCode = new TextField("Zip/Postal Code");
+        zipCode.setPlaceholder("10001");
+        zipCode.setRequired(true);
+
+        country = new TextField("Country");
+        country.setPlaceholder("United States");
+        country.setRequired(true);
+
+        // Make shipping fields invisible by default
+        address.setVisible(false);
+        city.setVisible(false);
+        zipCode.setVisible(false);
+        country.setVisible(false);
+        shippingTitle.setVisible(false);
+
+        // Add checkbox listener
+        useAddressOnFile.addValueChangeListener(event -> {
+            boolean useAddress = event.getValue();
+            address.setVisible(!useAddress);
+            city.setVisible(!useAddress);
+            zipCode.setVisible(!useAddress);
+            country.setVisible(!useAddress);
+            shippingTitle.setVisible(!useAddress);
+            
+            // Update required state
+            address.setRequired(!useAddress);
+            city.setRequired(!useAddress);
+            zipCode.setRequired(!useAddress);
+            country.setRequired(!useAddress);
+        });
+        if (presenter.doesAddressOnFileExist()) {
+            useAddressOnFile.setValue(true);
+            address.setVisible(false);
+            city.setVisible(false);
+            zipCode.setVisible(false);
+            country.setVisible(false);
+            shippingTitle.setVisible(false);
+        } else {
+            useAddressOnFile.setValue(false);
+            address.setVisible(true);
+            city.setVisible(true);
+            zipCode.setVisible(true);
+            country.setVisible(true);
+            shippingTitle.setVisible(true);
+        }
+
         // Add fields to form
-        formLayout.add(shippingTitle, 2);
-        formLayout.add(address, 2);
-        formLayout.add(city, country);
-        formLayout.add(zipCode);
+
         formLayout.add(paymentTitle, 2);
         formLayout.add(cardNumber, 2);
         formLayout.add(cardHolder, 2);
         formLayout.add(expiryDate, cvv);
         formLayout.add(id);
+        formLayout.add(useAddressOnFile, 2);
+        formLayout.add(shippingTitle, 2);
+        formLayout.add(address, 2);
+        formLayout.add(city, country);
+        formLayout.add(zipCode);
 
         // Bind fields
         binder.forField(cardNumber)
@@ -177,17 +224,48 @@ public class CheckoutDialog extends Dialog {
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         Button checkoutButton = new Button("Complete Purchase", e -> {
-            if (binder.validate().isOk()) {
-                // Ensure the bean is updated with the latest values
-                binder.writeBeanIfValid(creditCardDetails);
-                System.out.println("yehuda1fhv\n" + creditCardDetails);
-                boolean success = presenter.onCheckout(creditCardDetails);
-                if (success) {
-                    close();
+            if (useAddressOnFile.getValue()) {
+                if (binder.validate().isOk()) {
+                    // Ensure the bean is updated with the latest values
+                    binder.writeBeanIfValid(creditCardDetails);
+                    boolean success = presenter.onCheckout(creditCardDetails);
+                    if (success) {
+                        close();
+                    }
+                } else {
+                    Notification notification = Notification.show("Please fill in all fields correctly", 3000, Notification.Position.MIDDLE);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             } else {
-                Notification notification = Notification.show("Please fill in all fields correctly", 3000, Notification.Position.MIDDLE);
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                // Validate both payment and address fields
+                if (binder.validate().isOk()) {
+                    // Ensure the bean is updated with the latest values
+                    binder.writeBeanIfValid(creditCardDetails);
+                    
+                    // Validate that address fields are not empty
+                    if (address.getValue() == null || address.getValue().trim().isEmpty() ||
+                        city.getValue() == null || city.getValue().trim().isEmpty() ||
+                        zipCode.getValue() == null || zipCode.getValue().trim().isEmpty() ||
+                        country.getValue() == null || country.getValue().trim().isEmpty()) {
+                        
+                        Notification notification = Notification.show("Please fill in all shipping address fields", 3000, Notification.Position.MIDDLE);
+                        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                    }
+                    AddressDTO addressDTO = new AddressDTO(
+                            address.getValue(),
+                            city.getValue(),
+                            country.getValue(),
+                            zipCode.getValue()
+                    );
+                    boolean success = presenter.onCheckout(creditCardDetails, addressDTO);
+                    if (success) {
+                        close();
+                    }
+                } else {
+                    Notification notification = Notification.show("Please fill in all fields correctly", 3000, Notification.Position.MIDDLE);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
             }
         });
         checkoutButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -202,6 +280,8 @@ public class CheckoutDialog extends Dialog {
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
         add(mainLayout);
+        useAddressOnFile.setVisible(presenter.doesAddressOnFileExist());
+        useAddressOnFile.setValue(presenter.doesAddressOnFileExist());
     }
 
     private void updateTotalDisplay(double total) {
