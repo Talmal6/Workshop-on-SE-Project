@@ -7,7 +7,10 @@ import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.ComplexCondDiscountView;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ComplexCondDiscountPresenter {
 
@@ -23,28 +26,76 @@ public class ComplexCondDiscountPresenter {
 
     public void loadProducts() {
         Result<List<ShoppingProductDTO>> res = storeService.getStoreProducts(storeName);
+        Set<String> categories = new HashSet<>();
         if (res.isSuccess()) {
-            view.setComboItems(res.getData().stream().map(prod -> prod.getName()).toList());
+            List<ShoppingProductDTO> ps = res.getData();
+            for(ShoppingProductDTO p: ps){
+               categories.addAll(p.getCategories());
+            }
+            view.categories.setItems(categories);
+            view.products.setItems(res.getData());
+            view.products.setItemLabelGenerator(ShoppingProductDTO::getName);
+            view.setComboItems(res.getData());
         } else {
             view.showError("Could not load products: " + res.getErrorMessage());
         }
     }
 
-    public void confirm(String operator,
+    public void apply_on_entire_store(String operator,
                  List<String> productIds,
                  List<Integer> minAmounts,
-                 double minPrice,
-                 int precentage,
+                 int minPrice,
+                 int percentage,
                  String couponCode){
-//        Result<Void> res = storeService.addCompositeConditionDiscountToEntireCategoryInStore(SecurityContextHolder.token(),
-//                storeName,operator,productIds, minAmounts,  minPrice, percentage,coupon);
-//        if(res.isSuccess()){
-//            view.showSuccess("Discount added successfully!");
-//        }
-//        else{
-//            view.showError("Adding discount failed!");
-//        }
-        view.showSuccess("Discount added successfully!");
-        view.navigateBack();
+        Result<Void> res = storeService.addLogicalCompositeConditionalDiscountToEntireStore(
+                SecurityContextHolder.token(),
+                storeName, percentage, productIds, minAmounts, minPrice, operator,couponCode);
+        if(res.isSuccess()){
+            view.showSuccess("Discount added successfully!");
+            view.navigateBack();
+        }
+        else{
+            view.showError("Adding discount failed!");
+        }
+    }
+
+    public void apply_on_entire_category(String operator,
+                                 String category,
+                                 List<String> productIds,
+                                 List<Integer> minAmounts,
+                                 int minPrice,
+                                 int percentage,
+                                 String couponCode){
+        Result<Void> res = storeService.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(
+                SecurityContextHolder.token(),
+                storeName, category, percentage, productIds, minAmounts, minPrice, operator,couponCode);
+        if(res.isSuccess()){
+            view.showSuccess("Discount added successfully!");
+            view.navigateBack();
+        }
+        else{
+            view.showError("Adding discount failed!");
+        }
+    }
+
+    public void apply_on_product(String operator,
+                                      String product_id,
+                                      List<String> productIds,
+                                      List<Integer> minAmounts,
+                                      int minPrice,
+                                      int percentage,
+                                      String couponCode){
+        System.out.println(product_id);
+        System.out.println(productIds);
+        Result<Void> res = storeService.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(
+                SecurityContextHolder.token(),
+                storeName, product_id, percentage, productIds, minAmounts, minPrice, operator,couponCode);
+        if(res.isSuccess()){
+            view.showSuccess("Discount added successfully!");
+            view.navigateBack();
+        }
+        else{
+            view.showError("Adding discount failed!");
+        }
     }
 }
