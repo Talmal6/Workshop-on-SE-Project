@@ -260,7 +260,7 @@ class UserServiceTests {
             sut.addToUserCart(jwt, email, "P42", "S7");
             assertTrue(sut.removeFromUserCart(jwt, email, "P42", "S7").isSuccess());
             List<BasketDTO> cart = users.getUserCart(email);
-            assertEquals(0, cart.get(0).prod2qty().get("P42"));
+            assertEquals(null, cart.get(0).prod2qty().get("P42"));
         }
 
         @Test
