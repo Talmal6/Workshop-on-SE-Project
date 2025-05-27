@@ -1,5 +1,7 @@
 package com.SEGroup.UI.Views;
 
+import com.SEGroup.DTO.ShoppingProductDTO;
+import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.UI.Presenter.ComplexCondDiscountPresenter;
 import com.SEGroup.UI.MainLayout;
 import com.vaadin.flow.component.UI;
@@ -11,11 +13,9 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
@@ -24,11 +24,13 @@ import com.vaadin.flow.router.Route;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Route(value = "add-complex-Cond-discount", layout = MainLayout.class)
 @PageTitle("Complex Cond Discount")
 public class ComplexCondDiscountView extends VerticalLayout implements HasUrlParameter<String> {
-    private List<String> cachedProductNames = List.of();
+    private List<ShoppingProductDTO> cachedProductNames = List.of();
     private final Button andBtn    = new Button("And");
     private final Button orBtn     = new Button("Or");
     private final Button xorBtn    = new Button("Xor");
@@ -36,7 +38,7 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
 
 
     // we'll replace comboA/comboB with a dynamic list:
-    private final List<ComboBox<String>>     productCombos = new ArrayList<>();
+    private final List<ComboBox<ShoppingProductDTO>>     productCombos = new ArrayList<>();
     private final List<IntegerField>         qtyFields     = new ArrayList<>();
 
     private final IntegerField    minPrice      = new IntegerField("Min Price");
@@ -47,15 +49,17 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
     private final Button         confirmBtn    = new Button("Confirm Discount");
     private final ComboBox<String> select = new ComboBox<>("What to apply discount on:");
     public final ComboBox<String> categories = new ComboBox<>("Category");
-    public final ComboBox<String> products = new ComboBox<>("Product");
+    public final ComboBox<ShoppingProductDTO> products = new ComboBox<>("Product");
 
     private final VerticalLayout productContainer = new VerticalLayout();
 
     private ComplexCondDiscountPresenter presenter;
     private String storeName;
     private String operator;
+    private int count;
 
     public ComplexCondDiscountView() {
+        count = 0;
         setSizeFull();
         setPadding(true);
         setSpacing(true);
@@ -80,12 +84,11 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
 
         ops.add(addProdBtn);
 
-// now give the spacer all the remaining space:
         ops.expand(spacer);
 
-        andBtn.addClickListener(e -> selectOp(andBtn, "And"));
-        orBtn .addClickListener(e -> selectOp(orBtn,  "Or"));
-        xorBtn.addClickListener(e -> selectOp(xorBtn, "Xor"));
+        andBtn.addClickListener(e -> selectOp(andBtn, "AND"));
+        orBtn .addClickListener(e -> selectOp(orBtn,  "OR"));
+        xorBtn.addClickListener(e -> selectOp(xorBtn, "XOR"));
 
         addProdBtn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         addProdBtn.addClickListener(e -> addProductRow());
@@ -95,8 +98,11 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
         productContainer.setSpacing(false);
         productContainer.setPadding(false);
         // start with two rows:
-        addProductRow();
-        addProductRow();
+        if(count == 0) {
+            addProductRow();
+            addProductRow();
+            count++;
+        }
         add(productContainer);
 
         // --- Min Price & Discount & Coupon ---
@@ -136,27 +142,29 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
                 showError("Please select an operator and fill in all required fields.");
                 return;
             }
-            var combos = productContainer.getChildren()
+            List<String> selectedProducts = productContainer.getChildren()
                     .map(c -> (HorizontalLayout)c)
-                    .map(row -> row.getComponentAt(0).toString())
+                    .map(row -> ((ComboBox<ShoppingProductDTO>)row.getComponentAt(0)).getValue().getProductId())
                     .toList();
+
             var minAmounts = productContainer.getChildren()
                     .map(c -> (HorizontalLayout)c)
                     .map(row -> ((IntegerField)row.getComponentAt(1)).getValue())
                     .toList();
+
             if(select.getValue().equals("Entire Store")){
-                presenter.apply_on_entire_store(operator, combos, minAmounts,
+                presenter.apply_on_entire_store(operator, selectedProducts, minAmounts,
                         minPrice.getValue(), discountPct.getValue(), couponField.getValue());
             }
             else
-                if(select.getValue().equals("Product")){
-                    presenter.apply_on_product(operator, products.getValue(), combos, minAmounts,
-                            minPrice.getValue(), discountPct.getValue(), couponField.getValue());
-                }
-                else{
-                    presenter.apply_on_entire_category(operator, categories.getValue(), combos, minAmounts,
-                            minPrice.getValue(), discountPct.getValue(), couponField.getValue());
-                }
+            if(select.getValue().equals("Product")){
+                presenter.apply_on_product(operator, products.getValue().getProductId(), selectedProducts, minAmounts,
+                        minPrice.getValue(), discountPct.getValue(), couponField.getValue());
+            }
+            else{
+                presenter.apply_on_entire_category(operator, categories.getValue(), selectedProducts, minAmounts,
+                        minPrice.getValue(), discountPct.getValue(), couponField.getValue());
+            }
         });
         add(confirmBtn);
     }
@@ -172,7 +180,8 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
     }
 
     private void addProductRow() {
-        ComboBox<String> combo = new ComboBox<>("Product");
+        ComboBox<ShoppingProductDTO> combo = new ComboBox<>("Product");
+        combo.setItemLabelGenerator(ShoppingProductDTO::getName);
         combo.setRequiredIndicatorVisible(true);
         combo.setWidth("200px");
 //        combo.setItemLabelGenerator(String::valueOf);
@@ -201,7 +210,7 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
     }
 
     // called by presenter:
-    public void setComboItems(List<String> items) {
+    public void setComboItems(List<ShoppingProductDTO> items) {
         this.cachedProductNames = items;
         productCombos.forEach(c -> c.setItems(items));
     }

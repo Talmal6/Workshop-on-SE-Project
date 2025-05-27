@@ -33,8 +33,9 @@ public class ComplexCondDiscountPresenter {
                categories.addAll(p.getCategories());
             }
             view.categories.setItems(categories);
-            view.products.setItems(res.getData().stream().map(prod -> prod.getName()).toList());
-            view.setComboItems(res.getData().stream().map(prod -> prod.getName()).toList());
+            view.products.setItems(res.getData());
+            view.products.setItemLabelGenerator(ShoppingProductDTO::getName);
+            view.setComboItems(res.getData());
         } else {
             view.showError("Could not load products: " + res.getErrorMessage());
         }
@@ -84,6 +85,8 @@ public class ComplexCondDiscountPresenter {
                                       int minPrice,
                                       int percentage,
                                       String couponCode){
+        System.out.println(product_id);
+        System.out.println(productIds);
         Result<Void> res = storeService.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(
                 SecurityContextHolder.token(),
                 storeName, product_id, percentage, productIds, minAmounts, minPrice, operator,couponCode);
