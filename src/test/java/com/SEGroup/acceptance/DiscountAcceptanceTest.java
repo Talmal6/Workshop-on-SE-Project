@@ -2,6 +2,7 @@ package com.SEGroup.acceptance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Domain.Conditions.AndCondition;
 import com.SEGroup.Domain.Discount.ConditionalDiscount;
 import com.SEGroup.Domain.Discount.Discount;
@@ -206,6 +207,50 @@ public class DiscountAcceptanceTest {
         // Expected: max of 10% (10.0) and 25% (25.0) → apply 25%
         assertEquals(priceBefore * 0.25, discountAmount, 0.01);
         assertEquals(75.0, discountedPrice, 0.01);
+    }
+    @Test
+    public void purchase_WithCompositeDiscountAppliedThroughService_ShouldApplyCorrectly() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+
+        // Add products to catalog
+        storeService.addProductToCatalog("cat1", "Coffee Maker", "Deluxe", "Coffee Maker Deluxe", List.of("kitchen"));
+        storeService.addProductToCatalog("cat2", "Smartphone", "X Pro", "High-end smartphone", List.of("electronics"));
+        storeService.addProductToCatalog("cat3", "Laptop", "Pro Max", "High-end laptop", List.of("electronics"));
+
+        // Add products to store
+        String coffeeId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Coffee Maker", "Deluxe", 100.0, 5, "").getData();
+        String phoneId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Smartphone", "X Pro", 300.0, 5, "").getData();
+        String laptopId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat3", "Laptop", "Pro Max", 700.0, 5, "").getData();
+
+        // Add composite conditional discount to Coffee Maker if user buys Smartphone + Laptop
+        storeService.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(
+                VALID_SESSION,
+                STORE_NAME,
+                coffeeId,
+                50,
+                List.of(phoneId, laptopId), // required products
+                List.of(1, 1), // min amounts
+                100,
+                "AND",
+                null
+        );
+
+        // Prepare basket with required conditions met
+        BasketDTO basket = new BasketDTO(
+                STORE_NAME,
+                Map.of(
+                        coffeeId, 1,
+                        phoneId, 1,
+                        laptopId, 1
+                )
+        );
+
+        // Act
+        Map<String, Double> result = storeRepository.CalculateDiscountToStores(List.of(basket));
+
+        // Assert
+        double discountedCoffee = result.get(coffeeId);
+        assertEquals(50.0, discountedCoffee, 0.01); // 100 * 50% = 50
     }
 
 }
