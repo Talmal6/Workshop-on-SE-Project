@@ -22,8 +22,8 @@ class UserDomainUnitTests {
     /* ───────────────────────────── Basket ───────────────────────────── */
     @Nested class BasketTests {
         Basket basket;
-
-        @BeforeEach void newBasket() { basket = new Basket("S-X","U-123"); }
+        
+        @BeforeEach void newBasket() { basket = new Basket("S-X",null); }
 
         @Test void Given_EmptyBasket_When_AddItem_Then_SnapshotContainsQty1() {
             basket.add("P1", 1);
@@ -116,7 +116,7 @@ class UserDomainUnitTests {
 
         @Test void Given_UserWithCart_When_ClearCart_Then_CartEmpty() {
             repo.addUser("U", "u@mail", "h");
-            repo.addToCart(repo.findUserByEmail("u@mail"), 1, 10); // qty=1
+            repo.addToCart("u@mail", "1", "10"); // qty=1
             repo.clearUserCart("u@mail");
             assertTrue(repo.findUserByEmail("u@mail")
                     .cart().snapShot().isEmpty());

@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 public class UserRepository implements IUserRepository {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
-    private final Map<String, UserSuspensionDTO> suspendedUsers = new ConcurrentHashMap<>();
 
     /**
      * Constructor to create a new UserRepository instance.
@@ -42,8 +41,8 @@ public class UserRepository implements IUserRepository {
     }
 
     private void createAdmin() {
-        //Password is: Admin (Its hashed)
-        addUser("Admin","Admin@Admin.Admin","$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
+        // Password is: Admin (Its hashed)
+        addUser("Admin", "Admin@Admin.Admin", "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
         users.get("Admin@Admin.Admin").addAdminRole();
     }
 
@@ -112,11 +111,13 @@ public class UserRepository implements IUserRepository {
      * @param productID The ID of the product.
      */
     @Override
-    public void addToCart(User user, int storeID, int productID) {
-        String sId = Integer.toString(storeID);
-        String pId = Integer.toString(productID);
+    public void addToCart(String email, String storeID, String productID) {
+        User user = requireUser(email);
+        if (user.isSuspended()) {
+            throw new IllegalArgumentException("User is suspended: " + email);
+        }
         ShoppingCart cart = user.cart();
-        cart.add(sId, pId, 1);
+        cart.add(storeID, productID, 1);
     }
 
     /**
@@ -140,6 +141,9 @@ public class UserRepository implements IUserRepository {
     @Override
     public void appointOwner(String storeName, String email) {
         User user = requireUser(email);
+        if (user.getAllRoles().contains(Role.STORE_OWNER)) {
+            throw new IllegalArgumentException("User is already an owner: " + email);
+        }
         user.addRole(storeName, Role.STORE_OWNER);
 
     }
@@ -284,50 +288,65 @@ public class UserRepository implements IUserRepository {
      * Suspends a user by their email address.
      *
      * @param email          The email address of the user to suspend.
-     * @param suspensionTime The duration of the suspension in hours.
+     * @param durationInDays The duration of the suspension in days.
+     * @param reason         The reason for suspension.
      */
-    @Override
-    public void suspendUser(String email, float suspensionTime, String reason) {
+    public void suspendUser(String email, int durationInDays, String reason) {
         User u = users.get(email);
         if (u == null)
             throw new IllegalArgumentException("User not found: " + email);
+        if (u.isSuspended()) {
+            throw new IllegalArgumentException("User is already suspended: " + email);
+        }
         Date startTime = new Date(System.currentTimeMillis());
-        Date endTime = new Date(System.currentTimeMillis() + (long) suspensionTime * 60 * 60 * 1000);
+        Date endTime = new Date(System.currentTimeMillis() + (long) durationInDays * 24 * 60 * 60 * 1000);
         UserSuspensionDTO suspension = new UserSuspensionDTO(email, startTime, endTime, reason);
-        suspendedUsers.put(email, suspension);
+        u.setSuspension(suspension); // Set DTO on User object
     }
 
     @Override
     public void checkUserSuspension(String email) {
-        UserSuspensionDTO suspension = suspendedUsers.get(email);
+        User u = users.get(email);
+        if (u == null) {
+            // Or handle as "user not found, so not suspended"
+            return;
+        }
+        UserSuspensionDTO suspension = u.getSuspension();
         if (suspension != null && !suspension.hasPassedSuspension()) {
-            throw new IllegalArgumentException("User is suspended: " + email);
+            throw new IllegalArgumentException("User is suspended: " + email + ". Reason: " + suspension.getReason()
+                    + ". Until: " + suspension.getEndTime());
         }
         if (suspension != null && suspension.hasPassedSuspension()) {
-            suspendedUsers.remove(email);
+            u.setSuspension(null); // Clear suspension if passed
         }
     }
 
     @Override
     public void unsuspendUser(String email) {
-        if (!suspendedUsers.containsKey(email)) {
+        User u = users.get(email);
+        if (u == null)
+            throw new IllegalArgumentException("User not found: " + email);
+
+        if (!u.isSuspended()) {
             throw new IllegalArgumentException("User is not suspended: " + email);
         }
-
-        suspendedUsers.remove(email);
+        u.setSuspension(null); // Clear suspension DTO
     }
 
     @Override
     public List<UserSuspensionDTO> getAllSuspendedUsers() {
-        return suspendedUsers.values()
-                .stream()
-                .toList();
+        return users.values().stream()
+                .filter(User::isSuspended)
+                .map(User::getSuspension) // Correctly map to the UserSuspensionDTO
+                .filter(Objects::nonNull) // Ensure DTO is not null after filtering
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<String> getAllEmails() {
         return users.keySet().stream().toList();
     }
+
     /**
      * Gets all global roles for a user.
      *
@@ -339,5 +358,34 @@ public class UserRepository implements IUserRepository {
         User u = requireUser(email);
         // union of all role sets (store-specific + system)
         return u.getAllRoles();
+    }
+
+    @Override
+    public void suspendUser(String username, float suspensionTime, String reason) {
+        User u = users.get(username);
+        if (u == null) {
+            throw new IllegalArgumentException("User not found: " + username);
+        }
+        if (u.isSuspended()) {
+            throw new IllegalArgumentException("User is already suspended: " + username);
+        }
+        Date startTime = new Date(System.currentTimeMillis());
+        Date endTime = new Date(startTime.getTime() + (long) (suspensionTime * 3_600_000)); // Convert hours to ms
+        UserSuspensionDTO suspension = new UserSuspensionDTO(username, startTime, endTime, reason);
+        u.setSuspension(suspension);
+    }
+
+    @Override
+    public void modifyCartQuantity(String email, String productID, String storeName, int quantity) {
+        User user = requireUser(email);
+        if (user.isSuspended()) {
+            throw new IllegalArgumentException("User is suspended: " + email);
+        }
+        ShoppingCart cart = user.cart();
+        if (quantity <= 0) {
+            cart.changeQty(storeName, productID, 0); // Remove product
+        } else {
+            cart.changeQty(storeName, productID, quantity); // Update quantity
+        }
     }
 }

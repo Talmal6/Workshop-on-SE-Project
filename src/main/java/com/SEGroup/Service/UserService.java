@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
  * UserService handles user-related operations such as login, registration, cart
  * management, and user deletion.
@@ -180,9 +179,8 @@ public class UserService {
         try {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            User user = userRepository.findUserByEmail(email);
+            userRepository.addToCart(email, storeName, productID); // Add product to user's cart
 
-            user.addToCart(storeName, productID);
             LoggerWrapper.info("Added product to user cart: " + email + ", Product ID: " + productID); // Log product
                                                                                                        // addition to
                                                                                                        // cart
@@ -260,8 +258,7 @@ public class UserService {
         try {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            User user = userRepository.findUserByEmail(email);
-            user.removeFromCart(storeName, productID);
+            userRepository.modifyCartQuantity(email, productID, storeName, 0);
             LoggerWrapper.info("Removed product from user cart: " + email + ", Product ID: " + productID); // Log
                                                                                                            // product
                                                                                                            // removal
@@ -294,8 +291,8 @@ public class UserService {
         try {
             authenticationService.checkSessionKey(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
-            User user = userRepository.findUserByEmail(email);
-            user.cart().changeQty(storeName, productID, quantity);
+            userRepository.modifyCartQuantity(email, productID, storeName, quantity); // Modify product quantity in
+                                                                                      // user's cart
             LoggerWrapper.info("Modified product quantity in cart: " + email + ", Product ID: " + productID
                     + ", New Quantity: " + quantity); // Log quantity modification
             return Result.success("Modified product quantity in cart successfully!");
@@ -491,7 +488,7 @@ public class UserService {
         }
     }
 
-    //throw exception if the user is suspended
+    // throw exception if the user is suspended
     @Transactional(readOnly = true)
     public Result<Void> isSuspended(String sessionKey) {
         try {
@@ -528,9 +525,9 @@ public class UserService {
     /**
      * Makes a user report.
      *
-     * @param sessionKey      The session key of the user making the report.
-     * @param reportContent   The content of the report.
-     * @param reportOnUserId  The ID of the user being reported.
+     * @param sessionKey     The session key of the user making the report.
+     * @param reportContent  The content of the report.
+     * @param reportOnUserId The ID of the user being reported.
      * @return A Result object indicating success or failure of the operation.
      */
     @Transactional
@@ -629,16 +626,18 @@ public class UserService {
         return userRepository.getAllSuspendedUsers();
     }
 
-    public Result<AddressDTO> getUserAddress(String sessionKey,String email) {
-        //todo: Implement user address retrieval logic
+    public Result<AddressDTO> getUserAddress(String sessionKey, String email) {
+        // todo: Implement user address retrieval logic
         return Result.failure("User address retrieval is not supported yet.");
     }
-    public Result<Void> setUserAddress(String sessionKey, AddressDTO address){
-        //todo: Implement user address setting logic
+
+    public Result<Void> setUserAddress(String sessionKey, AddressDTO address) {
+        // todo: Implement user address setting logic
         return Result.failure("User address setting is not supported yet.");
     }
-    public Result<Void> setUserName(String sessionKey, String newName){
-        //todo: Implement user name setting logic
+
+    public Result<Void> setUserName(String sessionKey, String newName) {
+        // todo: Implement user name setting logic
         return Result.failure("User name setting is not supported yet.");
     }
 }

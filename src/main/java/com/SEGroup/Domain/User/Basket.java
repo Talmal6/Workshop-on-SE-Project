@@ -3,7 +3,6 @@ package com.SEGroup.Domain.User;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -15,61 +14,46 @@ import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "basket")
 public class Basket {
+    // ← constructor left untouched
+    protected Basket() {}
 
     @Id
-    @Column(name = "store_id")
-    private final String storeId;
+    @Column(name = "store_id", nullable = false, updatable = false)
+    private String storeId;
 
-
-
+    // ← annotate the JSON map so Hibernate knows how to persist it
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "product2qty", columnDefinition = "JSON")
     private final Map<String, Integer> product2qty = new ConcurrentHashMap<>();
 
-    public Basket(String storeId,String userId) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private ShoppingCart cart;
 
+    // ← constructor left untouched
+    public Basket(String storeId, ShoppingCart cart) {
         this.storeId = storeId;
-
+        this.cart    = cart;
     }
 
-
-    /**
-     * Adds a product to the basket or updates its quantity if it already exists.
-     *
-     * @param pid The product ID.
-     * @param q   The quantity to add.
-     */
     public void add(String pid, int q) {
-        product2qty.merge(pid, q, Integer::sum);  // im adding more to quantitiy of pid
-
+        product2qty.merge(pid, q, Integer::sum);
     }
-    /**
-     * Changes the quantity of a product in the basket.
-     * If the quantity is 0, the product is removed from the basket.
-     * @param pid The product ID.
-     * @param q   The new quantity.
-     */
+
     public void change(String pid, int q) {
-
-        product2qty.put(pid, q);
-
+        if (q == 0) product2qty.remove(pid);
+        else        product2qty.put(pid, q);
     }
-    /**
-     * Retrieves the current Basket list.
-     * @return A map of product IDs to their quantities.
-     */
-    public Map<String,Integer> snapshot() {  // to see the current Basket list
 
+    public Map<String, Integer> snapshot() {
         return Collections.unmodifiableMap(product2qty);
-
     }
-    public String storeId() {
 
+    public String storeId() {
         return storeId;
     }
-    public void clear() {
 
+    public void clear() {
         product2qty.clear();
     }
-
-
 }

@@ -1,11 +1,23 @@
 package com.SEGroup.DTO;
-import java.util.Date;
 
+import java.util.Date;
+import jakarta.persistence.Embeddable;
+
+@Embeddable // Added @Embeddable annotation
 public class UserSuspensionDTO {
-    private String userEmail;
+    /**
+     * Data Transfer Object for user suspension details.
+     * Contains user email, suspension start and end times, and reason for
+     * suspension.
+     */
+
+    private String userEmail; // This might be redundant if User entity already has email as ID
     private Date startTime;
     private Date endTime;
     private String reason; // Added reason field
+
+    public UserSuspensionDTO() { // Added no-arg constructor for JPA
+    }
 
     public UserSuspensionDTO(String userEmail, Date startTime, Date endTime, String reason) {
         this.userEmail = userEmail;
