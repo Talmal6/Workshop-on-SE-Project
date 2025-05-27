@@ -232,7 +232,7 @@ public class DiscountAcceptanceTest {
                 List.of(1, 1), // min amounts
                 100,
                 "AND",
-                null
+                ""
         );
 
         // Prepare basket with required conditions met
