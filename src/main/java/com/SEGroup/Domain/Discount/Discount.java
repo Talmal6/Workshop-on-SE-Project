@@ -18,7 +18,7 @@ public abstract class Discount {
         this.percent = percent;
         this.Coupon = Coupon;
         this.scopeKey = scopeKey;
-        if (Coupon == null) {
+        if (Coupon == null || Coupon == "" || Coupon.isEmpty()) {
             this.isActive = true;
         } else {
             this.isActive = false;
