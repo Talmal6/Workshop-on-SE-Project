@@ -1,5 +1,6 @@
 package com.SEGroup.UI.Presenter;
 
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Domain.User.Basket;
@@ -296,11 +297,11 @@ public class CartPresenter {
      */
     public void checkout() {
         try {
-            if (!SecurityContextHolder.isLoggedIn()) {
-                UI.getCurrent().navigate("signin");
-                view.showError("Please sign in to checkout");
-                return;
-            }
+//            if (!SecurityContextHolder.isLoggedIn()) {
+//                UI.getCurrent().navigate("signin");
+//                view.showError("Please sign in to checkout");
+//                return;
+//            }
 
             CheckoutDialog dialog = new CheckoutDialog(this);
             dialog.open();
@@ -327,7 +328,6 @@ public class CartPresenter {
 
             // Create payment details string from credit card information
             String paymentDetails = createPaymentDetailsString(creditCardDetails);
-            System.out.println("yehuda12" + paymentDetails);
             // Use the TransactionService for checkout rather than UserService
             Result<Void> result = transactionService.purchaseShoppingCart(
                     token,
@@ -407,5 +407,51 @@ public class CartPresenter {
             return totalAfterDiscount;
         }
         return cartTotal;
+    }
+
+    public boolean doesAddressOnFileExist() {
+        if (!SecurityContextHolder.isLoggedIn()) return false;
+        Result<AddressDTO> addressResult = userService.getUserAddress(SecurityContextHolder.token(), SecurityContextHolder.email());
+        return addressResult.isSuccess() && addressResult.getData() != null && !addressResult.getData().getAddress().isEmpty();
+        //return true; // For now, we assume address always exists, until backend is implemented
+        //todo implement address check in backend
+    }
+
+    public boolean onCheckout(CheckoutDialog.CreditCardDetails creditCardDetails, AddressDTO addressDTO) {
+        try {
+            boolean isLoggedIn = SecurityContextHolder.isLoggedIn();
+            String token = SecurityContextHolder.token();
+            String email = SecurityContextHolder.email();
+
+            // Create payment details string from credit card information
+            String paymentDetails = createPaymentDetailsString(creditCardDetails);
+            // Use the TransactionService for checkout rather than UserService
+            Result<Void> result;
+            if (isLoggedIn) result = transactionService.purchaseShoppingCartWithAddress(
+                    token,
+                    email,
+                    paymentDetails,
+                    addressDTO
+            );
+            else result = transactionService.purchaseGuestShoppingCart(
+                    token,
+                    paymentDetails,
+                    addressDTO
+            );
+
+            if (result.isSuccess()) {
+                view.showSuccess("Order placed successfully!");
+                loadCart(); // Reload cart (should be empty after checkout)
+                return true;
+            } else {
+                view.showError("Checkout failed: " + result.getErrorMessage());
+                return false;
+            }
+
+        } catch (Exception e) {
+            view.showError("Error processing checkout: " + e.getMessage());
+            return false;
+        }
+
     }
 }

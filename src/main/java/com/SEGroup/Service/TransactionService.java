@@ -163,6 +163,16 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+    public Result<Void> purchaseShoppingCartWithAddress(String sessionKey, String userEmail, String paymentDetails, AddressDTO address){
+        //todo implement this method to handle address
+        return Result.failure("Method not implemented yet.");
+    }
+
+
+    public Result<Void> purchaseGuestShoppingCart(String sessionKey, String paymentDetails, AddressDTO address){
+        //todo implement this method to handle address
+        return Result.failure("Method not implemented yet.");
+    }
 
     /**
      * Views the purchase history for a given user.

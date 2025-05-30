@@ -63,8 +63,11 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         categoryComboBox.setItems("Entire Store", "Specific Category", "Specific Item");
         categoryComboBox.setWidth("300px");
         categoryComboBox.setPlaceholder("Select category");
+        //disable itemComboBox and minAmountField until a category is selected
+        itemComboBox.setEnabled(false);
+        minAmountField.setEnabled(false);
         categoryComboBox.addValueChangeListener(event -> {
-            boolean isEntireStore = "Entire Store".equals(event.getValue());
+            boolean isEntireStore = event.getValue() == null || "Entire Store".equals(event.getValue());
             itemComboBox.setEnabled(!isEntireStore);
             minAmountField.setEnabled(!isEntireStore);
 
@@ -88,7 +91,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         itemComboBox.setWidth("300px");
         itemComboBox.setPlaceholder("Select item");
         itemComboBox.addValueChangeListener(event -> {
-            boolean isEntireCategory = "Entire Category".equals(event.getValue());
+            boolean isEntireCategory = event.getValue() == null || "Entire Category".equals(event.getValue());
             minAmountField.setEnabled(!isEntireCategory);
 
             if (isEntireCategory) {

@@ -83,9 +83,17 @@ public class AddDiscountPresenter {
 
     }
 
+    private String getItemId(String category, String item) {
+        return getProductsInCategory(category).stream()
+                .filter(product -> product.getName().equals(item))
+                .map(ShoppingProductDTO::getProductId)
+                .findFirst()
+                .orElse(null);
+    }
+
     public Result<Void> addDiscountToProduct(String category, String item, Integer value, int minAmount) {
 //        return         Result.failure("Unknown error");
-        return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,item,value,null);
+        return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,getItemId(category, item),value,null);
     }
 
     public Result<Void> addDiscountToStoreWithCoupon(Integer value, String couponCode) {
@@ -99,7 +107,7 @@ public class AddDiscountPresenter {
     }
 
     public Result<Void> addDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, String couponCode) {
-        return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,item,value,couponCode);
+        return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,getItemId(category, item),value,couponCode);
 
     }
 
@@ -117,7 +125,9 @@ public class AddDiscountPresenter {
 
     public Result<Void> addConditionalDiscountToProduct(String category, String item, Integer value, int minAmount, Integer minimumPrice) {
 //        return         Result.failure("Unknown error");
-        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,item,value,minAmount,minimumPrice,null);
+        String itemId = getItemId(category, item);
+
+        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,itemId,value,minAmount,minimumPrice,null);
     }
 
     public Result<Void> addConditionalDiscountToStoreWithCoupon(Integer value, String couponCode, Integer minimumPrice) {
@@ -131,7 +141,9 @@ public class AddDiscountPresenter {
     }
 
     public Result<Void> addConditionalDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, String couponCode, Integer minimumPrice) {
-        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,item,value,minAmount,minimumPrice,couponCode);
+        //first get item id
+        String itemId = getItemId(category, item);
+        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,itemId,value,minAmount,minimumPrice,couponCode);
 
     }
 } 
