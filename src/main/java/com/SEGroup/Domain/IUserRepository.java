@@ -48,7 +48,7 @@ public interface IUserRepository {
      * @param storeID        The ID of the store where the product is located.
      * @param productID      The ID of the product being added to the cart.
      */
-    public void addToCart(User findByUsername, int storeID, int productID);
+    public void addToCart(String email, String storeID, String productID);
 
     /**
      * Checks if a user exists in the repository by their email.
@@ -144,4 +144,9 @@ public interface IUserRepository {
     List<String> getAllEmails();
 
     Set<Role> getGlobalRoles(String email);
+
+    void modifyCartQuantity(String email,
+            String productID,
+            String storeName,
+            int quantity);
 }

@@ -22,8 +22,8 @@ class UserDomainUnitTests {
     /* ───────────────────────────── Basket ───────────────────────────── */
     @Nested class BasketTests {
         Basket basket;
-
-        @BeforeEach void newBasket() { basket = new Basket("S-X","U-123"); }
+        
+        @BeforeEach void newBasket() { basket = new Basket("S-X",null); }
 
         @Test void Given_EmptyBasket_When_AddItem_Then_SnapshotContainsQty1() {
             basket.add("P1", 1);
@@ -39,7 +39,7 @@ class UserDomainUnitTests {
         @Test void Given_ItemPresent_When_ChangeQtyToZero_Then_QtyStoredAsZero() {
             basket.add("P1", 2);
             basket.change("P1", 0);
-            assertEquals(0, basket.snapshot().get("P1"));
+            assertEquals(null, basket.snapshot().get("P1"));
         }
     }
 
@@ -63,7 +63,7 @@ class UserDomainUnitTests {
         @Test void Given_ItemInCart_When_ChangeQtyToZero_Then_QtyZeroStored() {
             cart.add("S1", "P1", 1);
             cart.changeQty("S1", "P1", 0);
-            assertEquals(0, cart.snapShot().get("S1").snapshot().get("P1"));
+            assertEquals(null, cart.snapShot().get("S1").snapshot().get("P1"));
         }
 
         @Test void Given_ItemsAcrossStores_When_Clear_Then_CartEmpty() {
@@ -116,7 +116,7 @@ class UserDomainUnitTests {
 
         @Test void Given_UserWithCart_When_ClearCart_Then_CartEmpty() {
             repo.addUser("U", "u@mail", "h");
-            repo.addToCart(repo.findUserByEmail("u@mail"), 1, 10); // qty=1
+            repo.addToCart("u@mail", "1", "10"); // qty=1
             repo.clearUserCart("u@mail");
             assertTrue(repo.findUserByEmail("u@mail")
                     .cart().snapShot().isEmpty());

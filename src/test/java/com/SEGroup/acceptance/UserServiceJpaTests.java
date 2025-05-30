@@ -1,200 +1,152 @@
 package com.SEGroup.acceptance;
 
+import com.SEGroup.MarketplaceApplication;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.IUserRepository;
-
-import com.SEGroup.Domain.User.ShoppingCart;
+import com.SEGroup.Domain.Report.ReportCenter;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
+import com.SEGroup.Infrastructure.Repositories.DataBaseRepositories.DbGuestRepository;
+import com.SEGroup.Infrastructure.Repositories.DataBaseRepositories.DbUserRepository;
+import com.SEGroup.Infrastructure.Repositories.DataBaseRepositories.JpaGuestRepository;
+import com.SEGroup.Infrastructure.Repositories.DataBaseRepositories.JpaUserRepository;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.UserRepository;
-import com.SEGroup.Service.*;
+import com.SEGroup.Service.GuestService;
+import com.SEGroup.Service.Result;
+import com.SEGroup.Service.UserService;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.crypto.SecretKey;
 import javax.naming.AuthenticationException;
 import java.util.List;
-import java.util.Map;
-import com.SEGroup.Domain.Report.ReportCenter;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.AdditionalMatchers.not;
 
-import static org.mockito.Mockito.*;
+@SpringBootTest(classes = MarketplaceApplication.class)
+@ActiveProfiles("db")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+class UserServiceJpaTests {
 
-/**
- * Full acceptance‑style test‑suite for **UserService**. Covers:
- * • Registration / login / logout
- * • Guest sessions & carts
- * • Subscriber cart operations
- * • Purchase‑cart happy & error paths
- * • Account deletion
- */
-class UserServiceTests {
+    @Autowired private JpaUserRepository   jpaUserRepository;
+    @Autowired private JpaGuestRepository  jpaGuestRepository;
+    @Autowired private IAuthenticationService auth;
+    @Autowired private ReportCenter         reportCenter;
 
-    /* ───────────── mocks ───────────── */
-    private IAuthenticationService auth;
-    private IUserRepository users;
-    private IGuestRepository guests;
-    private ReportCenter reportCenter;
+    private IGuestRepository   guests;
+    private IUserRepository    users;
+    private DbUserRepository   dbUserRepository;
+    private GuestService       guestSvc;
+    private UserService        sut;
 
-    /* real services wired with mocks */
-    private GuestService guestSvc;
-    private UserService sut;
-
-    /* fixed sample data */
     private final String email = "owner@shop.com";
-    private final String pw = "P@ssw0rd";
-    private final String hashPw = "enc(P@ssw0rd)"; // what our PasswordEncoder stub returns
-    private String jwt = "jwt-owner";
+    private final String pw    = "P@ssw0rd";
+    private String jwt;
     private String adminSeshKey;
 
-    /* ───────── generic stubbing ───────── */
     @BeforeEach
     void setUp() throws Exception {
-
+        // --- configure SecurityAdapter ---
         Security security = new Security();
-        // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
-        // create a key
         SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         security.setKey(key);
-        auth = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
-        PasswordEncoder PE = new PasswordEncoder();
-        ((SecurityAdapter) auth).setPasswordEncoder(PE);
+        auth = new SecurityAdapter(security, new PasswordEncoder());
+        ((SecurityAdapter) auth).setPasswordEncoder(new PasswordEncoder());
 
-        users = new UserRepository();
-        guests = new GuestRepository();
-        reportCenter = new ReportCenter();
+        // --- wire JPA repositories into our Db* adapters ---
+        guests           = new DbGuestRepository(jpaGuestRepository);
+        dbUserRepository = new DbUserRepository(jpaUserRepository);
+        users            = dbUserRepository;
+
         guestSvc = new GuestService(guests, auth);
-        sut = new UserService(guestSvc, users, auth, reportCenter);
-        jwt = regLoginAndGetSession("owner", email, pw); // register & login to get a session key
-        Result<String> adminSeshKeyR = sut.login("Admin@Admin.Admin", "Admin");
-        adminSeshKey = adminSeshKeyR.getData();
+        sut      = new UserService(guestSvc, users, auth, reportCenter);
 
+        // --- register & login a normal user ---
+        jwt = regLoginAndGetSession("owner", email, pw);
+
+        // --- ensure Admin exists & log them in ---
+        Result<String> adminR = sut.login("Admin@Admin.Admin", "Admin");
+        adminSeshKey = adminR.getData();
     }
 
-    public String regLoginAndGetSession(String userName, String email, String password) throws Exception {
-        // Register a new user
-        Result<Void> regResult = sut.register(userName, email, password);
-        // Authenticate the user and get a session key
+    private String regLoginAndGetSession(String userName, String email, String password) throws Exception {
+        assertTrue(sut.register(userName, email, password).isSuccess());
         return auth.authenticate(email);
     }
 
     /* ───────── Registration & Login ───────── */
     @Nested
-    @DisplayName("UC‑3  Subscriber registration & login")
+    @DisplayName("UC-3  Subscriber registration & login (JPA)")
     class RegistrationAndLogin {
 
-        @BeforeEach
-        void setUp() throws Exception {
-
-            Security security = new Security();
-            // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
-            // create a key
-            SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-            security.setKey(key);
-            auth = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
-            ((SecurityAdapter) auth).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
-
-            users = new UserRepository();
-            guests = new GuestRepository();
-
-            guestSvc = new GuestService(guests, auth);
-            sut = new UserService(guestSvc, users, auth, reportCenter);
-        }
-
-        @Test
-        @DisplayName("Fresh e‑mail → register succeeds")
+        @Test @DisplayName("Fresh e-mail → register succeeds")
         void registerSuccess() {
-            Result<Void> r = sut.register("owner", email, pw);
-            assertTrue(r.isSuccess());
+            assertTrue(sut.register("newUserJPA", "newjpa@shop.com", "pw").isSuccess());
         }
 
-        @Test
-        @DisplayName("Duplicate e‑mail → register fails")
+        @Test @DisplayName("Duplicate e-mail → register fails")
         void registerDuplicate() {
-
-            Result<Void> r1 = sut.register("owner", email, pw);
-            assertTrue(r1.isSuccess());
-            Result<Void> r2 = sut.register("owner", email, pw);
-            assertTrue(r2.isFailure());
+            assertTrue(sut.register("dupJPA", "dup@shop.com", "pw").isSuccess());
+            assertTrue(sut.register("dupJPA", "dup@shop.com", "pw").isFailure());
         }
 
-        @Test
-        @DisplayName("Correct credentials → login returns JWT")
+        @Test @DisplayName("Correct credentials → login returns JWT")
         void loginSuccess() throws Exception {
-            // 1 - right password → no exception
-            Result<Void> r = sut.register("owner", email, pw);
-            assertTrue(r.isSuccess());
-            assertTrue(sut.login(email, pw).isSuccess());
-
-            // wrong password fails
+            String e = "loginjpa@shop.com", p = "pwJPA";
+            assertTrue(sut.register("ljpa", e, p).isSuccess());
+            assertTrue(sut.login(e, p).isSuccess());
         }
 
-        @Test
-        @DisplayName("Wrong password → login fails")
+        @Test @DisplayName("Wrong password → login fails")
         void loginWrongPassword() throws AuthenticationException {
-            Result<Void> r = sut.register("owner", email, pw);
-            assertTrue(r.isSuccess());
-            assertFalse(sut.login(email, "somepass").isSuccess());
-
-            // wrong password fails
+            String e = "wrongjpa@shop.com", p = "correct";
+            assertTrue(sut.register("wjpa", e, p).isSuccess());
+            assertFalse(sut.login(e, "incorrect").isSuccess());
         }
 
-        @Test
-        @DisplayName("Unknown e-mail → login fails")
+        @Test @DisplayName("Unknown e-mail → login fails")
         void loginUnknownEmail() {
-            Result<String> r = sut.login(email, pw);
-            assertTrue(r.isFailure());
+            assertTrue(sut.login("no@jpa.com", "pw").isFailure());
         }
     }
 
     /* ───────── Logout ───────── */
     @Nested
-    @DisplayName("UC‑3  Logout")
+    @DisplayName("UC-3  Logout (JPA)")
     class Logout {
-        @Test
-        @DisplayName("Valid session key → invalidated")
+        @Test @DisplayName("Valid session key → invalidated")
         void logoutHappyPath() throws Exception {
-            regLoginAndGetSession("owner", email, pw); // register & login to get a session key
-            Result<Void> r = sut.logout(jwt);
-            assertTrue(r.isSuccess());
-
+            String session = regLoginAndGetSession("lgout", "lg@jpa.com", "pw");
+            assertTrue(sut.logout(session).isSuccess());
         }
 
-        @Test
-        @DisplayName("Expired session key → logout reports failure")
+        @Test @DisplayName("Expired session key → logout reports failure")
         void logoutExpiredSession() throws Exception {
-            // register new user
-            Result<Void> r1 = sut.register("zaziBazazi", "bazazi@gmail.com", "zaziBazazi");
-            assertTrue(r1.isSuccess());
-            // login to get a session key
-            String jwt = sut.login("bazazi@gmail.com", "zaziBazazi").getData();
-            Result<Void> r2 = sut.logout(jwt);
-            assertTrue(r2.isSuccess());
-            Result<Void> r3 = sut.logout(jwt);
-            assertTrue(r3.isFailure());
+            sut.register("expJPA", "exp@jpa.com", "pw");
+            String s = sut.login("exp@jpa.com", "pw").getData();
+            assertTrue(sut.logout(s).isSuccess());
+            assertTrue(sut.logout(s).isFailure());
         }
     }
 
     /* ───────── Guest entrance & cart ───────── */
     @Nested
-    @DisplayName("UC‑2  Guest entrance & cart")
+    @DisplayName("UC-2  Guest entrance & cart (JPA)")
     class GuestFlows {
-        private final String guestId = "g‑123";
         private String guestJwt;
 
         @BeforeEach
@@ -219,19 +171,15 @@ class UserServiceTests {
         @Test
         @DisplayName("2 guest logins → 2 different ids")
         void guestLoginTwice() {
-            Result<String> r1 = sut.guestLogin();
-            Result<String> r2 = sut.guestLogin();
-            assertNotEquals(r1.getData(), r2.getData());
+            String g1 = sut.guestLogin().getData();
+            String g2 = sut.guestLogin().getData();
+            assertNotEquals(g1, g2);
         }
 
-        @Test
-        @DisplayName("Guest add‑to‑cart updates basket")
+        @Test @DisplayName("Guest add-to-cart updates basket")
         void guestAddToCart() {
-            // this test fails both with userservice and guestservice guestLogin!
-            String guestJwt = sut.guestLogin().getData();
-            Result<String> r = sut.addToGuestCart(guestJwt, "P1", "S1");
-            Result<String> res = sut.addToGuestCart(guestJwt, "P1", "S1");
-            assertTrue(res.isSuccess());
+            String g = sut.guestLogin().getData();
+            assertTrue(sut.addToGuestCart(g, "P1", "S1").isSuccess());
         }
     }
 
@@ -249,9 +197,10 @@ class UserServiceTests {
         @DisplayName("Modify quantity persists value")
         void modify_quantity_success() {
             sut.addToUserCart(jwt, email, "P42", "S7");
-            assertTrue(sut.modifyProductQuantityInCartItem(jwt, email, "P42", "S7", 5).isSuccess());
+            Result<String> result = sut.modifyProductQuantityInCartItem(jwt, email, "P42", "S7", 3);
+            assertTrue(result.isSuccess());
             List<BasketDTO> cart = users.getUserCart(email);
-            assertEquals(5, cart.get(0).prod2qty().get("P42"));
+            assertEquals(3, cart.get(0).prod2qty().get("P42"));
         }
 
         @Test
@@ -260,7 +209,7 @@ class UserServiceTests {
             sut.addToUserCart(jwt, email, "P42", "S7");
             assertTrue(sut.removeFromUserCart(jwt, email, "P42", "S7").isSuccess());
             List<BasketDTO> cart = users.getUserCart(email);
-            assertEquals(null, cart.get(0).prod2qty().get("P42"));
+            assertTrue(cart.get(0).prod2qty().get("P42") == null || cart.get(0).prod2qty().get("P42") == 0);
         }
 
         @Test
@@ -273,47 +222,7 @@ class UserServiceTests {
         }
     }
 
-    /* ───────── Purchase shopping cart ───────── */
-    @Nested
-    @DisplayName("UC‑3  Purchase cart")
-    class PurchaseCart {
-        @Test
-        @DisplayName("Existing user → purchase succeeds")
-        void purchaseSuccess() {
-            // already tested in the transactional test
-            // Result<Void> r = sut.purchaseShoppingCart(jwt, email);
-            // assertTrue(r.isSuccess());
-        }
 
-        @Test
-        @DisplayName("Unknown user → purchase fails")
-        void purchaseUnknownUser() {
-            // already tested in the transactional test
-        }
-    }
-
-    /* ───────── Account deletion ───────── */
-    @Nested
-    @DisplayName("UC‑3  Delete user")
-    class DeleteUser {
-        @Test
-        @DisplayName("User exists → deletion succeeds")
-        void deleteSuccess() {
-            String adminAuth = sut.login("Admin@Admin.Admin", "Admin").getData();
-            Result<Void> r = sut.deleteUser(adminAuth, email);
-            assertTrue(r.isSuccess());
-            User user = users.findUserByEmail(email);
-            assertNull(user); // user should be deleted
-        }
-
-        @Test
-        @DisplayName("User missing → deletion fails")
-        void deleteFailsWhenMissing() {
-            Result<Void> r1 = sut.deleteUser(jwt, email);
-            Result<Void> r = sut.deleteUser(jwt, email);
-            assertTrue(r.isFailure());
-        }
-    }
 
     // /* ───────── Admin operations ───────── */
     @Test

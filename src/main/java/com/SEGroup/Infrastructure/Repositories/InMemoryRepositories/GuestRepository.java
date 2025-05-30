@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.User.Guest;
 import com.SEGroup.Domain.User.ShoppingCart;
+
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Repository;
  * It allows creating new guests and retrieving their shopping carts.
  */
 @Repository
+@Profile("memory") // Use this profile for in-memory testing
 public class GuestRepository implements IGuestRepository {
 
     private final Map<String, Guest> guests = new ConcurrentHashMap<>();
