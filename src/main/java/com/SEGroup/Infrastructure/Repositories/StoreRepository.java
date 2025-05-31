@@ -1,4 +1,4 @@
-package com.SEGroup.Infrastructure.Repositories.InMemoryRepositories;
+package com.SEGroup.Infrastructure.Repositories;
 
 import java.util.Date;
 import java.util.ArrayList;

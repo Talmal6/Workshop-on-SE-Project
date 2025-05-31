@@ -9,7 +9,7 @@ import com.SEGroup.Domain.Store.Bid;
 import com.SEGroup.Domain.Store.Review;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.UI.Views.AddProductDialog;
 
 /**

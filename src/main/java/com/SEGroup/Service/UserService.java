@@ -205,7 +205,8 @@ public class UserService {
     public Result<String> addToGuestCart(String guestToken, String productId, String storeName) {
         try {
             ShoppingCart cart = guestService.cart(guestToken); // Retrieve guest's cart
-            cart.add(storeName, productId, 1);
+            
+            guestService.addToCart(guestToken, productId, storeName); // Add product to guest's cart
             LoggerWrapper.info("Added product to guest cart: " + guestToken + ", Product ID: " + productId); // Log
                                                                                                              // product
                                                                                                              // addition

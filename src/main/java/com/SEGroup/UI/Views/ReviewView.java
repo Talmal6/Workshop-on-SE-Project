@@ -1,7 +1,7 @@
 package com.SEGroup.UI.Views;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.Domain.Store.Store;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Service.StoreService;
 import com.SEGroup.UI.Presenter.ReviewPresenter;
 import com.SEGroup.UI.ServiceLocator;

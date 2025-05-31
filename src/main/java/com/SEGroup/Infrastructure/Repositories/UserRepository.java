@@ -1,10 +1,12 @@
-package com.SEGroup.Infrastructure.Repositories.InMemoryRepositories;
+package com.SEGroup.Infrastructure.Repositories;
 
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.InMemoryUserData;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.UserData;
 import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
@@ -30,20 +32,28 @@ import java.util.stream.Collectors;
 @Repository
 @Profile("memory")
 public class UserRepository implements IUserRepository {
-
-    private final Map<String, User> users = new ConcurrentHashMap<>();
-
+    private final UserData userData;
+    public UserRepository(){
+        
+        this.userData = new InMemoryUserData();
+        createAdmin(); // Create the admin user if it doesn't exist
+    }
     /**
      * Constructor to create a new UserRepository instance.
      */
-    public UserRepository() {
+    public UserRepository(UserData userData) {
+        this.userData = userData;
         createAdmin();
     }
 
+
+
     private void createAdmin() {
-        // Password is: Admin (Its hashed)
-        addUser("Admin", "Admin@Admin.Admin", "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
-        users.get("Admin@Admin.Admin").addAdminRole();
+        User admin = new User("Admin@Admin.Admin", "Admin", "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
+        if (!userData.userExistsByEmail(admin.getEmail())) {
+            admin.addAdminRole();
+            userData.saveUser(admin);
+        }
     }
 
     /**
@@ -54,7 +64,7 @@ public class UserRepository implements IUserRepository {
      */
     @Override
     public User findUserByEmail(String email) {
-        return users.get(email);
+        return userData.getUserByEmail(email);
     }
 
     /**
@@ -67,11 +77,11 @@ public class UserRepository implements IUserRepository {
      */
     @Override
     public void addUser(String username, String email, String passwordHash) {
-        if (users.containsKey(email))
+        if (userData.userExistsByEmail(email))
             throw new IllegalArgumentException("User already exists: " + email);
 
         User u = new User(email, username, passwordHash);
-        users.put(email, u);
+        userData.saveUser(u);
     }
 
     /**
@@ -82,7 +92,9 @@ public class UserRepository implements IUserRepository {
      */
     @Override
     public void deleteUser(String email) {
-        if (users.remove(email) == null)
+        if (userData.userExistsByEmail(email))
+            userData.deleteUser(email);
+        else
             throw new IllegalArgumentException("User not found: " + email);
     }
 
@@ -118,6 +130,7 @@ public class UserRepository implements IUserRepository {
         }
         ShoppingCart cart = user.cart();
         cart.add(storeID, productID, 1);
+        userData.updateUser(user); // Save the updated user with the modified cart
     }
 
     /**
@@ -128,7 +141,7 @@ public class UserRepository implements IUserRepository {
      */
     @Override
     public void checkIfExist(String email) {
-        if (!users.containsKey(email))
+        if (!userData.userExistsByEmail(email))
             throw new IllegalArgumentException("User not found: " + email);
     }
 
@@ -145,6 +158,7 @@ public class UserRepository implements IUserRepository {
             throw new IllegalArgumentException("User is already an owner: " + email);
         }
         user.addRole(storeName, Role.STORE_OWNER);
+        userData.updateUser(user); // Save the updated user with the new owner role
 
     }
 
@@ -157,6 +171,7 @@ public class UserRepository implements IUserRepository {
     @Override
     public void resignOwnership(String storeName, String email) {
         removeOwner(storeName, email);
+        User user = requireUser(email);
     }
 
     /**
@@ -169,6 +184,7 @@ public class UserRepository implements IUserRepository {
     public void removeOwner(String storeName, String email) {
         User user = requireUser(email);
         user.removeRole(storeName, Role.STORE_OWNER);
+        userData.updateUser(user); // Save the updated user with the removed owner role
     }
 
     /**
@@ -181,6 +197,7 @@ public class UserRepository implements IUserRepository {
     public void appointManager(String storeName, String email) {
         User u = requireUser(email);
         u.addRole(storeName, Role.STORE_MANAGER);
+        userData.updateUser(u); // Save the updated user with the new manager role
     }
 
     /**
@@ -191,7 +208,7 @@ public class UserRepository implements IUserRepository {
      * @throws IllegalArgumentException if the user does not exist.
      */
     private User requireUser(String email) {
-        User u = users.get(email);
+        User u = userData.getUserByEmail(email);
         if (u == null)
             throw new IllegalArgumentException("User not found: " + email);
         return u;
@@ -209,11 +226,13 @@ public class UserRepository implements IUserRepository {
         Objects.requireNonNull(storeName, "storeName is null");
 
         for (String email : emails) {
-            User u = users.get(email);
+            List<BasketDTO> users;
+            User u = userData.getUserByEmail(email);
             if (u == null)
                 continue;
             u.snapshotRoles().getOrDefault(storeName, EnumSet.noneOf(Role.class))
                     .forEach(role -> u.removeRole(storeName, role));
+            userData.updateUser(u); // Save the updated user with the removed roles
         }
     }
 
@@ -227,6 +246,7 @@ public class UserRepository implements IUserRepository {
         User u = requireUser(email); // will throw if not found
         synchronized (u) {
             u.cart().clear();
+            userData.updateUser(u); // Save the updated user with the cleared cart
         }
     }
 
@@ -235,9 +255,7 @@ public class UserRepository implements IUserRepository {
      */
     @Override
     public String getUserName(String email) {
-        User u = users.get(email);
-        if (u == null)
-            throw new IllegalArgumentException("User not found: " + email);
+        User u = requireUser(email); // will throw if not found
         return u.getUserName();
     }
 
@@ -251,33 +269,35 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public void setAsAdmin(String AssigneeUsername, String email) {
-        User u = users.get(email);
+        User u = userData.getUserByEmail(email);
         if (u == null)
             throw new IllegalArgumentException("User not found: " + email);
         if (u.isAdmin())
             throw new IllegalArgumentException("User is already an admin: " + email);
-        if (!users.get(AssigneeUsername).isAdmin())
+        if (!userData.getUserByEmail(AssigneeUsername).isAdmin() )
             throw new IllegalArgumentException("Assignee is not an admin: " + AssigneeUsername);
         u.addAdminRole();
+        userData.updateUser(u); // Save the updated user with the new admin role
     }
 
     @Override
     public void removeAdmin(String assignee, String email) {
         if (email.equals("Admin@Admin.Admin"))
             throw new IllegalArgumentException("Cannot remove the main admin: " + email);
-        User u = users.get(email);
+        User u = userData.getUserByEmail(email);
         if (u == null)
             throw new IllegalArgumentException("User not found: " + email);
         if (!u.isAdmin())
             throw new IllegalArgumentException("User is not an admin: " + email);
-        if (!users.get(assignee).isAdmin())
+        if (!userData.getUserByEmail(assignee).isAdmin())
             throw new IllegalArgumentException("Assignee is not an admin: " + assignee);
         u.removeAdminRole();
+        userData.updateUser(u); // Save the updated user with the removed admin role
     }
 
     @Override
     public boolean userIsAdmin(String username) {
-        User u = users.get(username);
+        User u = userData.getUserByEmail(username);
         if (u == null)
             return false;
         return u.isAdmin();
@@ -292,7 +312,7 @@ public class UserRepository implements IUserRepository {
      * @param reason         The reason for suspension.
      */
     public void suspendUser(String email, int durationInDays, String reason) {
-        User u = users.get(email);
+        User u = userData.getUserByEmail(email);
         if (u == null)
             throw new IllegalArgumentException("User not found: " + email);
         if (u.isSuspended()) {
@@ -302,11 +322,12 @@ public class UserRepository implements IUserRepository {
         Date endTime = new Date(System.currentTimeMillis() + (long) durationInDays * 24 * 60 * 60 * 1000);
         UserSuspensionDTO suspension = new UserSuspensionDTO(email, startTime, endTime, reason);
         u.setSuspension(suspension); // Set DTO on User object
+        userData.updateUser(u); // Save the updated user with the suspension
     }
 
     @Override
     public void checkUserSuspension(String email) {
-        User u = users.get(email);
+        User u = userData.getUserByEmail(email);
         if (u == null) {
             // Or handle as "user not found, so not suspended"
             return;
@@ -319,11 +340,12 @@ public class UserRepository implements IUserRepository {
         if (suspension != null && suspension.hasPassedSuspension()) {
             u.setSuspension(null); // Clear suspension if passed
         }
+        userData.updateUser(u); // Save the updated user
     }
 
     @Override
     public void unsuspendUser(String email) {
-        User u = users.get(email);
+        User u = userData.getUserByEmail(email);
         if (u == null)
             throw new IllegalArgumentException("User not found: " + email);
 
@@ -331,11 +353,12 @@ public class UserRepository implements IUserRepository {
             throw new IllegalArgumentException("User is not suspended: " + email);
         }
         u.setSuspension(null); // Clear suspension DTO
+        userData.updateUser(u); // Save the updated user
     }
 
     @Override
     public List<UserSuspensionDTO> getAllSuspendedUsers() {
-        return users.values().stream()
+        return userData.getAllUsers().stream()
                 .filter(User::isSuspended)
                 .map(User::getSuspension) // Correctly map to the UserSuspensionDTO
                 .filter(Objects::nonNull) // Ensure DTO is not null after filtering
@@ -344,7 +367,9 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public List<String> getAllEmails() {
-        return users.keySet().stream().toList();
+        return userData.getAllUsers().stream()
+                .map(User::getEmail)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -362,7 +387,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public void suspendUser(String username, float suspensionTime, String reason) {
-        User u = users.get(username);
+        User u = userData.getUserByEmail(username);
         if (u == null) {
             throw new IllegalArgumentException("User not found: " + username);
         }
@@ -373,6 +398,7 @@ public class UserRepository implements IUserRepository {
         Date endTime = new Date(startTime.getTime() + (long) (suspensionTime * 3_600_000)); // Convert hours to ms
         UserSuspensionDTO suspension = new UserSuspensionDTO(username, startTime, endTime, reason);
         u.setSuspension(suspension);
+        userData.updateUser(u); // Save the updated user with the suspension
     }
 
     @Override
@@ -387,5 +413,6 @@ public class UserRepository implements IUserRepository {
         } else {
             cart.changeQty(storeName, productID, quantity); // Update quantity
         }
+        userData.updateUser(user); // Save the updated user with the modified cart
     }
 }

@@ -1,7 +1,7 @@
 package com.SEGroup.UnitTests.UserTests;
 
 import com.SEGroup.Domain.User.*;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.UserRepository;
+import com.SEGroup.Infrastructure.Repositories.*;
 
 import org.junit.jupiter.api.*;
 

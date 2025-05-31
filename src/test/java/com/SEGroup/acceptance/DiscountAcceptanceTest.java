@@ -16,11 +16,9 @@ import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Domain.User.Basket;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.*;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.UserRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Domain.Report.ReportCenter;
 
 import com.SEGroup.Infrastructure.Security;

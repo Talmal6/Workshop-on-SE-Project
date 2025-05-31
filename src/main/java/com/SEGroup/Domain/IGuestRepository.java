@@ -22,7 +22,16 @@ public interface IGuestRepository {
      *
      * @param guestId The ID of the guest user.
      * @return The ShoppingCart object associated with the guest.
-\     */
+     */
     ShoppingCart cartOf(String guestId);
+    /**
+     * Updates the shopping cart of a guest user.
+     *
+     * @param guestId The ID of the guest user.
+     * @param cart    The ShoppingCart object to update.
+     */
+    void updateCart(String guestId, ShoppingCart cart);
+
+    void addToCart(String guestId, String storeID, String productID);
 
 }
