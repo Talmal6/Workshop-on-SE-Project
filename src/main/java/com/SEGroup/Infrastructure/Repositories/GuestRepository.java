@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
  * It allows creating new guests and retrieving their shopping carts.
  */
 @Repository
-@Profile("memory") // Use this profile for in-memory testing
+@Profile({"db","prod"}) // Use this profile for in-memory testing
 public class GuestRepository implements IGuestRepository {
 
     private GuestData   guestData;

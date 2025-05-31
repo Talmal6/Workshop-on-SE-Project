@@ -1,5 +1,6 @@
 package com.SEGroup.acceptance;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.SEGroup.DTO.BasketDTO;
@@ -49,7 +50,7 @@ public class DiscountAcceptanceTest {
     UserService userService;
     NotificationCenter notificationService;
     ReportCenter reportCenter;
-
+    TransactionService transactionService;
     @BeforeEach
     public void setUp() throws Exception {
         storeRepository = new StoreRepository();
@@ -66,6 +67,15 @@ public class DiscountAcceptanceTest {
                 notificationService);
         userService = new UserService(new GuestService(new GuestRepository(), authenticationService), userRepository,
                 authenticationService, reportCenter);
+        transactionService = new TransactionService(
+                authenticationService,
+                null,
+                null,
+                storeRepository,
+                userRepository,
+                null,
+                notificationService
+        );
         VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS);
     }
 
@@ -250,5 +260,31 @@ public class DiscountAcceptanceTest {
         double discountedCoffee = result.get(coffeeId);
         assertEquals(50.0, discountedCoffee, 0.01); // 100 * 50% = 50
     }
-
+//    @Test
+//    public void test_AddSimpleDiscountToSpecificProductInStorePercentage_ViaServiceOnly() throws Exception {
+//        // Arrange
+//        storeService.createStore(VALID_SESSION, STORE_NAME);
+//        storeService.addProductToCatalog(CATALOG_ID, "Book", "Author", "Interesting book",
+//                Collections.singletonList("Books"));
+//
+//        Result<String> addProductResult = storeService
+//                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "Book", "Hardcover", 100.0, 1, "");
+//
+//        String productId = addProductResult.getData();
+//
+//        // הוספת הנחה של 20% דרך ה־service
+//        storeService.addSimpleDiscountToSpecificProductInStorePercentage(STORE_NAME, OWNER_EMAIL, productId, 20, null);
+//
+//        // הוספת המוצר לעגלת המשתמש (הסל)
+//        userService.addToCart(VALID_SESSION, STORE_NAME, productId);
+//
+//        // Act
+//        Result<Map<String, Double>> result = transactionService.getDiscountsForCart(VALID_SESSION);
+//
+//        // Assert
+//        assertTrue(result.isSuccess());
+//        Map<String, Double> discounts = result.getData();
+//        assertTrue(discounts.containsKey(productId));
+//        assertEquals(80.0, discounts.get(productId), 0.01); // 100 - 20%
+//    }
 }

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
  * Spring Data JPA repository for User entities.
  */
 @Repository
-@Profile("db")
+@Profile({"db", "prod"})
 public interface JpaUserRepository extends JpaRepository<User, String> {
     // Derived query methods
     User findByEmail(String email);

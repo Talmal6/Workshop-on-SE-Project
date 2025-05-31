@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * carts.
  */
 @Repository
-@Profile("memory")
+@Profile({"prod","db"})
 public class UserRepository implements IUserRepository {
     private final UserData userData;
     public UserRepository(){
@@ -118,7 +118,6 @@ public class UserRepository implements IUserRepository {
     /**
      * Adds a product to the user's shopping cart.
      *
-     * @param user      The user to whom the product will be added.
      * @param storeID   The ID of the store.
      * @param productID The ID of the product.
      */

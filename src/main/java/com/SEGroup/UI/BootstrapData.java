@@ -4,12 +4,15 @@ import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.ExternalPaymentAndShippingService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbUserData;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.TransactionRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Domain.IShippingService;
 import com.SEGroup.Service.MockShippingService;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -19,7 +22,7 @@ import java.util.List;
 
 @Component
 class BootstrapData {
-        //a
+    //a
 
     private String getProductImage(String keyword) {
         String key = (keyword == null) ? "" : keyword.toLowerCase();
@@ -75,10 +78,13 @@ class BootstrapData {
         /* ---------- DEFAULT -------------- */
         return "https://images.unsplash.com/photo-1585386959984-a41552231617?auto=format&fit=crop&w=400&h=400&q=80";
     }
+    @Autowired
+    private JpaUserRepository jpaUserRepository;
+
     @PostConstruct
     void initDemoData() {
         PasswordEncoder encoder = new PasswordEncoder();
-        UserRepository users = new UserRepository();
+        UserRepository users = new UserRepository(new DbUserData(jpaUserRepository));
         StoreRepository stores = new StoreRepository();
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 

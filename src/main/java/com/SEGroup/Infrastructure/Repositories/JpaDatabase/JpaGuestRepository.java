@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
  * Spring Data JPA repository for Guest entities.
  */
 @Repository
-@Profile("db")
+@Profile({"db", "prod"})
 public interface JpaGuestRepository extends JpaRepository<Guest, String> {
 }
