@@ -1,7 +1,7 @@
 package com.SEGroup.UnitTests.TransactionTests;
 
 import com.SEGroup.DTO.TransactionDTO;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.TransactionRepository;
+import com.SEGroup.Infrastructure.Repositories.TransactionRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

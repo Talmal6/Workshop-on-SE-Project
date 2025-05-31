@@ -6,13 +6,10 @@ import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Domain.Report.ReportCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
-
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.*;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.TransactionRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.UserRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.TransactionRepository;
+import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.*;

@@ -1,7 +1,8 @@
 package com.SEGroup.DBtests.Repositories;
 
 import com.SEGroup.Domain.User.User;
-import com.SEGroup.Infrastructure.Repositories.DataBaseRepositories.JpaUserRepository;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

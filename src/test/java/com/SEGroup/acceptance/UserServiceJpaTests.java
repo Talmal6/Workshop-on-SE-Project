@@ -8,14 +8,13 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.Report.ReportCenter;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
-import com.SEGroup.Infrastructure.Repositories.DataBaseRepositories.DbGuestRepository;
-import com.SEGroup.Infrastructure.Repositories.DataBaseRepositories.DbUserRepository;
-import com.SEGroup.Infrastructure.Repositories.DataBaseRepositories.JpaGuestRepository;
-import com.SEGroup.Infrastructure.Repositories.DataBaseRepositories.JpaUserRepository;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.GuestRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaGuestRepository;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
 import com.SEGroup.Service.GuestService;
 import com.SEGroup.Service.Result;
 import com.SEGroup.Service.UserService;
@@ -29,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import com.SEGroup.Infrastructure.Repositories.UserRepository;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.*;
 
 import javax.crypto.SecretKey;
 import javax.naming.AuthenticationException;
@@ -49,7 +50,6 @@ class UserServiceJpaTests {
 
     private IGuestRepository   guests;
     private IUserRepository    users;
-    private DbUserRepository   dbUserRepository;
     private GuestService       guestSvc;
     private UserService        sut;
 
@@ -67,10 +67,11 @@ class UserServiceJpaTests {
         auth = new SecurityAdapter(security, new PasswordEncoder());
         ((SecurityAdapter) auth).setPasswordEncoder(new PasswordEncoder());
 
-        // --- wire JPA repositories into our Db* adapters ---
-        guests           = new DbGuestRepository(jpaGuestRepository);
-        dbUserRepository = new DbUserRepository(jpaUserRepository);
-        users            = dbUserRepository;
+        GuestData jpaGuestData = new DbGuestData(jpaGuestRepository);
+        guests           = new GuestRepository(jpaGuestData);
+        UserData ud = new DbUserData(jpaUserRepository);
+
+        users = new UserRepository(ud);
 
         guestSvc = new GuestService(guests, auth);
         sut      = new UserService(guestSvc, users, auth, reportCenter);
@@ -179,7 +180,10 @@ class UserServiceJpaTests {
         @Test @DisplayName("Guest add-to-cart updates basket")
         void guestAddToCart() {
             String g = sut.guestLogin().getData();
-            assertTrue(sut.addToGuestCart(g, "P1", "S1").isSuccess());
+            Result<String> r = sut.addToGuestCart(g, "P1", "S1");
+            assertTrue(r.isSuccess());
+            
+            
         }
     }
 
@@ -206,7 +210,7 @@ class UserServiceJpaTests {
         @Test
         @DisplayName("Remove item sets qty=0")
         void remove_item_success() {
-            sut.addToUserCart(jwt, email, "P42", "S7");
+            assertTrue(sut.addToUserCart(jwt, email, "P42", "S7").isSuccess());
             assertTrue(sut.removeFromUserCart(jwt, email, "P42", "S7").isSuccess());
             List<BasketDTO> cart = users.getUserCart(email);
             assertTrue(cart.get(0).prod2qty().get("P42") == null || cart.get(0).prod2qty().get("P42") == 0);

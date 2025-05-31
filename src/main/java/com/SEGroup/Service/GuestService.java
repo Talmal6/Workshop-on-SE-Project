@@ -64,4 +64,19 @@ public class GuestService {
 
         return cart;
     }
+
+
+    //add to cart
+    public void addToCart(String guestToken, String storeID, String productID) throws Exception {
+        LoggerWrapper.info("Adding product to cart for guest token: " + guestToken);  // Logging the addition of a product to the cart
+        String subject = auth.getUserBySession(guestToken);
+        // Check if the token belongs to a guest
+        if (!subject.startsWith("g-")) {
+            LoggerWrapper.warning("Token does not belong to a guest: " + guestToken);  // Logging if the token is not a guest token
+            throw new IllegalArgumentException("token does not belong to a guest");
+        }
+
+        guests.addToCart(subject, storeID, productID);
+        LoggerWrapper.info("Added product with ID: " + productID + " to cart for guest with ID: " + subject);  // Logging the successful addition of the product
+    }
 }

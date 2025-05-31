@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.SEGroup.Domain.Store.Store;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Mapper.StoreMapper;
 
 import java.lang.reflect.Field;

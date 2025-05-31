@@ -29,7 +29,7 @@ public class Guest {
     // --- Record-style accessors ---
     public String id() { return id; }
     public Instant issuedAt() { return issuedAt; }
-    public ShoppingCart cart() { return cart; }
+    public ShoppingCart cart() { return cart == null ? new ShoppingCart(id) : cart; }
     public void setCart(ShoppingCart cart) { this.cart = cart; }
 
     // Optional JavaBean-style getters/setters

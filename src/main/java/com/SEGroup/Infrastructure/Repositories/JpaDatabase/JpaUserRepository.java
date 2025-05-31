@@ -1,4 +1,4 @@
-package com.SEGroup.Infrastructure.Repositories.DataBaseRepositories;
+package com.SEGroup.Infrastructure.Repositories.JpaDatabase;
 
 import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.User;

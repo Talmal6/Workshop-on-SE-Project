@@ -10,10 +10,14 @@ import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.GuestRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.UserRepository;
+import com.SEGroup.Infrastructure.Repositories.GuestRepository;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.UserRepository;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.GuestData;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.InMemoryGuestData;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.InMemoryUserData;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.UserData;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -50,6 +54,7 @@ class UserServiceTests {
     private IUserRepository users;
     private IGuestRepository guests;
     private ReportCenter reportCenter;
+    private UserData ud; // add field to hold user data between setups
 
     /* real services wired with mocks */
     private GuestService guestSvc;
@@ -74,9 +79,10 @@ class UserServiceTests {
         auth = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
         PasswordEncoder PE = new PasswordEncoder();
         ((SecurityAdapter) auth).setPasswordEncoder(PE);
-
-        users = new UserRepository();
-        guests = new GuestRepository();
+        ud = new InMemoryUserData(); // assign to field
+        users = new UserRepository(ud);
+        GuestData gd = new InMemoryGuestData(); // reset the same UserData field
+        guests = new GuestRepository(gd);
         reportCenter = new ReportCenter();
         guestSvc = new GuestService(guests, auth);
         sut = new UserService(guestSvc, users, auth, reportCenter);
@@ -95,7 +101,7 @@ class UserServiceTests {
 
     /* ───────── Registration & Login ───────── */
     @Nested
-    @DisplayName("UC‑3  Subscriber registration & login")
+    @DisplayName("UC-3  Subscriber registration & login")
     class RegistrationAndLogin {
 
         @BeforeEach
@@ -108,9 +114,11 @@ class UserServiceTests {
             security.setKey(key);
             auth = new SecurityAdapter(security, new com.SEGroup.Infrastructure.PasswordEncoder());
             ((SecurityAdapter) auth).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
-
-            users = new UserRepository();
-            guests = new GuestRepository();
+            UserData newud = new InMemoryUserData(); // reset the same UserData field
+            users = new UserRepository(newud);
+            GuestData gd = new InMemoryGuestData(); // reset the same UserData field
+            guests = new GuestRepository(gd);
+            reportCenter = new ReportCenter(); // also reset report center
 
             guestSvc = new GuestService(guests, auth);
             sut = new UserService(guestSvc, users, auth, reportCenter);
@@ -120,6 +128,7 @@ class UserServiceTests {
         @DisplayName("Fresh e‑mail → register succeeds")
         void registerSuccess() {
             Result<Void> r = sut.register("owner", email, pw);
+
             assertTrue(r.isSuccess());
         }
 
@@ -155,7 +164,7 @@ class UserServiceTests {
         }
 
         @Test
-        @DisplayName("Unknown e-mail → login fails")
+        @DisplayName("Unknown e‑mail → login fails")
         void loginUnknownEmail() {
             Result<String> r = sut.login(email, pw);
             assertTrue(r.isFailure());
@@ -206,7 +215,7 @@ class UserServiceTests {
             store.createStore("S1", email);
             // initiate product catalog
             InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-            store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false,"",List.of());
+            store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false, "", List.of());
         }
 
         @Test
@@ -361,8 +370,8 @@ class UserServiceTests {
         store.createStore("S1", email);
         // initiate product catalog
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
-        store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false,"",List.of());
-        store.addProductToStore(email, "S1", "P2", "Product 2", "someDesc", 5.7, 10, false,"",List.of());
+        store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false, "", List.of());
+        store.addProductToStore(email, "S1", "P2", "Product 2", "someDesc", 5.7, 10, false, "", List.of());
     }
 
     @Test

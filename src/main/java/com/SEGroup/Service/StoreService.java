@@ -15,7 +15,7 @@ import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Review;
 import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import org.springframework.stereotype.Service;
 

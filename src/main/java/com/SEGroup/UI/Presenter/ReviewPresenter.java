@@ -2,7 +2,7 @@ package com.SEGroup.UI.Presenter;
 
 import com.SEGroup.DTO.RatingDto;
 import com.SEGroup.Domain.Store.Store;
-import com.SEGroup.Infrastructure.Repositories.InMemoryRepositories.StoreRepository;
+import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Service.StoreService;
 import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
