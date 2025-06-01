@@ -1,7 +1,7 @@
 package com.SEGroup.Infrastructure.Repositories.RepositoryData;
 
-import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.Store.Store;
+
 import java.util.List;
 
 public interface StoreData {

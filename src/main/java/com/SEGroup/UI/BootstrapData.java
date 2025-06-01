@@ -4,12 +4,15 @@ import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.ExternalPaymentAndShippingService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaStoreRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbStoreData;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbUserData;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.TransactionRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Domain.IShippingService;
+import com.SEGroup.Service.MockShippingService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -79,11 +82,13 @@ class BootstrapData {
     }
     @Autowired
     private JpaUserRepository jpaUserRepository;
+    @Autowired
+    private JpaStoreRepository jpaStoreRepository;
 
     @PostConstruct
     void initDemoData() {
         PasswordEncoder encoder = new PasswordEncoder();
-        UserRepository users = new UserRepository();
+        UserRepository users = new UserRepository(new DbUserData(jpaUserRepository));
         StoreRepository stores = new StoreRepository();
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 

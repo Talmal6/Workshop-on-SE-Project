@@ -6,11 +6,12 @@ import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
 import com.SEGroup.Mapper.StoreMapper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InMemoryStoreData implements StoreData {
 
-    private List<Store> stores = new ArrayList<>();
+    private final List<Store> stores = new ArrayList<>();
 
     @Override
     public List<Store> getAllStores() {

@@ -1,16 +1,38 @@
 package com.SEGroup.Domain.Store;
 
+import jakarta.persistence.*;
+
 import java.util.Date;
 
 /**
  * Represents an auction for a product with a starting price and an end time.
  */
+@Entity
+@Table(name = "auctions")
 public class Auction {
 
-    private final double startingPrice;
-    private final Date endTime;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "starting_price", nullable = false)
+    private double startingPrice;
+
+    @Column(name = "end_time", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date endTime;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "highest_bid_id") // foreign key לביד בטבלה אחרת
     private Bid highestBid;
+
+    @Column(name = "ended", nullable = false)
     private boolean ended;
+
+    // --- Constructors ---
+    protected Auction() {
+        // For JPA
+    }
 
     public Auction(double startingPrice, Date endTime) {
         this.startingPrice = startingPrice;

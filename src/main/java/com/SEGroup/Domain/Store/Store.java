@@ -10,57 +10,74 @@ import com.SEGroup.Domain.Discount.SimpleDiscount;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import jakarta.persistence.*;
 /*
  * Represents a store, including its products, owners, managers, and policies.
  */
-
+@Entity
+@Table(name = "stores")
 public class Store {
     //fields
-    private static int idCounter = 0;
-    private final int id;
+    @Id
+    @Column(name = "name", unique = true, nullable = false)
     private String name;
+
+    @Column(name = "email", unique = true, nullable = false)
     private String founderEmail;
+
+    @Column(name = "is_active")
     private boolean isActive;
+
+    @Column(name = "balance")
     private double balance;
+
     private final AtomicInteger inStoreProductId = new AtomicInteger(-1);
+
+    @Column(name = "description")
     private String description="";
 
     //products and reviews
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @MapKeyColumn(name = "product_key")
+    @JoinColumn(name = "store_name") // foreign key בטבלת ShoppingProduct
     private Map<String, ShoppingProduct> products = new java.util.concurrent.ConcurrentHashMap<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @MapKeyColumn(name = "review_id") // המפתח במפה
+    @JoinColumn(name = "store_name")  // foreign key בטבלת Review
     private final Map<String, Review> reviewIdToReview = new java.util.concurrent.ConcurrentHashMap<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @MapKeyColumn(name = "user_id")
+    @CollectionTable(name = "store_ratings", joinColumns = @JoinColumn(name = "store_name"))
     private final Map<String, Rating> ratings = new java.util.concurrent.ConcurrentHashMap<>();
 
 
-    /*
-     * Represents a rating given to the store, including the score and review.
-     */
-    public static final class Rating{
 
-
-        final int score;
-        final String review ;
-        Rating (int s , String r ){score =s;review =r; }
-        public int getScore(){
-            return score;
-        }
-        public String getReview(){
-            return review;
-        }
-    }
     // Disocunt and policy fields
+    @Embedded
     private PurchasePolicy purchasePolicy;
-    //genislav need todo
+
+    @Transient
     private NumericalComposite discounts;
 
     //Owners and managers
+    @ElementCollection(fetch = FetchType.EAGER)
+    @MapKeyColumn(name = "email")
+    @CollectionTable(name = "store_owners", joinColumns = @JoinColumn(name = "store_name"))
+    @Column(name = "appointed_by")
     private final Map<String, String> ownersAppointer = new java.util.concurrent.ConcurrentHashMap<>(); // email → appointedBy
-    private final Map<String, ManagerData> managers = new java.util.concurrent.ConcurrentHashMap<>(); // email → metadata
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "store_name") // foreign key בטבלת ManagerData
+    @MapKey(name = "email")
+    private final Map<String, ManagerData> managers = new java.util.concurrent.ConcurrentHashMap<>(); // email → metadata
+    protected Store() {
+
+    }
 
     public Store(String name, String founderEmail) {
         //field
-        this.id = ++idCounter;
         this.name = name;
         this.founderEmail = founderEmail;
         this.isActive = true;
@@ -77,7 +94,6 @@ public class Store {
     }
 
     // Getters
-    public int getId() { return id; }
     public String getName() { return name; }
     public String getfounderEmail() { return founderEmail; }
     public boolean isActive() { return isActive; }
@@ -128,6 +144,7 @@ public class Store {
             throw new IllegalArgumentException("quantity cannot be 0 ");
         if (isOwnerOrHasManagerPermissions(email) || isAdmin) {
             String productId = String.valueOf(inStoreProductId.incrementAndGet());
+            productId += "_" + storeName;
             ShoppingProduct product = new ShoppingProduct(storeName, catalogID,productId, product_name, description, price, quantity, imageURL,categories);
             products.put(productId, product);
             return productId;
@@ -142,7 +159,15 @@ public class Store {
     public void updateProduct(String productId, ShoppingProduct product) {
         this.products.put(productId, product);
     }
-
+    public ShoppingProduct updateShoppingProduct(String catalogID, double price, String description){
+        ShoppingProduct product = getProduct(catalogID);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store");
+        }
+        product.setPrice(price);
+        product.setDescription(description); // assuming description is name; change if needed
+        return  product;
+    }
     public void removeProduct(String productId) {
         products.remove(productId);
     }
@@ -349,7 +374,7 @@ public class Store {
     public boolean appointManager(String ownerEmail, String managerEmail, Set<ManagerPermission> permissions, boolean isAdmin) {
         if ((!isOwner(ownerEmail) && !isAdmin) || managers.containsKey(managerEmail) )
             throw new IllegalArgumentException("manager email is not owner of this store");
-        managers.put(managerEmail, new ManagerData(ownerEmail, permissions));
+        managers.put(managerEmail, new ManagerData(managerEmail,ownerEmail, permissions));
         return true;
     }
     //4.7
@@ -441,6 +466,17 @@ public class Store {
         ratings.put(raterEmail, new Rating(score, review));
 
     }
+    public ShoppingProduct rateProduct(String email,String productID, int rating, String review) {
+        ShoppingProduct product = getProduct(productID);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+        if (rating == 1 || rating > 5) {
+            throw new IllegalArgumentException(("Rating must be between 1-5"));
+        }
+        product.addRating(email, rating, review);
+        return product;
+    }
     //rateStore
     /*
      * Retrieves the rating of the store.
@@ -476,7 +512,6 @@ public class Store {
     @Override
     public String toString() {
         return "Store{" +
-                "id=" + id +
                 ", name='" + name + '\'' +
                 ", ownerEmail='" + founderEmail + '\'' +
                 ", isActive=" + isActive +
