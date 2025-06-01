@@ -4,7 +4,6 @@ import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
-import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaStoreRepository;
 import com.SEGroup.Mapper.StoreMapper;
 
 import java.util.*;
