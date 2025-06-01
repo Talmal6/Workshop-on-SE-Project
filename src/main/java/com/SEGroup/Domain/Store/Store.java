@@ -1,4 +1,5 @@
 package com.SEGroup.Domain.Store;
+import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Domain.Conditions.*;
 import com.SEGroup.Domain.Discount.ConditionalDiscount;
 import com.SEGroup.Domain.Discount.Discount;
@@ -162,6 +163,26 @@ public class Store {
         return allWorkers;
     }
 
+    public ShoppingProduct updateShoppingProduct(String catalogID, double price, String description){
+        ShoppingProduct product = getProduct(catalogID);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store");
+        }
+        product.setPrice(price);
+        product.setDescription(description); // assuming description is name; change if needed
+        return  product;
+    }
+    public ShoppingProduct rateProduct(String email,String productID, int rating, String review) {
+        ShoppingProduct product = getProduct(productID);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+        if (rating == 1 || rating > 5) {
+            throw new IllegalArgumentException(("Rating must be between 1-5"));
+        }
+        product.addRating(email, rating, review);
+        return product;
+    }
     /*
      * Submits a bid to a shopping item.
         *
