@@ -76,7 +76,15 @@ public class UserService {
 
     @Transactional
     public Result<Void> register(String username, String email, String password, AddressDTO address) {
-        return Result.failure("User registration with address is not supported yet.");
+        try {
+            userRepository.addUserWithaddress(username, email, passwordEncoder.encrypt(password),address);
+            LoggerWrapper.info("User registered successfully: " + username + ", Email: " + email); // Log successful
+            // registration
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error("Failed to register user: " + e.getMessage(), e); // Log error on failure
+            return Result.failure("Failed to register user: " + e.getMessage());
+        }
     }
 
     @Transactional

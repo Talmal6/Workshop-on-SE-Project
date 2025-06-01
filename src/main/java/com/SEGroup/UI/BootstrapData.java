@@ -89,7 +89,7 @@ class BootstrapData {
     void initDemoData() {
         PasswordEncoder encoder = new PasswordEncoder();
         UserRepository users = new UserRepository(new DbUserData(jpaUserRepository));
-        StoreRepository stores = new StoreRepository(new DbStoreData(jpaStoreRepository));
+        StoreRepository stores = new StoreRepository();
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
         /* USERS ----------------------------------------------- */
@@ -204,7 +204,6 @@ class BootstrapData {
 
         // Add store products to catalog with images and initial ratings
         System.out.println("Adding Demo Store product images...");
-
         catalog.addStoreProductEntryWithImage("TECH-001", demoStore, p1, 999.99, 10, 4.8, "Smartphone X Pro",
                 getProductImage("Phone"));
         catalog.addStoreProductEntryWithImage("TECH-002", demoStore, p2, 1499.99, 5, 4.6, "Laptop Pro Max",
@@ -252,7 +251,8 @@ class BootstrapData {
                 "Signature Tote Bag", "Spacious designer tote with premium leather trim and durable canvas construction. Perfect for work or weekend.", 199.99, 25, true, getProductImage("Bag"),List.of("Accessories", "Bags"));
         String p14 = stores.addProductToStore("fashion@demo.com", fashionStore, "FASH-005",
                 "Designer Silk Scarf", "Luxurious silk scarf with hand-painted design. Versatile accessory to elevate any outfit.", 89.99, 40, true, getProductImage("Scarf"),List.of("Accessories", "Scarves"));
-               // Add Fashion Store products to catalog with images and ratings
+
+        // Add Fashion Store products to catalog with images and ratings
         System.out.println("Adding Fashion Store product images...");
         catalog.addStoreProductEntryWithImage("FASH-001", fashionStore, p10, 59.99, 100, 4.5, "Designer Graphic Tee",
                 getProductImage("Clothing"));
@@ -290,7 +290,8 @@ class BootstrapData {
                 getProductImage("Knife"));
         catalog.addStoreProductEntryWithImage("HOME-005", homeStore, p19, 159.99, 20, 4.6, "Smart Home Control Center",
                 getProductImage("Smart Home"));
-                /* ADD RATINGS & REVIEWS ------------------------------ */
+
+        /* ADD RATINGS & REVIEWS ------------------------------ */
         System.out.println("Adding ratings and reviews...");
         // Demo Store ratings
         stores.rateStore("user@demo.com", demoStore, 5, "Excellent selection and fast shipping!");
@@ -382,7 +383,7 @@ class BootstrapData {
         System.out.println("Initializing services...");
 
         // Create a mock shipping service
-        MockShippingService shippingService = new MockShippingService();
+        ExternalPaymentAndShippingService shippingService = new ExternalPaymentAndShippingService();
 
         ServiceLocator.initialize(
                 new GuestRepository(),            // guests
