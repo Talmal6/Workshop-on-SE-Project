@@ -35,7 +35,7 @@ public interface IUserRepository {
      * @param password The password of the new user.
      */
     void addUser(String username, String email, String password);
-
+    void addUserWithaddress(String username, String email, String passwordHash,AddressDTO addressDTO);
     /**
      * Deletes a user from the repository by their email.
      *
@@ -46,7 +46,6 @@ public interface IUserRepository {
     /**
      * Adds a product to the user's shopping cart.
      *
-     * @param findByUsername The user who is adding the product to the cart.
      * @param storeID        The ID of the store where the product is located.
      * @param productID      The ID of the product being added to the cart.
      */
@@ -126,7 +125,6 @@ public interface IUserRepository {
     /**
      * Sets a user as an admin.
      *
-     * @param email The email of the user to set as admin.
      */
 
     void setAsAdmin(String assignee, String username);

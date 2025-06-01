@@ -86,6 +86,16 @@ public class UserRepository implements IUserRepository {
         User u = new User(email, username, passwordHash);
         userData.saveUser(u);
     }
+    @Override
+    public void addUserWithaddress(String username, String email, String passwordHash,AddressDTO addressDTO) {
+        if (userData.userExistsByEmail(email))
+            throw new IllegalArgumentException("User already exists: " + email);
+        if (userData.userExistsByName(username))
+            throw new IllegalArgumentException("Username already exists: " + username);
+        User u = new User(email, username, passwordHash);
+        userData.saveUser(u);
+        setAddress(email,addressDTO);
+    }
 
     /**
      * Deletes a user from the repository.
