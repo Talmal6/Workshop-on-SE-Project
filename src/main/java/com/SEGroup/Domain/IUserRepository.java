@@ -156,4 +156,6 @@ public interface IUserRepository {
     void setAddress(String email, AddressDTO address);
 
     void setUserName(String email, String newUsername);
+
+    
 }

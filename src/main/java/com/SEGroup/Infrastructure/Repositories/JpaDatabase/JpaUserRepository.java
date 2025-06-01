@@ -25,4 +25,7 @@ public interface JpaUserRepository extends JpaRepository<User, String> {
     //List<User> findAllBySuspendedTrue();
     @Query("SELECT u FROM users u WHERE u.suspension IS NOT NULL")
     List<User> findAllSuspendedUsers();
+
+    // find if user exist by username
+    boolean existsByUsername(String username);
 }

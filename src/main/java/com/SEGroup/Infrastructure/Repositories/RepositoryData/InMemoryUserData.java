@@ -9,9 +9,11 @@ import java.util.stream.Collectors;
 import com.SEGroup.Domain.User.User;
 
 public class InMemoryUserData implements UserData {
-    // This class can be used to hold in-memory data for testing or temporary storage.
-    // It can include methods to initialize, clear, or manipulate the in-memory data as needed.
-    
+    // This class can be used to hold in-memory data for testing or temporary
+    // storage.
+    // It can include methods to initialize, clear, or manipulate the in-memory data
+    // as needed.
+
     // Example fields for in-memory data
     private final Map<String, User> InMemoryData = new ConcurrentHashMap<>();
 
@@ -63,7 +65,7 @@ public class InMemoryUserData implements UserData {
     }
 
     @Override
-    public boolean userExists(String userId) {
+    public boolean userExistsByName(String userId) {
         return InMemoryData.values().stream()
                 .anyMatch(user -> user.getUserName().equals(userId));
     }

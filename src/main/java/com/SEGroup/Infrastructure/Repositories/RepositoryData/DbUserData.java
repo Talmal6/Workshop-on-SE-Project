@@ -57,9 +57,9 @@ public class DbUserData implements UserData {
     }
 
     @Override
-    public boolean userExists(String userId) {
+    public boolean userExistsByName(String userId) {
         // Check if user exists in the database
-        return jpaUserRepository.existsById(userId);
+        return jpaUserRepository.existsByUsername(userId);
     }
 
     @Override

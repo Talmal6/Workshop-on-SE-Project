@@ -12,7 +12,7 @@ public interface UserData {
     void deleteUser(String userId);
     List<User> getAllUsers();
     List<User> getUsersByRole(String role);
-    boolean userExists(String userId);
+    boolean userExistsByName(String userId);
     boolean userExistsByEmail(String email);
-    
+
 }

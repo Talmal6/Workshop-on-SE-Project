@@ -31,14 +31,16 @@ import java.util.stream.Collectors;
  * carts.
  */
 @Repository
-@Profile({"prod","db"})
+@Profile({ "prod", "db" })
 public class UserRepository implements IUserRepository {
     private final UserData userData;
-    public UserRepository(){
-        
+
+    public UserRepository() {
+
         this.userData = new InMemoryUserData();
         createAdmin(); // Create the admin user if it doesn't exist
     }
+
     /**
      * Constructor to create a new UserRepository instance.
      */
@@ -47,10 +49,9 @@ public class UserRepository implements IUserRepository {
         createAdmin();
     }
 
-
-
     private void createAdmin() {
-        User admin = new User("Admin@Admin.Admin", "Admin", "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
+        User admin = new User("Admin@Admin.Admin", "Admin",
+                "$2a$10$BJmR2RNH7hTa7DCGDesel.lRX4MGz1bdYiBTM9LGcL2VWH3jcNwoS");
         if (!userData.userExistsByEmail(admin.getEmail())) {
             admin.addAdminRole();
             userData.saveUser(admin);
@@ -80,7 +81,7 @@ public class UserRepository implements IUserRepository {
     public void addUser(String username, String email, String passwordHash) {
         if (userData.userExistsByEmail(email))
             throw new IllegalArgumentException("User already exists: " + email);
-        if (userData.userExists(username))
+        if (userData.userExistsByName(username))
             throw new IllegalArgumentException("Username already exists: " + username);
         User u = new User(email, username, passwordHash);
         userData.saveUser(u);
@@ -275,7 +276,7 @@ public class UserRepository implements IUserRepository {
             throw new IllegalArgumentException("User not found: " + email);
         if (u.isAdmin())
             throw new IllegalArgumentException("User is already an admin: " + email);
-        if (!userData.getUserByEmail(AssigneeUsername).isAdmin() )
+        if (!userData.getUserByEmail(AssigneeUsername).isAdmin())
             throw new IllegalArgumentException("Assignee is not an admin: " + AssigneeUsername);
         u.addAdminRole();
         userData.updateUser(u); // Save the updated user with the new admin role
@@ -416,6 +417,7 @@ public class UserRepository implements IUserRepository {
         }
         userData.updateUser(user); // Save the updated user with the modified cart
     }
+
     @Override
     public AddressDTO getAddress(String email) {
         User user = userData.getUserByEmail(email);
@@ -428,6 +430,7 @@ public class UserRepository implements IUserRepository {
         }
         return new AddressDTO(address);
     }
+
     @Override
     public void setAddress(String email, AddressDTO address) {
         User user = userData.getUserByEmail(email);
@@ -437,18 +440,18 @@ public class UserRepository implements IUserRepository {
         user.setAddress(new Address(address));
         userData.updateUser(user);
     }
+
     @Override
     public void setUserName(String email, String newUsername) {
         User user = userData.getUserByEmail(email);
         if (user == null) {
             throw new IllegalArgumentException("User not found: " + email);
         }
-        if(userData.userExists(newUsername)) {
+        if (userData.userExistsByName(newUsername)) {
             throw new IllegalArgumentException("Username already exists: " + newUsername);
         }
         user.setUserName(newUsername);
-        userData.updateUser(user); 
+        userData.updateUser(user);
     }
 
-    
 }

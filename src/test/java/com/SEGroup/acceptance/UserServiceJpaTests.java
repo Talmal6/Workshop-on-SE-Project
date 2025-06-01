@@ -238,7 +238,7 @@ class UserServiceJpaTests {
         String authKey = sut.login("Admin@Admin.Admin", "Admin").getData();
         // Create a new user
         String newUserEmail = "new@new.new";
-        Result<Void> r = sut.register("Admin", newUserEmail, "Admin");
+        Result<Void> r = sut.register("AdminNew", newUserEmail, "Admin");
         assertTrue(r.isSuccess());
         // Attempt to add the user as an admin
         Result<Void> r2 = sut.setAsAdmin(authKey, newUserEmail);
@@ -256,7 +256,7 @@ class UserServiceJpaTests {
         String authKey = sut.login("Admin@Admin.Admin", "Admin").getData();
         // Create a new user
         String newUserEmail = "new@new.new";
-        Result<Void> r = sut.register("Admin", newUserEmail, "Admin");
+        Result<Void> r = sut.register("AdminNew", newUserEmail, "Admin");
         assertTrue(r.isSuccess());
         // Attempt to add the user as an admin
         Result<Void> r2 = sut.setAsAdmin(authKey, newUserEmail);
