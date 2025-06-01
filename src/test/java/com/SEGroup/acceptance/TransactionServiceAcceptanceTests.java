@@ -435,7 +435,6 @@ public class TransactionServiceAcceptanceTests {
                 String productId = storeService
                                 .addProductToStore(SELLER_TOKEN, STORE_ID, CATALOG_ID, "Product1", "Nice", 50.0, 3, "")
                                 .getData();
-
                 // Simulate an auction and a bid
                 Date futureDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60); // 1 hour in the future
                 storeService.startAuction(SELLER_TOKEN, STORE_ID, productId, 30.0, futureDate);

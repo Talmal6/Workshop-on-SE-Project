@@ -84,6 +84,7 @@ public class UserRepository implements IUserRepository {
         if (userData.userExistsByName(username))
             throw new IllegalArgumentException("Username already exists: " + username);
         User u = new User(email, username, passwordHash);
+        u.setAddress(new Address("","","",""));
         userData.saveUser(u);
     }
     @Override
