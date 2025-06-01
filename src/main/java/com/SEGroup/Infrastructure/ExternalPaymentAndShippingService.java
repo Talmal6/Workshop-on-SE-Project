@@ -3,6 +3,7 @@ package com.SEGroup.Infrastructure;
 import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.Domain.IPaymentGateway;
 import com.SEGroup.Domain.IShippingService;
+import com.SEGroup.Service.LoggerWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -19,8 +20,8 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import static java.lang.Integer.parseInt;
-//create a new enum
 
+//create a new enum
 public class ExternalPaymentAndShippingService implements IPaymentGateway , IShippingService {
     private static final String SERVER_URL = "https://damp-lynna-wsep-1984852e.koyeb.app/";
     private static final HttpClient CLIENT = HttpClient.newBuilder()
@@ -30,11 +31,13 @@ public class ExternalPaymentAndShippingService implements IPaymentGateway , IShi
 
     @Override
     public Boolean cancelShipping(int shippingId) {
+        LoggerWrapper.info("cancelShipping called with shippingId=" + shippingId);
         return null;
     }
 
     @Override
     public Integer ship(AddressDTO address_detail, String name) {
+        LoggerWrapper.info("ship called with address=" + address_detail + ", name=" + name);
         Map<String, String> toSend = new LinkedHashMap<>();
         toSend.put("name", name);
         toSend.put("action_type", Action.SUPPLY.value());
@@ -42,11 +45,16 @@ public class ExternalPaymentAndShippingService implements IPaymentGateway , IShi
         toSend.put("city", address_detail.getCity());
         toSend.put("country", address_detail.getCountry());
         toSend.put("zip", address_detail.getZip());
+        LoggerWrapper.info("sending shipping request to external service: " + toSend);
         String result=sendPost(toSend);
+        LoggerWrapper.info("Received response for shipping request: " + result);
         int ok = parseInt(result);
         if (ok < 0){
-            throw new RuntimeException("The transaction has failed");
+            RuntimeException e = new RuntimeException("The transaction has failed");
+            LoggerWrapper.error("The transaction has failed with response: " + result, e);
+            throw e;
         }
+        LoggerWrapper.info("Shipping request successful, response: " + result);
         return ok;
     }
 
@@ -70,24 +78,30 @@ public class ExternalPaymentAndShippingService implements IPaymentGateway , IShi
 
     @Override
     public void processPayment(String paymentDetails, double amount) {
+        LoggerWrapper.info("processPayment called with amount=" + amount + ", rawDetails=" + paymentDetails);
         Map<String, String> toSend = parsePayment(paymentDetails);
-        System.out.println("YehudaaaaaaaPayment: " + toSend);
+        LoggerWrapper.debug("Parsed payment details: " + toSend);
         String result=sendPost(toSend);
-        System.out.println("YehudaaaaaaaPayment result: " + result);
+        LoggerWrapper.info("Payment gateway response: " + result);
         int ok = parseInt(result);
         if (ok < 0){
-            throw new RuntimeException("The transaction has failed");
+            RuntimeException e = new RuntimeException("The transaction has failed");
+            LoggerWrapper.error("Payment transaction failed with response: " + result, e);
+            throw e;
         }
     }
 
     @Override
     public boolean validatePayment(String paymentDetails) {
+        LoggerWrapper.info("validatePayment called");
         String ok = sendPost(Map.of("action_type", Action.HANDSHAKE.value()));
+        LoggerWrapper.debug("Handshake response: " + ok);
         return "OK".equalsIgnoreCase(ok.trim());
     }
 
     @Override
     public String getPaymentStatus(String transactionId) {
+        LoggerWrapper.info("getPaymentStatus called with transactionId=" + transactionId);
         if (transactionId == null || transactionId.isEmpty()) {
             return "failed";
         }
@@ -104,6 +118,7 @@ public class ExternalPaymentAndShippingService implements IPaymentGateway , IShi
     }
 
     public Map<String, String> parsePayment(String rawPayment) {
+        LoggerWrapper.debug("Parsing payment JSON: " + rawPayment);
         try {
             // keeps insertion order; change to HashMap if you don't care
             return new ObjectMapper().readValue(
@@ -111,11 +126,13 @@ public class ExternalPaymentAndShippingService implements IPaymentGateway , IShi
                     new TypeReference<LinkedHashMap<String, String>>() {}
             );
         } catch (Exception e) {
+            LoggerWrapper.error("Invalid payment JSON", e);
             throw new IllegalArgumentException("Invalid payment JSON", e);
         }
     }
 
     private static String sendPost(Map<String, String> formParams) {
+        LoggerWrapper.debug("sendPost called with params: " + formParams);
         StringJoiner body = new StringJoiner("&");
         formParams.forEach((k, v) ->
                 body.add(URLEncoder.encode(k, StandardCharsets.UTF_8) + "=" +
@@ -127,13 +144,13 @@ public class ExternalPaymentAndShippingService implements IPaymentGateway , IShi
                 .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                 .timeout(Duration.ofSeconds(10))
                 .build();
-
-        System.out.println("Yehudaa"+request.toString());
         try {
             HttpResponse<String> resp = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            LoggerWrapper.debug("HTTP POST response (status " + resp.statusCode() + "): " + resp.body());
             return resp.body();
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
+            LoggerWrapper.error("Failed contacting external payment service", e);
             throw new RuntimeException("Failed contacting external payment service", e);
         }
     }

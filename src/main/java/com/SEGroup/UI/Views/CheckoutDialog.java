@@ -17,6 +17,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.binder.BinderValidationStatus;
 import com.vaadin.flow.data.validator.StringLengthValidator;
 
 public class CheckoutDialog extends Dialog {
@@ -150,6 +151,7 @@ public class CheckoutDialog extends Dialog {
             city.setRequired(!useAddress);
             zipCode.setRequired(!useAddress);
             country.setRequired(!useAddress);
+            updateBinder(useAddress);
         });
         if (presenter.doesAddressOnFileExist()) {
             useAddressOnFile.setValue(true);
@@ -180,60 +182,28 @@ public class CheckoutDialog extends Dialog {
         formLayout.add(city, country);
         formLayout.add(zipCode);
 
-        // Bind fields
-        binder.forField(cardNumber)
-                .withValidator(new StringLengthValidator("Card number must be 16 digits", 16, 19))
-                .bind(CreditCardDetails::getCardNumber, CreditCardDetails::setCardNumber);
-
-        binder.forField(cardHolder)
-                .withValidator(new StringLengthValidator("Card holder name is required", 1, null))
-                .bind(CreditCardDetails::getCardHolder, CreditCardDetails::setCardHolder);
-
-        binder.forField(expiryDate)
-                .withValidator(new StringLengthValidator("Expiry date must be in MM/YY format", 5, 5))
-                .bind(CreditCardDetails::getExpiryDate, CreditCardDetails::setExpiryDate);
-
-        binder.forField(cvv)
-                .withValidator(new StringLengthValidator("CVV must be 3 digits", 3, 3))
-                .bind(CreditCardDetails::getCvv, CreditCardDetails::setCvv);
-
-        binder.forField(address)
-                .withValidator(new StringLengthValidator("Address is required", 1, null))
-                .bind(CreditCardDetails::getAddress, CreditCardDetails::setAddress);
-
-        binder.forField(city)
-                .withValidator(new StringLengthValidator("City is required", 1, null))
-                .bind(CreditCardDetails::getCity, CreditCardDetails::setCity);
-
-        binder.forField(zipCode)
-                .withValidator(new StringLengthValidator("Zip/Postal code is required", 1, null))
-                .bind(CreditCardDetails::getZipCode, CreditCardDetails::setZipCode);
-
-        binder.forField(country)
-                .withValidator(new StringLengthValidator("Country is required", 1, null))
-                .bind(CreditCardDetails::getCountry, CreditCardDetails::setCountry);
-
-        binder.forField(id)
-                .withValidator(new StringLengthValidator("Id is required", 9, 9))
-                .bind(CreditCardDetails::getId, CreditCardDetails::setId);
-        // Set the bean to be bound
-        binder.setBean(creditCardDetails);
-
         // Buttons
         Button cancelButton = new Button("Cancel", e -> close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         Button checkoutButton = new Button("Complete Purchase", e -> {
+            BinderValidationStatus<CreditCardDetails> status = binder.validate();
             if (useAddressOnFile.getValue()) {
-                if (binder.validate().isOk()) {
+                if (status.isOk()) {
                     // Ensure the bean is updated with the latest values
                     binder.writeBeanIfValid(creditCardDetails);
                     boolean success = presenter.onCheckout(creditCardDetails);
                     if (success) {
                         close();
                     }
-                } else {
-                    Notification notification = Notification.show("Please fill in all fields correctly", 3000, Notification.Position.MIDDLE);
+                }
+                else {
+                    //get the validation issue
+                    StringBuilder errorMessage = new StringBuilder("Please fill in all fields correctly:\n");
+                    status.getFieldValidationErrors().forEach(error -> {
+                        errorMessage.append(error.getField()).append(": ").append(error.getMessage()).append("\n");
+                    });
+                    Notification notification = Notification.show(errorMessage.toString(), 3000, Notification.Position.MIDDLE);
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             } else {
@@ -282,6 +252,7 @@ public class CheckoutDialog extends Dialog {
         add(mainLayout);
         useAddressOnFile.setVisible(presenter.doesAddressOnFileExist());
         useAddressOnFile.setValue(presenter.doesAddressOnFileExist());
+        updateBinder(useAddressOnFile.getValue());
     }
 
     private void updateTotalDisplay(double total) {
@@ -359,5 +330,53 @@ public class CheckoutDialog extends Dialog {
     public void showError(String message) {
         Notification notification = Notification.show(message, 4000, Notification.Position.MIDDLE);
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+    }
+
+    public void updateBinder(boolean isAddressOnFile) {
+        // Update required state
+        // Bind fields
+        binder.removeBean();
+        binder.forField(cardNumber)
+                .withValidator(new StringLengthValidator("Card number must be 16 digits", 16, 19))
+                .bind(CreditCardDetails::getCardNumber, CreditCardDetails::setCardNumber);
+
+        binder.forField(cardHolder)
+                .withValidator(new StringLengthValidator("Card holder name is required", 1, null))
+                .bind(CreditCardDetails::getCardHolder, CreditCardDetails::setCardHolder);
+
+        binder.forField(expiryDate)
+                .withValidator(new StringLengthValidator("Expiry date must be in MM/YY format", 5, 5))
+                .bind(CreditCardDetails::getExpiryDate, CreditCardDetails::setExpiryDate);
+
+        binder.forField(cvv)
+                .withValidator(new StringLengthValidator("CVV must be 3 digits", 3, 3))
+                .bind(CreditCardDetails::getCvv, CreditCardDetails::setCvv);
+
+
+        binder.forField(id)
+                .withValidator(new StringLengthValidator("Id is required", 9, 9))
+                .bind(CreditCardDetails::getId, CreditCardDetails::setId);
+        // Set the bean to be bound
+        binder.setBean(creditCardDetails);
+
+        if (!isAddressOnFile) {
+            binder.forField(address)
+                    .withValidator(new StringLengthValidator("Address is required", 1, null))
+                    .bind(CreditCardDetails::getAddress, CreditCardDetails::setAddress);
+
+            binder.forField(city)
+                    .withValidator(new StringLengthValidator("City is required", 1, null))
+                    .bind(CreditCardDetails::getCity, CreditCardDetails::setCity);
+
+            binder.forField(zipCode)
+                    .withValidator(new StringLengthValidator("Zip/Postal code is required", 1, null))
+                    .bind(CreditCardDetails::getZipCode, CreditCardDetails::setZipCode);
+
+            binder.forField(country)
+                    .withValidator(new StringLengthValidator("Country is required", 1, null))
+                    .bind(CreditCardDetails::getCountry, CreditCardDetails::setCountry);
+
+        }
+        binder.setBean(creditCardDetails);
     }
 }
