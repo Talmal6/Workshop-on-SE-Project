@@ -6,7 +6,6 @@ import com.SEGroup.Domain.IShippingService;
 import org.springframework.stereotype.Service;
 
 
-@Service
 public class MockShippingService implements IShippingService {
 //    @Override
 //    public String ship(BasketDTO basket, String userEmail) {

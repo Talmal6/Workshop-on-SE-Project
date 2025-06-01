@@ -317,6 +317,7 @@ public class CartPresenter {
      * @return True if checkout was successful, false otherwise
      */
     public boolean onCheckout(CheckoutDialog.CreditCardDetails creditCardDetails) {
+        LoggerWrapper.info("Processing checkout with credit card details: " + creditCardDetails);
         try {
             String token = SecurityContextHolder.token();
             String email = SecurityContextHolder.email();
@@ -418,6 +419,7 @@ public class CartPresenter {
     }
 
     public boolean onCheckout(CheckoutDialog.CreditCardDetails creditCardDetails, AddressDTO addressDTO) {
+        LoggerWrapper.info("Processing checkout + address with credit card details: " + creditCardDetails);
         try {
             boolean isLoggedIn = SecurityContextHolder.isLoggedIn();
             String token = SecurityContextHolder.token();

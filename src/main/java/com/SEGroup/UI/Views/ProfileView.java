@@ -184,6 +184,12 @@ public class ProfileView extends VerticalLayout implements BeforeEnterObserver {
                     profile.getZip()
             );
             presenter.updateProfile(profile.getFullName(), address);
+            //make all fields read-only again
+            for (TextField tf : new TextField[]{fullNameField, addressField, cityField, countryField, zipField}) {
+                tf.setReadOnly(true); // make all fields read-only before updating
+                Button editButton = (Button) tf.getSuffixComponent();
+                editButton.setIcon(new Icon(VaadinIcon.EDIT)); // reset icon to edit
+            }
         } catch (Exception e) {
             showError("Error updating profile: " + e.getMessage());
         }

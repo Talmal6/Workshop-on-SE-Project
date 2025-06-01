@@ -56,4 +56,14 @@ public class AddressDTO {
     public void setZip(String zip) {
         this.zip = zip;
     }
+
+    @Override
+    public String toString() {
+        return "AddressDTO{" +
+                "address='" + address + '\'' +
+                ", city='" + city + '\'' +
+                ", country='" + country + '\'' +
+                ", zip='" + zip + '\'' +
+                '}';
+    }
 } 
