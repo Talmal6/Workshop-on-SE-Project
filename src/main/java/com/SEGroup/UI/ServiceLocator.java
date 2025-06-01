@@ -2,6 +2,7 @@ package com.SEGroup.UI;
 
 import com.SEGroup.Domain.*;
 import com.SEGroup.Domain.Report.ReportCenter;
+import com.SEGroup.Infrastructure.ExternalPaymentAndShippingService;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
 import com.SEGroup.Service.*;
 import com.SEGroup.Domain.*;
@@ -74,7 +75,7 @@ public class ServiceLocator {
         guestService = new GuestService(guestRepository, authService);
         userService = new UserService(guestService, userRepository, authService,reportCenter);
         storeService = new StoreService(storeRepository, productCatalog, authService, userRepository, notificationCenter);
-        shippingService = mock(IShippingService.class);
+        shippingService = new ExternalPaymentAndShippingService();
         transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService, notificationCenter);
     }
 

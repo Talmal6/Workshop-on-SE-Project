@@ -6,6 +6,8 @@ import com.SEGroup.Domain.IShippingService;
 import com.SEGroup.Service.LoggerWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URI;
@@ -22,6 +24,8 @@ import java.util.StringJoiner;
 import static java.lang.Integer.parseInt;
 
 //create a new enum
+@Service
+@Component
 public class ExternalPaymentAndShippingService implements IPaymentGateway , IShippingService {
     private static final String SERVER_URL = "https://damp-lynna-wsep-1984852e.koyeb.app/";
     private static final HttpClient CLIENT = HttpClient.newBuilder()
