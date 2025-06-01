@@ -8,27 +8,67 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+import jakarta.persistence.*;
 /*
  * Represents a product in a store, including its details, bidding information, and ratings.
  */
+@Entity
+@Table(name = "shopping_product")
 public class ShoppingProduct {
+    @Id
+    @Column(name = "product_id")
     private final String productId;
+
+    @Column(name = "catalog_id")
     private String catalogID;
+
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "price")
     private double price;
+
+    @Column(name = "quantity")
     private int quantity;
+
+    @Column(name = "store_name")
     private final String storeName;
+
+    @Column(name = "image_url")
     private final String imageUrl;
-    private final Map<String, Store.Rating> ratings = new HashMap<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @MapKeyColumn(name = "user_id")
+    @CollectionTable(name = "product_ratings", joinColumns = @JoinColumn(name = "product_id"))
+    private final Map<String, Rating> ratings = new HashMap<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "product_categories", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "category")
     private final List<String> categories;;
 
     // Bids and auction
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "product_id")
     private final List<Bid> bids;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "auction_id")
     private Auction auction;
+
+    @Embedded
     private BuyingPolicy buyingPolicy;
 
+    protected ShoppingProduct() {
+        this.productId = null;
+        this.storeName = null;
+        this.imageUrl = null;
+        this.bids = new ArrayList<>();
+        this.categories = new ArrayList<>();
+    }
     public ShoppingProduct(String storeName, String catalogID, String productId, String name,
                            String description, double price, int quantity, String imageUrl,List<String> categories) {
         this.storeName = storeName;
@@ -149,7 +189,7 @@ public class ShoppingProduct {
             throw new IllegalArgumentException("Rating msut be 1-5 ");
 
         }
-        ratings.put(raterEmail, new Store.Rating(score, review));
+        ratings.put(raterEmail, new Rating(score, review));
     }
 
     //rateStore
@@ -177,7 +217,7 @@ public class ShoppingProduct {
     public void removeBid(String bidderEmail) {
         this.bids.removeIf(b -> b.getBidderEmail().equals(bidderEmail));
     }
-    public Map<String, Store.Rating> getAllRatings() {
+    public Map<String, Rating> getAllRatings() {
         return Collections.unmodifiableMap(ratings);
     }
 

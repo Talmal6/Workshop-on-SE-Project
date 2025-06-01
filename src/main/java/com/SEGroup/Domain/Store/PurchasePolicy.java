@@ -1,8 +1,10 @@
 package com.SEGroup.Domain.Store;
+import jakarta.persistence.*;
 
 /**
  * Represents a purchase policy for a store, including discount percentage and duration.
  */
+@Embeddable
 public class PurchasePolicy {
     private double discountPercentage;
     private int durationInDays;
@@ -11,6 +13,7 @@ public class PurchasePolicy {
         this.durationInDays = durationInDays;
 
     }
+    protected PurchasePolicy() {}
     public double getDiscountPercentage() {
         return discountPercentage;
     }

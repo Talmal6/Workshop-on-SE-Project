@@ -52,7 +52,7 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public Map<String, Store.Rating> findRatingsByStore(String storeName) {
+    public Map<String, Rating> findRatingsByStore(String storeName) {
         Store store = findByName(storeName);
         return store.getRatings();
     }
@@ -97,6 +97,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("Only the founder or Admin can close the store");
         }
         store.close();
+        storeData.updateStore(store);
         return store.getAllWorkers();
     }
 
@@ -114,6 +115,7 @@ public class StoreRepository implements IStoreRepository {
         }
 
         store.open();
+        storeData.updateStore(store);
         return store.getAllWorkers();
     }
 
@@ -135,6 +137,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("User is not authorized to update product");
         }
         ShoppingProductDTO productDTO = convertProductToDTO(store.updateShoppingProduct(catalogID,price,description));
+        storeData.updateStore(store);
         return productDTO;
     }
 
@@ -156,9 +159,11 @@ public class StoreRepository implements IStoreRepository {
                                     int quantity, boolean isAdmin, String imageURL,List<String> categories) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
-            return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity,
-                    isAdmin, imageURL,categories);
+            String productid = store.addProductToStore(email, storeName ,catalogID, product_name, description, price, quantity, isAdmin, imageURL,categories);
+            storeData.updateStore(store);
+            return productid;
         }
+
         return null;
 
     }
@@ -422,7 +427,7 @@ public class StoreRepository implements IStoreRepository {
                 product.averageRating(),
                 product.getImageUrl(),
                 product.getCategories()
-                );
+        );
     }
 
 
@@ -818,10 +823,10 @@ public class StoreRepository implements IStoreRepository {
     public List<RatingDto> getStoreRatings(String storeName) {
         Store store = findByName(storeName);
 
-        Map<String, Store.Rating> ratings = store.getAllRatings();
+        Map<String, Rating> ratings = store.getAllRatings();
 
         List<RatingDto> dtoList = new ArrayList<>();
-        for (Map.Entry<String, Store.Rating> entry : ratings.entrySet()) {
+        for (Map.Entry<String, Rating> entry : ratings.entrySet()) {
             dtoList.add(new RatingDto(entry.getKey(), entry.getValue().getScore(), entry.getValue().getReview()));
         }
 
@@ -832,10 +837,10 @@ public class StoreRepository implements IStoreRepository {
     public List<RatingDto> getProductRatings(String storeName,String productId) {
         Store store = findByName(storeName);
 
-        Map<String, Store.Rating> products_ratings = store.getAllRatings();
+        Map<String, Rating> products_ratings = store.getAllRatings();
 
         List<RatingDto> dtoList = new ArrayList<>();
-        for (Map.Entry<String, Store.Rating> entry : products_ratings.entrySet()) {
+        for (Map.Entry<String, Rating> entry : products_ratings.entrySet()) {
             dtoList.add(new RatingDto(entry.getKey(), entry.getValue().getScore(), entry.getValue().getReview()));
         }
 
