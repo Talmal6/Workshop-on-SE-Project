@@ -42,7 +42,6 @@ public class StoreMapper {
 
         // Convert the Store domain object to a StoreDTO
         StoreDTO storeDTO = new StoreDTO(
-                domainInstance.getId(),
                 domainInstance.getName(),
                 domainInstance.getfounderEmail(),
                 domainInstance.isActive(),

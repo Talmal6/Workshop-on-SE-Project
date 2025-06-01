@@ -1,8 +1,11 @@
 package com.SEGroup.Domain.Store;
 
+import jakarta.persistence.Embeddable;
+
 /**
  * Represents the buying policy of a store, including minimum quantity requirements.
  */
+@Embeddable
 public class BuyingPolicy {
     private int minimumQuantity;
 
@@ -12,7 +15,9 @@ public class BuyingPolicy {
         }
         this.minimumQuantity = minimumQuantity;
     }
-
+    protected BuyingPolicy() {
+        this.minimumQuantity = 1; // ערך ברירת מחדל חוקי
+    }
     public int getMinimumQuantity() {
         return minimumQuantity;
     }

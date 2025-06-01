@@ -5,10 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.SEGroup.DTO.*;
-import com.SEGroup.Domain.Store.Bid;
-import com.SEGroup.Domain.Store.Review;
-import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Domain.Store.Store;
+import com.SEGroup.Domain.Store.*;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.UI.Views.AddProductDialog;
 
@@ -270,9 +267,9 @@ public interface IStoreRepository {
 
         List<ShoppingProductDTO> getStoreProducts(String storeName);
 
-        Map<String, Store.Rating> findRatingsByStore(String storeName);
-
         List<RatingDto> getStoreRatings(String storeName);
+
+        Map<String, Rating> findRatingsByStore(String storeName);
 
         List<RatingDto> getProductRatings(String storeName,String productId);
 

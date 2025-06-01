@@ -26,7 +26,6 @@ public class StoreTests {
     @Test
     @DisplayName("Given new store, when constructed, then id is positive and fields initialized")
     public void Given_NewStore_When_Constructed_Then_FieldsInitialized() {
-        assertTrue(store.getId() > 0);
         assertEquals(storeName, store.getName());
         assertEquals(founderEmail, store.getfounderEmail());
         assertTrue(store.isActive());

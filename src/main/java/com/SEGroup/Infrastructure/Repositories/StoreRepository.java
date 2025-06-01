@@ -13,7 +13,11 @@ import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Discount.DiscountType;
 import com.SEGroup.Domain.IStoreRepository;
 import com.SEGroup.Domain.Store.*;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.InMemoryStoreData;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.StoreData;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.UserData;
 import com.SEGroup.Mapper.StoreMapper;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 ;
 
@@ -26,10 +30,16 @@ import org.springframework.stereotype.Repository;
  * manage store products, owners, and managers.
  */
 @Repository
+@Profile({"prod","db"})
 public class StoreRepository implements IStoreRepository {
-    private final List<Store> stores = new ArrayList<>();
+    private final StoreData storeData;
     private StoreMapper storeMapper = new StoreMapper();
-
+    public StoreRepository(StoreData storeData) {
+        this.storeData = storeData;
+    }
+    public StoreRepository(){
+        this.storeData = new InMemoryStoreData();
+    }
     /**
      * Retrieves all stores in the system.
      *
@@ -37,12 +47,12 @@ public class StoreRepository implements IStoreRepository {
      */
     @Override
     public List<StoreDTO> getAllStores() {
-        List<StoreDTO> storeDTOs = storeMapper.toDTOs(stores);
+        List<StoreDTO> storeDTOs = storeMapper.toDTOs(storeData.getAllStores());
         return storeDTOs;
     }
 
     @Override
-    public Map<String, Store.Rating> findRatingsByStore(String storeName) {
+    public Map<String, Rating> findRatingsByStore(String storeName) {
         Store store = findByName(storeName);
         return store.getRatings();
     }
@@ -70,7 +80,7 @@ public class StoreRepository implements IStoreRepository {
         if (isStoreExist(storeName)) {
             throw new RuntimeException("Store already exists");
         }
-        stores.add(new Store(storeName, founderEmail));
+        storeData.saveStore(new Store(storeName, founderEmail));
     }
 
     /**
@@ -87,6 +97,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("Only the founder or Admin can close the store");
         }
         store.close();
+        storeData.updateStore(store);
         return store.getAllWorkers();
     }
 
@@ -104,6 +115,7 @@ public class StoreRepository implements IStoreRepository {
         }
 
         store.open();
+        storeData.updateStore(store);
         return store.getAllWorkers();
     }
 
@@ -124,13 +136,8 @@ public class StoreRepository implements IStoreRepository {
         if (!store.isOwnerOrHasManagerPermissions(email)) {
             throw new RuntimeException("User is not authorized to update product");
         }
-        ShoppingProduct product = store.getProduct(catalogID);
-        if (product == null) {
-            throw new RuntimeException("Product not found in store");
-        }
-        product.setPrice(price);
-        product.setDescription(description); // assuming description is name; change if needed
-        ShoppingProductDTO productDTO = convertProductToDTO(product);
+        ShoppingProductDTO productDTO = convertProductToDTO(store.updateShoppingProduct(catalogID,price,description));
+        storeData.updateStore(store);
         return productDTO;
     }
 
@@ -152,9 +159,11 @@ public class StoreRepository implements IStoreRepository {
                                     int quantity, boolean isAdmin, String imageURL,List<String> categories) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
-            return store.addProductToStore(email, storeName, catalogID, product_name, description, price, quantity,
-                    isAdmin, imageURL,categories);
+            String productid = store.addProductToStore(email, storeName ,catalogID, product_name, description, price, quantity, isAdmin, imageURL,categories);
+            storeData.updateStore(store);
+            return productid;
         }
+
         return null;
 
     }
@@ -166,28 +175,10 @@ public class StoreRepository implements IStoreRepository {
      * @return The Store object representing the store.
      */
     public Store findByName(String name) {
-        Store find_store = stores.stream()
-                .filter(store -> store.getName().equals(name))
-                .findFirst()
-                .orElse(null);
-        if (find_store == null) {
-            throw new RuntimeException("Store does not exist");
-        }
-        return find_store;
+        return storeData.findByName(name);
     }
 
-    /**
-     * Checks if a store with the specified name exists.
-     *
-     * @param name The name of the store to check.
-     * @throws RuntimeException if the store does not exist.
-     */
-    public void checkIfExist(String name) {
-        boolean exists = stores.stream().anyMatch(store -> store.getName().equals(name));
-        if (!exists) {
-            throw new RuntimeException("Store does not exist");
-        }
-    }
+
 
     /**
      * Checks if a store with the specified name exists.
@@ -196,7 +187,7 @@ public class StoreRepository implements IStoreRepository {
      * @return true if the store exists, false otherwise.
      */
     public boolean isStoreExist(String name) {
-        return stores.stream().anyMatch(store -> store.getName().equals(name));
+        return storeData.isStoreExist(name);
     }
 
     /**
@@ -211,6 +202,7 @@ public class StoreRepository implements IStoreRepository {
     public void appointOwner(String storeName, String appointerEmail, String newOwnerEmail, boolean isAdmin) {
         Store store = findByName(storeName);
         store.appointOwner(appointerEmail, newOwnerEmail, isAdmin);
+        storeData.updateStore(store);
     }
 
     /**
@@ -224,6 +216,7 @@ public class StoreRepository implements IStoreRepository {
     public void removeOwner(String storeName, String removerEmail, String ownerToRemove, boolean isAdmin) {
         Store store = findByName(storeName);
         store.removeOwner(removerEmail, ownerToRemove, isAdmin);
+        storeData.updateStore(store);
     }
 
     /**
@@ -236,6 +229,7 @@ public class StoreRepository implements IStoreRepository {
     public void resignOwnership(String storeName, String ownerEmail) {
         Store store = findByName(storeName);
         store.resignOwnership(ownerEmail);
+        storeData.updateStore(store);
     }
 
     /**
@@ -256,6 +250,7 @@ public class StoreRepository implements IStoreRepository {
         }
 
         store.appointManager(ownerEmail, managerEmail, permissionSet, isAdmin);
+        storeData.updateStore(store);
     }
 
     /**
@@ -276,6 +271,7 @@ public class StoreRepository implements IStoreRepository {
             permissionSet.add(ManagerPermission.valueOf(perm));
         }
         store.updateManagerPermissions(ownerEmail, managerEmail, permissionSet);
+        storeData.updateStore(store);
     }
 
     /**
@@ -291,12 +287,10 @@ public class StoreRepository implements IStoreRepository {
     @Override
     public List<String> getManagerPermissions(String storeName, String operatorEmail, String managerEmail) {
         Store store = findByName(storeName);
-
         if (!store.isOwnerOrHasManagerPermissions(operatorEmail)
                 && !store.hasManagerPermission(operatorEmail, ManagerPermission.MANAGE_ROLES)) {
             throw new RuntimeException("User is not authorized to view manager permissions");
         }
-
         return store.getManagerPermissions(managerEmail);
     }
 
@@ -348,6 +342,7 @@ public class StoreRepository implements IStoreRepository {
         if (store.isOwnerOrHasManagerPermissions(email)) {
             store.removeProduct(productID);
         }
+        storeData.updateStore(store);
         return product;
     }
 
@@ -364,16 +359,8 @@ public class StoreRepository implements IStoreRepository {
     @Override
     public ShoppingProductDTO rateProduct(String email, String storeName, String productID, int rating, String review) {
         Store store = findByName(storeName);
-        ShoppingProduct product = store.getProduct(productID);
-
-        if (product == null) {
-            throw new RuntimeException("Product not found in store ");
-        }
-        if (rating == 1 || rating > 5) {
-            throw new IllegalArgumentException(("Rating must be between 1-5"));
-        }
-        product.addRating(email, rating, review);
-        ShoppingProductDTO productDTO = convertProductToDTO(product);
+        ShoppingProductDTO productDTO = convertProductToDTO(store.rateProduct(email,productID,rating,review));
+        storeData.updateStore(store);
         return productDTO;
     }
 
@@ -392,6 +379,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("Store is closed - cannot be rated ");
         }
         store.rateStore(email, rating, review);
+        storeData.updateStore(store);
     }
 
     /**
@@ -417,6 +405,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("User is not allowed to modify balance");
 
         store.addToBalance(amount);
+        storeData.updateStore(store);
     }
 
     /**
@@ -438,16 +427,9 @@ public class StoreRepository implements IStoreRepository {
                 product.averageRating(),
                 product.getImageUrl(),
                 product.getCategories()
-                );
+        );
     }
 
-    private List<ShoppingProductDTO> convertProductsToDTO(List<ShoppingProduct> products) {
-        List<ShoppingProductDTO> dtos = new ArrayList<>();
-        for (ShoppingProduct product : products) {
-            dtos.add(convertProductToDTO(product));
-        }
-        return dtos;
-    }
 
     @Override
     public Map<BasketDTO, Double> removeItemsFromStores(List<BasketDTO> basketDTOList) {
@@ -478,12 +460,12 @@ public class StoreRepository implements IStoreRepository {
 
                 succeededRemovals.add(basketDTO);
                 basketToTotalPrice.put(basketDTO, storeTotal);
+                storeData.updateStore(store);
             }
         } catch (Exception e) {
             rollBackItemsToStores(succeededRemovals);
             throw new RuntimeException("Failed to remove items from stores: " + e.getMessage());
         }
-
         return basketToTotalPrice;
     }
     @Override
@@ -548,6 +530,7 @@ public class StoreRepository implements IStoreRepository {
                     product.setQuantity(product.getQuantity() + quantityToAddBack);
                 }
             }
+            storeData.updateStore(store);
         }
     }
 
@@ -555,14 +538,14 @@ public class StoreRepository implements IStoreRepository {
     public ShoppingProductDTO getProduct(String storeName, String productID) {
         Store store = findByName(storeName);
         ShoppingProduct product = store.getProduct(productID);
-
-        return convertProductToDTO(findByName(storeName).getProduct(productID));
+        return convertProductToDTO(product);
     }
 
     @Override
     public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount) {
         Store store = findByName(storeName);
         store.submitBidToShoppingItem(productId, bidAmount, Email);
+        storeData.updateStore(store);
     }
 
     @Override
@@ -586,6 +569,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("The bid amount is less than the Starting Price");
         }
         store.submitAuctionOffer(productId, bidAmount, email);
+        storeData.updateStore(store);
     }
     public void closeAuction(String storeName, String userId, String productId){
         Store store = findByName(storeName);
@@ -597,7 +581,8 @@ public class StoreRepository implements IStoreRepository {
         if (auc == null) {
             throw new RuntimeException("Auction not found for product: " + productId);
         }
-        store.closeAuction(productId);;
+        store.closeAuction(productId);
+        storeData.updateStore(store);
 
     }
     @Override
@@ -679,6 +664,7 @@ public class StoreRepository implements IStoreRepository {
         } else {
             store.updateProduct(productId, product);
         }
+        storeData.updateStore(store);
     }
 
     public void executeAuctionBid(String Email, String storeName, BidDTO bidDTO) {
@@ -714,6 +700,7 @@ public class StoreRepository implements IStoreRepository {
         } else {
             throw new RuntimeException("Bidder is not the highest bidder");
         }
+        storeData.updateStore(store);
 
     }
 
@@ -729,6 +716,7 @@ public class StoreRepository implements IStoreRepository {
         }
         product.setQuantity(product.getQuantity() + 1);
         store.updateProduct(bidDTO.getProductId(), product);
+        storeData.updateStore(store);
     }
 
     @Override
@@ -743,6 +731,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("Auction not found for product: " + productId);
         }
         return auc.getEndTime();
+
     }
 
     @Override
@@ -764,6 +753,7 @@ public class StoreRepository implements IStoreRepository {
         } else {
             throw new RuntimeException("User is not authorized to start auction");
         }
+        storeData.updateStore(store);
     }
 
     @Override
@@ -794,6 +784,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("Product not found in store ");
         }
         product.removeBid(bidDTO.getBidderEmail(), bidDTO.getPrice());
+        storeData.updateStore(store);
     }
 
     @Override
@@ -806,10 +797,12 @@ public class StoreRepository implements IStoreRepository {
         }
 
         store.setDescription(description);
+        storeData.updateStore(store);
     }
 
     @Override
     public List<StoreDTO> getStoresOwnedBy(String ownerEmail) {
+        List<Store> stores  = storeData.getStoresOwnedBy(ownerEmail);
         return stores.stream()                      // iterate over the list
                 .filter(s -> s.isOwner(ownerEmail)) // or s.getAllOwners().contains(ownerEmail)
                 .map(storeMapper::toDTO)       // convert to DTO
@@ -830,10 +823,10 @@ public class StoreRepository implements IStoreRepository {
     public List<RatingDto> getStoreRatings(String storeName) {
         Store store = findByName(storeName);
 
-        Map<String, Store.Rating> ratings = store.getAllRatings();
+        Map<String, Rating> ratings = store.getAllRatings();
 
         List<RatingDto> dtoList = new ArrayList<>();
-        for (Map.Entry<String, Store.Rating> entry : ratings.entrySet()) {
+        for (Map.Entry<String, Rating> entry : ratings.entrySet()) {
             dtoList.add(new RatingDto(entry.getKey(), entry.getValue().getScore(), entry.getValue().getReview()));
         }
 
@@ -844,10 +837,10 @@ public class StoreRepository implements IStoreRepository {
     public List<RatingDto> getProductRatings(String storeName,String productId) {
         Store store = findByName(storeName);
 
-        Map<String, Store.Rating> products_ratings = store.getAllRatings();
+        Map<String, Rating> products_ratings = store.getAllRatings();
 
         List<RatingDto> dtoList = new ArrayList<>();
-        for (Map.Entry<String, Store.Rating> entry : products_ratings.entrySet()) {
+        for (Map.Entry<String, Rating> entry : products_ratings.entrySet()) {
             dtoList.add(new RatingDto(entry.getKey(), entry.getValue().getScore(), entry.getValue().getReview()));
         }
 
@@ -876,6 +869,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("Store not found");
         }
         store.giveManagementComment(userName, reviewId,comment);
+        storeData.updateStore(store);
     }
 
 
@@ -901,6 +895,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("Store not found");
         }
         store.giveStoreReview(userId, review, Integer.parseInt(rating));
+        storeData.updateStore(store);
     }
 
 
@@ -908,35 +903,41 @@ public class StoreRepository implements IStoreRepository {
     public void addSimpleDiscountToEntireStore(String storeName, String operatorEmail,int percentage,String Coupon){
         Store store = findByName(storeName);
         store.addSimpleDiscountToEntireStore(operatorEmail, percentage, Coupon);
+        storeData.updateStore(store);
     }
     @Override
     public void addSimpleDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon) {
         Store store = findByName(storeName);
         store.addSimpleDiscountToEntireCategoryInStore(operatorEmail, category, percentage, coupon);
+        storeData.updateStore(store);
     }
 
     @Override
     public void addSimpleDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon) {
         Store store = findByName(storeName);
         store.addSimpleDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage, coupon);
+        storeData.updateStore(store);
     }
 
     @Override
     public void addConditionalDiscountToEntireStore(String storeName, String operatorEmail, int percentage,int minPrice,String coupon) {
         Store store = findByName(storeName);
         store.addConditionalDiscountToEntireStore(operatorEmail, percentage,minPrice, coupon);
+        storeData.updateStore(store);
     }
 
     @Override
     public void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage,int minPrice, String coupon) {
         Store store = findByName(storeName);
         store.addConditionalDiscountToEntireCategoryInStore(operatorEmail, category, percentage,minPrice, coupon);
+        storeData.updateStore(store);
     }
 
     @Override
     public void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage,int minimumPrice,int minAmount , String coupon) {
         Store store = findByName(storeName);
         store.addConditionalDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage,minimumPrice,minAmount,coupon);
+        storeData.updateStore(store);
     }
 
     @Override
@@ -945,25 +946,30 @@ public class StoreRepository implements IStoreRepository {
 
         for (BasketDTO basketDTO : basketDTOList) {
             Store store = findByName(basketDTO.storeId());
-           store.applyCoupon(Coupon);
+            store.applyCoupon(Coupon);
+            storeData.updateStore(store);
         }
+
     }
 
     @Override
     public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email, String productId, int percentage, List<String> products, List<Integer> amounts, int minPrice, String coupon, String logicType) {
         Store store = findByName(storeName);
         store.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(email, productId, percentage, minPrice, products, amounts,coupon, logicType);
+        storeData.updateStore(store);
     }
     @Override
     public void addLogicalCompositeConditionalDiscountToEntireStore(String storeName, String email, int percentage, List<String> products, List<Integer> amounts, int minPrice, String coupon, String logicType) {
         Store store = findByName(storeName);
         store.addLogicalCompositeConditionalDiscountToEntireStore(email ,percentage, minPrice, products, amounts,coupon, logicType);
+        storeData.updateStore(store);
     }
 
     @Override
     public void addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String storeName, String email, String category, int percentage, List<String> products, List<Integer> amounts, int minPrice, String coupon, String logicType) {
         Store store = findByName(storeName);
         store.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(email, category, percentage, minPrice, products, amounts,coupon, logicType);
+        storeData.updateStore(store);
     }
 }
 
