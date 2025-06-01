@@ -10,7 +10,7 @@ import java.util.*;
 
 public class InMemoryStoreData implements StoreData {
 
-    private final List<Store> stores = new ArrayList<>();
+    private List<Store> stores = new ArrayList<>();
 
     @Override
     public List<Store> getAllStores() {
