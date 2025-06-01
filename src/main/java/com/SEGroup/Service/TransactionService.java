@@ -1,9 +1,6 @@
 package com.SEGroup.Service;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.SEGroup.DTO.AddressDTO;
 import org.checkerframework.checker.units.qual.t;
@@ -101,6 +98,7 @@ public class TransactionService {
      */
     public Result<Void> purchaseShoppingCart(String sessionKey, String userEmail, String paymentDetails) {
         try {
+            List<Integer> shippingIds = new ArrayList<>();
             authenticationService.checkSessionKey(sessionKey);
             userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
             LoggerWrapper.info("Initiating purchase for user: " + userEmail); // Log the start of the purchase
@@ -112,9 +110,11 @@ public class TransactionService {
                     .sum();
             try {
                 for (BasketDTO basket : cart) {
-                    //todo need to create a address DTO from the user address and use the same one for each shipping
-                    //todo need to save all shipping id's so we can cancel them
-                    shippingService.ship(new AddressDTO(), "some_name");
+                    AddressDTO addressDTO = userRepository.getAddress(userEmail);
+                    //to do need to create a address DTO from the user address and use the same one for each shipping
+                    Integer ShipingId = shippingService.ship(addressDTO, userEmail);
+                    shippingIds.add(ShipingId);
+                    //to do need to save all shipping id's so we can cancel them
                 }
                 try {
 
@@ -132,9 +132,10 @@ public class TransactionService {
                 }
             } catch (Exception e) {
                 for (BasketDTO basket : cart) {
-                    //todo need to save all shipping id's so we can cancel them
-                    shippingService.cancelShipping(0); // Rollback items to stores in case of shipping
-                                                                       // failure
+                    //to do need to save all shipping id's so we can cancel them
+                    for (Integer shippingId : shippingIds) {
+                        shippingService.cancelShipping(shippingId);
+                    }
                 }
                 return Result.failure(e.getMessage());
             }
@@ -164,14 +165,140 @@ public class TransactionService {
         }
     }
     public Result<Void> purchaseShoppingCartWithAddress(String sessionKey, String userEmail, String paymentDetails, AddressDTO address){
-        //todo implement this method to handle address
-        return Result.failure("Method not implemented yet.");
+        try {
+            List<Integer> shippingIds = new ArrayList<>();
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            LoggerWrapper.info("Initiating purchase for user: " + userEmail); // Log the start of the purchase
+
+            List<BasketDTO> cart = userRepository.getUserCart(userEmail);
+            Map<BasketDTO, Double> basketToPrice = storeRepository.removeItemsFromStores(cart);
+            double totalCost = basketToPrice.values().stream()
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+            try {
+                for (BasketDTO basket : cart) {
+                    //to do need to create a address DTO from the user address and use the same one for each shipping
+                    Integer ShipingId = shippingService.ship(address, userEmail);
+                    shippingIds.add(ShipingId);
+                    //to do need to save all shipping id's so we can cancel them
+                }
+                try {
+
+                    paymentGateway.processPayment(paymentDetails, totalCost);
+                    LoggerWrapper.info("Payment processed for user: " + userEmail + ", Amount: " + totalCost); // Log
+                    // successful
+                    // payment
+                    // processing
+                } catch (Exception e) {
+                    storeRepository.rollBackItemsToStores(cart);
+                    LoggerWrapper.error("Payment failed for user: " + userEmail + ", Error: " + e.getMessage(), e); // Log
+                    // payment
+                    // failure
+                    throw new RuntimeException("Payment failed: " + e.getMessage());
+                }
+            } catch (Exception e) {
+                for (BasketDTO basket : cart) {
+                    //to do need to save all shipping id's so we can cancel them
+                    for (Integer shippingId : shippingIds) {
+                        shippingService.cancelShipping(shippingId);
+                    }
+                }
+                return Result.failure(e.getMessage());
+            }
+
+            for (Map.Entry<BasketDTO, Double> entry : basketToPrice.entrySet()) {
+                BasketDTO basket = entry.getKey();
+                double storeCost = entry.getValue();
+                String storeFounder = storeRepository.getStoreFounder(basket.storeId());
+                notificationService.sendSystemNotification(
+                        storeFounder,
+                        "A product has been purchased from your store '" + basket.getBasketProducts() + "'.");
+                transactionRepository.addTransaction(basket.getBasketProducts(), storeCost, userEmail,
+                        basket.storeId());
+                LoggerWrapper.info("Transaction added for user: " + userEmail + ", Store: " + basket.storeId()); // Log
+                // successful
+                // transaction
+                // addition
+            }
+
+            userRepository.clearUserCart(userEmail);
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error(
+                    "Error processing shopping cart purchase for user: " + userEmail + " - " + e.getMessage(), e); // Log
+            // error
+            return Result.failure(e.getMessage());
+        }
     }
 
 
     public Result<Void> purchaseGuestShoppingCart(String sessionKey, String paymentDetails, AddressDTO address){
-        //todo implement this method to handle address
-        return Result.failure("Method not implemented yet.");
+        try {
+            List<Integer> shippingIds = new ArrayList<>();
+            authenticationService.checkSessionKey(sessionKey);
+            String userEmail = authenticationService.getUserBySession(sessionKey);
+            LoggerWrapper.info("Initiating purchase for user: " + userEmail); // Log the start of the purchase
+
+            List<BasketDTO> cart = userRepository.getUserCart(userEmail);
+            Map<BasketDTO, Double> basketToPrice = storeRepository.removeItemsFromStores(cart);
+            double totalCost = basketToPrice.values().stream()
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+            try {
+                for (BasketDTO basket : cart) {
+                    //to do need to create a address DTO from the user address and use the same one for each shipping
+                    Integer ShipingId = shippingService.ship(address, userEmail);
+                    shippingIds.add(ShipingId);
+                    //to do need to save all shipping id's so we can cancel them
+                }
+                try {
+
+                    paymentGateway.processPayment(paymentDetails, totalCost);
+                    LoggerWrapper.info("Payment processed for user: " + userEmail + ", Amount: " + totalCost); // Log
+                    // successful
+                    // payment
+                    // processing
+                } catch (Exception e) {
+                    storeRepository.rollBackItemsToStores(cart);
+                    LoggerWrapper.error("Payment failed for user: " + userEmail + ", Error: " + e.getMessage(), e); // Log
+                    // payment
+                    // failure
+                    throw new RuntimeException("Payment failed: " + e.getMessage());
+                }
+            } catch (Exception e) {
+                for (BasketDTO basket : cart) {
+                    //to do need to save all shipping id's so we can cancel them
+                    for (Integer shippingId : shippingIds) {
+                        shippingService.cancelShipping(shippingId);
+                    }
+                }
+                return Result.failure(e.getMessage());
+            }
+
+            for (Map.Entry<BasketDTO, Double> entry : basketToPrice.entrySet()) {
+                BasketDTO basket = entry.getKey();
+                double storeCost = entry.getValue();
+                String storeFounder = storeRepository.getStoreFounder(basket.storeId());
+                notificationService.sendSystemNotification(
+                        storeFounder,
+                        "A product has been purchased from your store '" + basket.getBasketProducts() + "'.");
+                transactionRepository.addTransaction(basket.getBasketProducts(), storeCost, userEmail,
+                        basket.storeId());
+                LoggerWrapper.info("Transaction added for user: " + userEmail + ", Store: " + basket.storeId()); // Log
+                // successful
+                // transaction
+                // addition
+            }
+
+            userRepository.clearUserCart(userEmail);
+            return Result.success(null);
+        } catch (Exception e) {
+            LoggerWrapper.error(
+                    "Error processing shopping cart purchase for guest: " + " - " + e.getMessage(), e); // Log
+            // error
+            return Result.failure(e.getMessage());
+        }
     }
 
     /**
@@ -210,8 +337,8 @@ public class TransactionService {
             storeRepository.acceptBid(storeName, userEmail, bidDTO.getProductId(), bidDTO);
             double cost = bidDTO.getPrice()*1;
             try {
-                //todo need to create a address DTO from the user address and use the same one for each shipping
-                shippingService.ship(new AddressDTO(), "some_name");
+                //to do need to create a address DTO from the user address and use the same one for each shipping
+                shippingService.ship(userRepository.getAddress(userEmail), userEmail);
 
             } catch (Exception e) {
                 LoggerWrapper.error("Shipping failed for bid acceptance: " + e.getMessage(), e); // Log shipping failure
@@ -254,8 +381,8 @@ public class TransactionService {
             storeRepository.executeAuctionBid(userEmail, storeName, bidDTO);
             double cost = bidDTO.getPrice();
             try {
-                //todo need to create a address DTO from the user address and use the same one for each shipping
-                shippingService.ship(new AddressDTO(), "some_name");
+                //to do need to create a address DTO from the user address and use the same one for each shipping
+                shippingService.ship(userRepository.getAddress(userEmail), userEmail);
 
             } catch (Exception e) {
                 LoggerWrapper.error("Shipping failed for bid acceptance: " + e.getMessage(), e); // Log shipping failure
