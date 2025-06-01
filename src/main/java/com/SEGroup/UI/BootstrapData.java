@@ -10,7 +10,6 @@ import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.TransactionRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Domain.IShippingService;
-import com.SEGroup.Service.MockShippingService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -379,7 +378,7 @@ class BootstrapData {
         System.out.println("Initializing services...");
 
         // Create a mock shipping service
-        MockShippingService shippingService = new MockShippingService();
+        ExternalPaymentAndShippingService shippingService = new ExternalPaymentAndShippingService();
 
         ServiceLocator.initialize(
                 new GuestRepository(),            // guests
