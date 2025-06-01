@@ -400,7 +400,7 @@ public class StoreServiceAcceptanceTests {
         assertTrue(result.isSuccess());
 
         // Check if the bid can be seen by the store owner
-        Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, "0");
+        Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, "0_"+STORE_NAME);
         assertTrue(productsResult.isSuccess());
         List<BidDTO> bids = productsResult.getData();
         assertFalse(bids.isEmpty());
