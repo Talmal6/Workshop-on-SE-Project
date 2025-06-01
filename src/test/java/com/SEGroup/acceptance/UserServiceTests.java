@@ -1,6 +1,7 @@
 package com.SEGroup.acceptance;
 
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.IUserRepository;
@@ -401,4 +402,138 @@ class UserServiceTests {
         assertTrue(r3.isSuccess());
     }
 
+    @Nested
+    @DisplayName("UC-X User Profile Management") // Assuming X is the next use case number
+    class UserProfileManagementTests {
+
+        private String testUserEmail = "profileuser@example.com";
+        private String testUserPassword = "password123";
+        private String testUserInitialName = "profileUser";
+        private String testUserSessionKey;
+
+        @BeforeEach
+        void setUpProfileUser() throws Exception {
+            // Ensure this user is fresh for each test, or handle existing user if necessary
+            // For simplicity, we assume register will fail if user exists, and login will
+            // work.
+            // A more robust setup might clean up this user or use unique emails per test.
+            sut.register(testUserInitialName, testUserEmail, testUserPassword); // Register if not exists
+            Result<String> loginResult = sut.login(testUserEmail, testUserPassword);
+            assertTrue(loginResult.isSuccess(), "Login failed in setup");
+            testUserSessionKey = loginResult.getData();
+        }
+
+        @Test
+        @DisplayName("Change username successfully")
+        void changeUsername_success() {
+            String newUsername = "newProfileUser";
+            Result<Void> setResult = sut.setUserName(testUserSessionKey, newUsername);
+            assertTrue(setResult.isSuccess(), "Failed to set username");
+        }
+
+        @Test
+        @DisplayName("Change username to an existing username (simulated by trying to set to another user's name if possible)")
+        void changeUsername_toExistingUsername_fails() throws Exception {
+            // Register a second user
+            String otherUserEmail = "otheruser@example.com";
+            String otherUserName = "otherUser";
+            Result<Void> r =sut.register(otherUserName, otherUserEmail, testUserPassword); // Assume registration is successful
+            assertTrue(r.isSuccess(), "Failed to register other user");
+            Result<Void> setResult = sut.setUserName(testUserSessionKey, otherUserName);
+            assertTrue(setResult.isFailure());
+            // The failure message should ideally indicate "username already exists" or
+            // similar.
+        }
+
+        @Test
+        @DisplayName("Change username with invalid session fails")
+        void changeUsername_invalidSession_fails() {
+            Result<Void> setResult = sut.setUserName("invalidSessionKey", "anyNewName");
+            assertTrue(setResult.isFailure(), "Should have failed with an invalid session.");
+        }
+
+        @Test
+        @DisplayName("Change username when user is suspended fails")
+        void changeUsername_userSuspended_fails() {
+            // Suspend the user
+            Result<String> suspendResult = sut.suspendUser(adminSeshKey, testUserEmail, 100, "test suspension");
+            assertTrue(suspendResult.isSuccess(), "Failed to suspend user");
+
+            Result<Void> setResult = sut.setUserName(testUserSessionKey, "nameWhileSuspended");
+            assertTrue(setResult.isFailure(), "Should have failed to change username while suspended.");
+
+            // Clean up: unsuspend user
+            sut.unsuspendUser(adminSeshKey, testUserEmail);
+        }
+
+        @Test
+        @DisplayName("Update and retrieve user address successfully")
+        void updateUserAddress_success() {
+            AddressDTO newAddress = new AddressDTO("123 Main St", "Anytown", "CountryLand", "12345");
+            Result<Void> setResult = sut.setUserAddress(testUserSessionKey, newAddress);
+            assertTrue(setResult.isSuccess(), "Failed to set user address");
+
+            Result<AddressDTO> getResult = sut.getUserAddress(testUserSessionKey, testUserEmail);
+            assertTrue(getResult.isSuccess(), "Failed to get user address");
+            assertNotNull(getResult.getData(), "Retrieved address is null.");
+            assertEquals("123 Main St", getResult.getData().getAddress());
+            assertEquals("Anytown", getResult.getData().getCity());
+            assertEquals("CountryLand", getResult.getData().getCountry());
+            assertEquals("12345", getResult.getData().getZip());
+        }
+
+        @Test
+        @DisplayName("Update user address with invalid session fails")
+        void updateUserAddress_invalidSession_fails() {
+            AddressDTO newAddress = new AddressDTO("123 Main St", "Anytown", "CountryLand", "12345");
+            Result<Void> setResult = sut.setUserAddress("invalidSessionKey", newAddress);
+            assertTrue(setResult.isFailure(), "Should have failed to set address with an invalid session.");
+        }
+
+        @Test
+        @DisplayName("Get user address with invalid session fails")
+        void getUserAddress_invalidSession_fails() {
+            Result<AddressDTO> getResult = sut.getUserAddress("invalidSessionKey", testUserEmail);
+            assertTrue(getResult.isFailure(), "Should have failed to get address with an invalid session.");
+        }
+
+        @Test
+        @DisplayName("Update user address when user is suspended fails")
+        void updateUserAddress_userSuspended_fails() {
+            // Suspend the user
+            Result<String> suspendResult = sut.suspendUser(adminSeshKey, testUserEmail, 100, "test suspension");
+            assertTrue(suspendResult.isSuccess(), "Failed to suspend user");
+
+            AddressDTO newAddress = new AddressDTO("456 Suspended Ave", "Suspendville", "CountryLand", "67890");
+            Result<Void> setResult = sut.setUserAddress(testUserSessionKey, newAddress);
+            assertTrue(setResult.isFailure(), "Should have failed to update address while suspended.");
+
+            // Clean up: unsuspend user
+            sut.unsuspendUser(adminSeshKey, testUserEmail);
+        }
+
+        @Test
+        @DisplayName("Get user address when user is suspended (should succeed as per current UserService implementation)")
+        void getUserAddress_userSuspended_canStillRetrieve() {
+            AddressDTO initialAddress = new AddressDTO("Initial St", "InitCity", "InitCountry", "00000");
+            Result<Void> setInitialResult = sut.setUserAddress(testUserSessionKey, initialAddress);
+            assertTrue(setInitialResult.isSuccess(), "Failed to set initial address.");
+
+            // Suspend the user
+            Result<String> suspendResult = sut.suspendUser(adminSeshKey, testUserEmail, 100, "test suspension");
+            assertTrue(suspendResult.isSuccess(), "Failed to suspend user");
+
+            // Attempt to get address while suspended
+            // UserService.getUserAddress only checks sessionKey, not suspension status for
+            // the target email.
+            Result<AddressDTO> getResult = sut.getUserAddress(testUserSessionKey, testUserEmail);
+            assertTrue(getResult.isSuccess(),
+                    "Should be able to get address even when suspended, as long as session is valid.");
+            assertNotNull(getResult.getData());
+            assertEquals(initialAddress.getAddress(), getResult.getData().getAddress());
+
+            // Clean up: unsuspend user
+            sut.unsuspendUser(adminSeshKey, testUserEmail);
+        }
+    }
 }

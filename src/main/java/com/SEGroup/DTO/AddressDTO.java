@@ -1,5 +1,7 @@
 package com.SEGroup.DTO;
 
+import com.SEGroup.Domain.User.Address;
+
 public class AddressDTO {
     private String address;
     private String city;
@@ -14,6 +16,13 @@ public class AddressDTO {
         this.city = city;
         this.country = country;
         this.zip = zip;
+    }
+
+    public AddressDTO(Address addressDTO) {
+        this.address = addressDTO.getAddress();
+        this.city = addressDTO.getCity();
+        this.country = addressDTO.getCountry();
+        this.zip = addressDTO.getZip();
     }
 
     public String getAddress() {

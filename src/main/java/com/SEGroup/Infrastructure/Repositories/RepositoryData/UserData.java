@@ -14,4 +14,5 @@ public interface UserData {
     List<User> getUsersByRole(String role);
     boolean userExists(String userId);
     boolean userExistsByEmail(String email);
+    
 }

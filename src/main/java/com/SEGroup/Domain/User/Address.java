@@ -1,16 +1,34 @@
 package com.SEGroup.Domain.User;
+import com.SEGroup.DTO.AddressDTO;
 
+import jakarta.persistence.Embeddable;
+
+
+
+
+@Embeddable
 public class Address {
     private String address;
     private String city;
     private String country;
     private String zip;
 
+    public Address() {
+        // Required by JPA
+    }
+
     public Address(String address, String city, String country, String zip) {
         this.address = address;
         this.city = city;
         this.country = country;
         this.zip = zip;
+    }
+
+    public Address(AddressDTO addressDTO) {
+        this.address = addressDTO.getAddress();
+        this.city = addressDTO.getCity();
+        this.country = addressDTO.getCountry();
+        this.zip = addressDTO.getZip();
     }
 
     // Getters

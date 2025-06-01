@@ -1,9 +1,11 @@
 package com.SEGroup.Domain;
 
 import com.SEGroup.Domain.Store.ManagerPermission;
+import com.SEGroup.Domain.User.Address;
 import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
 
@@ -149,4 +151,9 @@ public interface IUserRepository {
             String productID,
             String storeName,
             int quantity);
+
+    AddressDTO getAddress(String email);
+    void setAddress(String email, AddressDTO address);
+
+    void setUserName(String email, String newUsername);
 }

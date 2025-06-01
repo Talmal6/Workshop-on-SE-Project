@@ -40,6 +40,15 @@ public class User {
     @Column(name = "is_admin", nullable = false)
     private Role isAdmin;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "address",  column = @Column(name = "street_address")),
+        @AttributeOverride(name = "city",     column = @Column(name = "city")),
+        @AttributeOverride(name = "country",  column = @Column(name = "country")),
+        @AttributeOverride(name = "zip",      column = @Column(name = "zip_code"))
+    })
+    private Address address;
+
     /**
      * ← one-to-one from user → shopping_cart, cascades so saving User persists
      *    its ShoppingCart and, transitively, all its Baskets.
@@ -216,6 +225,10 @@ public class User {
         isAdmin = Role.ADMIN;
     }
 
+    public void setUserName(String username) {
+        this.username = username;
+    }
+
     public void removeAdminRole() {
         isAdmin = null;
     }
@@ -234,6 +247,14 @@ public class User {
 
     public UserSuspensionDTO getSuspension() {
         return suspension;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
     }
 
 }

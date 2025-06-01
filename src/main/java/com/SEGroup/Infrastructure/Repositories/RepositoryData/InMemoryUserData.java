@@ -64,13 +64,13 @@ public class InMemoryUserData implements UserData {
 
     @Override
     public boolean userExists(String userId) {
-        return InMemoryData.containsKey(userId);
+        return InMemoryData.values().stream()
+                .anyMatch(user -> user.getUserName().equals(userId));
     }
 
     @Override
     public boolean userExistsByEmail(String email) {
-        return InMemoryData.values().stream()
-                .anyMatch(user -> user.getEmail().equals(email));
+        return InMemoryData.containsKey(email);
     }
 
 }

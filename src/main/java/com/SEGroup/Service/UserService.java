@@ -628,17 +628,34 @@ public class UserService {
     }
 
     public Result<AddressDTO> getUserAddress(String sessionKey, String email) {
-        // todo: Implement user address retrieval logic
-        return Result.failure("User address retrieval is not supported yet.");
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            AddressDTO address = userRepository.getAddress(email);
+            return Result.success(address);
+        } catch (Exception e) {
+            return Result.failure("Error retrieving user address: " + e.getMessage());
+        }
     }
 
     public Result<Void> setUserAddress(String sessionKey, AddressDTO address) {
-        // todo: Implement user address setting logic
-        return Result.failure("User address setting is not supported yet.");
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            userRepository.setAddress(authenticationService.getUserBySession(sessionKey), address);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Error setting user address: " + e.getMessage());
+        }
     }
 
     public Result<Void> setUserName(String sessionKey, String newName) {
-        // todo: Implement user name setting logic
-        return Result.failure("User name setting is not supported yet.");
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            userRepository.setUserName(authenticationService.getUserBySession(sessionKey), newName);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Error setting user name: " + e.getMessage());
+        }
     }
 }

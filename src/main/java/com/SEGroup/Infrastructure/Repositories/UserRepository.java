@@ -2,6 +2,7 @@ package com.SEGroup.Infrastructure.Repositories;
 
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.Store.ManagerPermission;
+import com.SEGroup.Domain.User.Address;
 import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
@@ -10,7 +11,7 @@ import com.SEGroup.Infrastructure.Repositories.RepositoryData.UserData;
 import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
-
+import com.SEGroup.DTO.AddressDTO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -79,7 +80,8 @@ public class UserRepository implements IUserRepository {
     public void addUser(String username, String email, String passwordHash) {
         if (userData.userExistsByEmail(email))
             throw new IllegalArgumentException("User already exists: " + email);
-
+        if (userData.userExists(username))
+            throw new IllegalArgumentException("Username already exists: " + username);
         User u = new User(email, username, passwordHash);
         userData.saveUser(u);
     }
@@ -414,4 +416,39 @@ public class UserRepository implements IUserRepository {
         }
         userData.updateUser(user); // Save the updated user with the modified cart
     }
+    @Override
+    public AddressDTO getAddress(String email) {
+        User user = userData.getUserByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + email);
+        }
+        Address address = user.getAddress();
+        if (address == null) {
+            throw new IllegalArgumentException("Address not set for user: " + email);
+        }
+        return new AddressDTO(address);
+    }
+    @Override
+    public void setAddress(String email, AddressDTO address) {
+        User user = userData.getUserByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + email);
+        }
+        user.setAddress(new Address(address));
+        userData.updateUser(user);
+    }
+    @Override
+    public void setUserName(String email, String newUsername) {
+        User user = userData.getUserByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + email);
+        }
+        if(userData.userExists(newUsername)) {
+            throw new IllegalArgumentException("Username already exists: " + newUsername);
+        }
+        user.setUserName(newUsername);
+        userData.updateUser(user); 
+    }
+
+    
 }
