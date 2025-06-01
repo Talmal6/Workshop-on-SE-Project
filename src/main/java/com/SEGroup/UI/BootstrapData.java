@@ -84,7 +84,7 @@ class BootstrapData {
     @PostConstruct
     void initDemoData() {
         PasswordEncoder encoder = new PasswordEncoder();
-        UserRepository users = new UserRepository(new DbUserData(jpaUserRepository));
+        UserRepository users = new UserRepository();
         StoreRepository stores = new StoreRepository();
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
 
