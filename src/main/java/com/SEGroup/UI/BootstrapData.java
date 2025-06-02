@@ -6,6 +6,7 @@ import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaStoreRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaTransactionRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbStoreData;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbTransactionData;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbUserData;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
@@ -88,7 +89,7 @@ class BootstrapData {
     void initDemoData() {
         PasswordEncoder encoder = new PasswordEncoder();
         UserRepository users = new UserRepository(new DbUserData(jpaUserRepository));
-        StoreRepository stores = new StoreRepository();
+        StoreRepository stores = new StoreRepository(new DbStoreData(jpaStoreRepository));
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
         TransactionRepository transactions = new TransactionRepository(new DbTransactionData(jpaTransactionRepository));
 
