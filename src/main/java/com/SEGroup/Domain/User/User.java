@@ -26,7 +26,7 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @MapKeyColumn(name = "store_name")
     @CollectionTable(name = "user_store_roles", joinColumns = @JoinColumn(name = "user_email"))
     @Column(name = "role")
@@ -59,7 +59,7 @@ public class User {
     @JoinColumn(name = "cart_id", referencedColumnName = "user_id")
     private ShoppingCart cart;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "purchase_history", joinColumns = @JoinColumn(name = "user_email"))
     @Column(name = "transaction_id")
     private final List<String> purchaseHistory = new LinkedList<>();

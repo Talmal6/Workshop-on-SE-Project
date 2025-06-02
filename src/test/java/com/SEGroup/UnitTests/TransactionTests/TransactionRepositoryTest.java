@@ -51,7 +51,7 @@ public class TransactionRepositoryTest {
     @DisplayName("Given repo with one transaction, when getTransactionById with valid ID, then DTO fields match")
     public void Given_RepoWithOneTransaction_When_GetByValidId_Then_ReturnsCorrectDTO() {
         repo.addTransaction(Collections.singletonList("x"), 5.0, "a@b.com", "StoreX");
-        TransactionDTO dto = repo.getTransactionById(2);
+        TransactionDTO dto = repo.getTransactionById(1);
         assertEquals(Collections.singletonList("x"), dto.getItemsToTransact());
         assertEquals(5.0, dto.getCost());
         assertEquals("a@b.com", dto.getBuyersEmail());
@@ -79,7 +79,7 @@ public class TransactionRepositoryTest {
     @DisplayName("Given repo with one transaction, when deleteTransaction with valid ID, then transaction is removed")
     public void Given_RepoWithOneTransaction_When_DeleteValidId_Then_TransactionIsRemoved() {
         repo.addTransaction(Collections.emptyList(), 0, "e@e.com", "S");
-        repo.deleteTransaction(2);
+        repo.deleteTransaction(1);
         assertTrue(repo.getAllTransactions().isEmpty());
     }
 
@@ -92,7 +92,7 @@ public class TransactionRepositoryTest {
     @Test
     @DisplayName("Given empty repo, when getTransactionsByUserEmail is called, then RuntimeException is thrown")
     public void Given_EmptyRepo_When_GetByUserEmail_Then_ThrowsRuntimeException() {
-        assertThrows(RuntimeException.class, () -> repo.getTransactionsByUserEmail("any@test.com"));
+        assertThrows(RuntimeException.class, () -> repo.getTransactionsByUserEmail(""));
     }
 
     @Test

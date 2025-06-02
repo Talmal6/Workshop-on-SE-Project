@@ -1,18 +1,47 @@
 package com.SEGroup.Domain.Transaction;
 
+import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
-/*
- * Represents a transaction in the system, including the items being purchased,
- * the total cost, the buyer's email, and the store name.
+/**
+ * Represents a transaction in the system.
+ * Includes purchased items, cost, buyer's email, and the store name.
  */
+@Entity(name = "transactions")
+@Table(name = "transactions")
 public class Transaction {
-    private List<String> itemsToTransact;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private int id;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "transaction_items", joinColumns = @JoinColumn(name = "transaction_id"))
+    @Column(name = "product_id")
+    private List<String> itemsToTransact = new ArrayList<>();
+
+    @Column(name = "cost", nullable = false)
     private double cost;
+
+    @Column(name = "buyers_email", nullable = false)
     private String buyersEmail;
+
+    @Column(name = "store_name", nullable = false)
     private String storeName;
 
-    // Constructor
+    // Empty constructor for JPA
+    protected Transaction() {}
+
+    /**
+     * Constructor to create a new Transaction instance.
+     *
+     * @param shoppingProductIds List of purchased product IDs.
+     * @param cost Total cost of the transaction.
+     * @param buyersEmail Buyer's email address.
+     * @param storeName Name of the store where purchase occurred.
+     */
     public Transaction(List<String> shoppingProductIds, double cost, String buyersEmail, String storeName) {
         this.itemsToTransact = shoppingProductIds;
         this.cost = cost;
@@ -20,13 +49,21 @@ public class Transaction {
         this.storeName = storeName;
     }
 
-    // Getters and setters
+    public int getId() {
+        return id;
+    }
+
+    // Needed for InMemoryTransactionData
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public List<String> getItemsToTransact() {
-        return itemsToTransact;
+        return List.copyOf(itemsToTransact);
     }
 
     public void setItemsToTransact(List<String> itemsToTransact) {
-        this.itemsToTransact = itemsToTransact;
+        this.itemsToTransact = new ArrayList<>(itemsToTransact);
     }
 
     public double getCost() {
@@ -49,11 +86,7 @@ public class Transaction {
         return storeName;
     }
 
-    public void setStoreName(String sellerStore) {
-        this.storeName = sellerStore;
+    public void setStoreName(String storeName) {
+        this.storeName = storeName;
     }
-
-
-
-
 }
