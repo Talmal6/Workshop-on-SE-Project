@@ -10,9 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.SEGroup.Domain.IAuthenticationService;
-import com.SEGroup.Domain.INotificationCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
@@ -50,7 +49,7 @@ public class StoreServiceAcceptanceTests {
     StoreService storeService;
     StoreRepository storeRepository;
     IAuthenticationService authenticationService;
-    InMemoryProductCatalog productCatalog;
+    ProductCatalogRepository productCatalog;
     IUserRepository userRepository;
     UserService userService;
     ReportCenter reportCenter;
@@ -60,7 +59,7 @@ public class StoreServiceAcceptanceTests {
         // Auth stubs: valid vs invalid sessions
         // doNothing().when(authenticationService).checkSessionKey(VALID_SESSION);
         storeRepository = new StoreRepository();
-        productCatalog = new InMemoryProductCatalog();
+        productCatalog = new ProductCatalogRepository();
         Security security = new Security();
         // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
         // create a key

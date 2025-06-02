@@ -12,15 +12,15 @@ import org.junit.jupiter.api.Test;
 
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 
 
 public class InMemoryProductCatalogTests {
-    private InMemoryProductCatalog catalog;
+    private ProductCatalogRepository catalog;
 
     @BeforeEach
     void init() {
-        catalog = new InMemoryProductCatalog();
+        catalog = new ProductCatalogRepository();
     }
 
     @Test

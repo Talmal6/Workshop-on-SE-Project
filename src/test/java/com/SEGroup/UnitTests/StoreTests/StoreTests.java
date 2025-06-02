@@ -1,9 +1,6 @@
 package com.SEGroup.UnitTests.StoreTests;
 
-import com.SEGroup.DTO.BasketDTO;
-import com.SEGroup.Domain.Discount.SimpleDiscount;
 import com.SEGroup.Domain.Store.*;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

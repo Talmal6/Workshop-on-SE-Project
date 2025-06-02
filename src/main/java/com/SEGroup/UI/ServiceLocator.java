@@ -2,11 +2,11 @@ package com.SEGroup.UI;
 
 import com.SEGroup.Domain.*;
 import com.SEGroup.Domain.Report.ReportCenter;
-import com.SEGroup.Infrastructure.ExternalPaymentAndShippingService;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationEndpoint;
 import com.SEGroup.Service.*;
 import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.PasswordEncoder;
+
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
@@ -14,7 +14,8 @@ import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.context.ApplicationContext;
-
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 import static org.mockito.Mockito.*;
 import javax.crypto.SecretKey;
 
@@ -22,8 +23,8 @@ import javax.crypto.SecretKey;
  * A centralized service locator for retrieving singleton service instances.
  * Use this to inject services into Presenters or UI layers.
  */
-
-public class ServiceLocator {
+@Component
+public class ServiceLocator implements ApplicationContextAware {
 
     // Core Dependencies
     private static ApplicationContext applicationContext;
@@ -75,7 +76,7 @@ public class ServiceLocator {
         guestService = new GuestService(guestRepository, authService);
         userService = new UserService(guestService, userRepository, authService,reportCenter);
         storeService = new StoreService(storeRepository, productCatalog, authService, userRepository, notificationCenter);
-        shippingService = new ExternalPaymentAndShippingService();
+        shippingService = mock(IShippingService.class);
         transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService, notificationCenter);
     }
 
@@ -84,6 +85,11 @@ public class ServiceLocator {
             return applicationContext.getBean(INotificationCenter.class);
         }
         return notificationCenter;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext ctx) {
+        applicationContext = ctx;
     }
 
     public static DirectNotificationSender getDirectNotificationSender() {
@@ -138,23 +144,7 @@ public class ServiceLocator {
         return applicationContext;
     }
 
-    // Setter method to configure application context
-    public static void setApplicationContext(ApplicationContext context) {
-        applicationContext = context;
-        System.out.println("Application context set in ServiceLocator");
 
-        // If we have an application context, try to get beans from it
-        if (context != null) {
-            try {
-                // These lines are optional - only if you want to try getting beans directly
-                if (directNotificationSender == null) {
-                    directNotificationSender = context.getBean(DirectNotificationSender.class);
-                }
-            } catch (Exception e) {
-                System.err.println("Could not get beans from context: " + e.getMessage());
-            }
-        }
-    }
     public static NotificationEndpoint getNotificationEndpoint() {
         /* ① primary – grab the singleton managed by Spring */
         if (applicationContext != null) {
@@ -180,4 +170,4 @@ public class ServiceLocator {
 
 
 
-    }
+}

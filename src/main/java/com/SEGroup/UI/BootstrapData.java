@@ -2,7 +2,7 @@ package com.SEGroup.UI;
 
 import com.SEGroup.Infrastructure.ExternalPaymentAndShippingService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaStoreRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaTransactionRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
@@ -90,7 +90,7 @@ class BootstrapData {
         PasswordEncoder encoder = new PasswordEncoder();
         UserRepository users = new UserRepository(new DbUserData(jpaUserRepository));
         StoreRepository stores = new StoreRepository(new DbStoreData(jpaStoreRepository));
-        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
+        ProductCatalogRepository catalog = new ProductCatalogRepository();
         TransactionRepository transactions = new TransactionRepository(new DbTransactionData(jpaTransactionRepository));
 
         /* USERS ----------------------------------------------- */

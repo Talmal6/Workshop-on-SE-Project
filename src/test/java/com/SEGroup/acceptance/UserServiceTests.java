@@ -6,13 +6,12 @@ import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.IUserRepository;
 
-import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Infrastructure.Repositories.GuestRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.UserRepository;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.GuestData;
@@ -26,19 +25,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import javax.crypto.SecretKey;
 import javax.naming.AuthenticationException;
 import java.util.List;
-import java.util.Map;
+
 import com.SEGroup.Domain.Report.ReportCenter;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.AdditionalMatchers.not;
-
-import static org.mockito.Mockito.*;
 
 /**
  * Full acceptance‑style test‑suite for **UserService**. Covers:
@@ -215,7 +210,7 @@ class UserServiceTests {
             StoreRepository store = new StoreRepository();
             store.createStore("S1", email);
             // initiate product catalog
-            InMemoryProductCatalog catalog = new InMemoryProductCatalog();
+            ProductCatalogRepository catalog = new ProductCatalogRepository();
             store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false, "", List.of());
         }
 
@@ -370,7 +365,7 @@ class UserServiceTests {
         StoreRepository store = new StoreRepository();
         store.createStore("S1", email);
         // initiate product catalog
-        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
+        ProductCatalogRepository catalog = new ProductCatalogRepository();
         store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false, "", List.of());
         store.addProductToStore(email, "S1", "P2", "Product 2", "someDesc", 5.7, 10, false, "", List.of());
     }

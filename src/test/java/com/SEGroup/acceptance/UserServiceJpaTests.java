@@ -7,12 +7,11 @@ import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.Report.ReportCenter;
-import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Infrastructure.Repositories.GuestRepository;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaGuestRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
@@ -159,7 +158,7 @@ class UserServiceJpaTests {
             StoreRepository store = new StoreRepository();
             store.createStore("S1", email);
             // initiate product catalog
-            InMemoryProductCatalog catalog = new InMemoryProductCatalog();
+            ProductCatalogRepository catalog = new ProductCatalogRepository();
             store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false,"",List.of());
         }
 
@@ -274,7 +273,7 @@ class UserServiceJpaTests {
         StoreRepository store = new StoreRepository();
         store.createStore("S1", email);
         // initiate product catalog
-        InMemoryProductCatalog catalog = new InMemoryProductCatalog();
+        ProductCatalogRepository catalog = new ProductCatalogRepository();
         store.addProductToStore(email, "S1", "P1", "Product 1", "someDesc", 5.7, 10, false,"",List.of());
         store.addProductToStore(email, "S1", "P2", "Product 2", "someDesc", 5.7, 10, false,"",List.of());
     }

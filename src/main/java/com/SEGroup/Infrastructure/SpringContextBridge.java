@@ -16,6 +16,8 @@ public class SpringContextBridge implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext ctx) throws BeansException {
-        ServiceLocator.setApplicationContext(ctx);
+        // Fetch the ServiceLocator bean, then call its instance‐method:
+        ServiceLocator bean = ctx.getBean(ServiceLocator.class);
+        bean.setApplicationContext(ctx);
     }
 }

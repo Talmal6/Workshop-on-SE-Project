@@ -3,7 +3,6 @@ package com.SEGroup.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.IAuthenticationService;
@@ -14,12 +13,8 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.ProductCatalog.CatalogProduct;
 import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Review;
-import com.SEGroup.Domain.Store.ShoppingProduct;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 
 import org.springframework.stereotype.Service;
-
-import javax.print.DocFlavor;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)

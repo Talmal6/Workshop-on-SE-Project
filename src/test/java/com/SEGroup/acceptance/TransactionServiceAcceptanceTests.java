@@ -6,7 +6,7 @@ import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Domain.Report.ReportCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.TransactionRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
@@ -68,7 +68,7 @@ public class TransactionServiceAcceptanceTests {
 
                 // copy
                 storeRepository = new StoreRepository();
-                productCatalog = new InMemoryProductCatalog();
+                productCatalog = new ProductCatalogRepository();
                 Security security = new Security();
                 // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
                 // create a key
