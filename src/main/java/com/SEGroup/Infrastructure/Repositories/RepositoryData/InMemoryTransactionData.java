@@ -38,6 +38,8 @@ public class InMemoryTransactionData implements TransactionData {
 
     @Override
     public void deleteTransaction(int id) {
+        if(!transactions.containsKey(id))
+            throw new RuntimeException("Transaction not found");
         transactions.remove(id);
     }
 
