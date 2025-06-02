@@ -5,19 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Domain.Conditions.AndCondition;
-import com.SEGroup.Domain.Discount.ConditionalDiscount;
 import com.SEGroup.Domain.Discount.Discount;
 import com.SEGroup.Domain.Discount.DiscountType;
 import com.SEGroup.Domain.Discount.Numerical.MaxDiscount;
-import com.SEGroup.Domain.Discount.Numerical.SequentialDiscount;
 import com.SEGroup.Domain.Discount.SimpleDiscount;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
-import com.SEGroup.Domain.User.Basket;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Domain.Report.ReportCenter;
@@ -45,7 +41,7 @@ public class DiscountAcceptanceTest {
     StoreService storeService;
     StoreRepository storeRepository;
     IAuthenticationService authenticationService;
-    InMemoryProductCatalog productCatalog;
+    ProductCatalogRepository productCatalog;
     IUserRepository userRepository;
     UserService userService;
     NotificationCenter notificationService;
@@ -54,7 +50,7 @@ public class DiscountAcceptanceTest {
     @BeforeEach
     public void setUp() throws Exception {
         storeRepository = new StoreRepository();
-        productCatalog = new InMemoryProductCatalog();
+        productCatalog = new ProductCatalogRepository();
         Security security = new Security();
         SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         security.setKey(key);

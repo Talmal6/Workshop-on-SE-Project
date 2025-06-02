@@ -6,8 +6,6 @@ import java.util.Map;
 
 import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.Store.*;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
-import com.SEGroup.UI.Views.AddProductDialog;
 
 /**
  * Interface representing a repository for managing stores.

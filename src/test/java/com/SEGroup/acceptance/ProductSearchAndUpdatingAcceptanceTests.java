@@ -10,8 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.SEGroup.Domain.IAuthenticationService;
-import com.SEGroup.Domain.INotificationCenter;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
@@ -23,7 +22,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.mockito.Mockito.lenient;
+
 import static org.mockito.Mockito.mock;
 import com.SEGroup.Domain.Report.ReportCenter;
 
@@ -42,7 +41,7 @@ public class ProductSearchAndUpdatingAcceptanceTests {
     UserService su;
     StoreService storeService;
     StoreRepository storeRepository;
-    InMemoryProductCatalog productCatalog;
+    ProductCatalogRepository productCatalog;
     IAuthenticationService authenticationService;
     IUserRepository userRepository;
     ReportCenter reportCenter;
@@ -50,7 +49,7 @@ public class ProductSearchAndUpdatingAcceptanceTests {
     @BeforeEach
     public void setUp() throws Exception {
         storeRepository = new StoreRepository();
-        productCatalog = new InMemoryProductCatalog();
+        productCatalog = new ProductCatalogRepository();
 
         //
         Security security = new Security();

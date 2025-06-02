@@ -1,7 +1,6 @@
 package com.SEGroup.acceptance;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,7 +10,7 @@ import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Infrastructure.NotificationCenter.Notification;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationWithSender;
-import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
+import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.UserRepository;
 import com.SEGroup.Infrastructure.Repositories.GuestRepository;
@@ -45,7 +44,7 @@ public class NotificationCenterAcceptanceTests {
     private IAuthenticationService authService;
     private IUserRepository userRepository;
     private StoreRepository storeRepository;
-    private InMemoryProductCatalog productCatalog;
+    private ProductCatalogRepository productCatalog;
     private StoreService storeService;
     private UserService userService;
     private NotificationCenter notificationCenter;
@@ -61,7 +60,7 @@ public class NotificationCenterAcceptanceTests {
         // Initialize repositories and NotificationCenter
         userRepository = new UserRepository();
         storeRepository = new StoreRepository();
-        productCatalog = new InMemoryProductCatalog();
+        productCatalog = new ProductCatalogRepository();
         notificationCenter = new NotificationCenter(authService);
         // Inject dependencies into service layer
         storeService = new StoreService(storeRepository, productCatalog, authService, userRepository,

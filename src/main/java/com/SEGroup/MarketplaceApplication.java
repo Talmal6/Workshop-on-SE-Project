@@ -26,4 +26,6 @@ public class MarketplaceApplication extends SpringBootServletInitializer {
 
 		SpringApplication.run(MarketplaceApplication.class, args);
 	}
+
+
 }
