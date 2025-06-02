@@ -1,24 +1,20 @@
 package com.SEGroup.UI;
 
-import com.SEGroup.Domain.*;
 import com.SEGroup.Infrastructure.ExternalPaymentAndShippingService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.InMemoryProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaStoreRepository;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaTransactionRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
-import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbStoreData;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbTransactionData;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbUserData;
 import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.TransactionRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
-import com.SEGroup.Domain.IShippingService;
-import com.SEGroup.Service.MockShippingService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -84,6 +80,9 @@ class BootstrapData {
     private JpaUserRepository jpaUserRepository;
     @Autowired
     private JpaStoreRepository jpaStoreRepository;
+    @Autowired
+    private JpaTransactionRepository jpaTransactionRepository;
+
 
     @PostConstruct
     void initDemoData() {
@@ -91,6 +90,7 @@ class BootstrapData {
         UserRepository users = new UserRepository(new DbUserData(jpaUserRepository));
         StoreRepository stores = new StoreRepository();
         InMemoryProductCatalog catalog = new InMemoryProductCatalog();
+        TransactionRepository transactions = new TransactionRepository(new DbTransactionData(jpaTransactionRepository));
 
         /* USERS ----------------------------------------------- */
         System.out.println("Initializing users...");
@@ -379,6 +379,53 @@ class BootstrapData {
         catalog.addCatalogProduct("BEAUTY-001", "Premium Skincare Set","","",
                 List.of("Beauty", "Skincare", "Anti-Aging", "Premium", "Facial Care", "Moisturizers", "Serums", "Sets"));
 
+        /* TRANSACTION ---------------------------------------------- */
+        System.out.println("Initializing transactions...");
+        // Create a few transactions for the demo store
+        transactions.addTransaction(
+                List.of(p1, p3), // products
+                1129.98, // total price
+                demoStore, // store
+                "user@demo.com" // buyer
+        );
+
+        transactions.addTransaction(
+                List.of(p2),
+                1499.99,
+                demoStore,
+                "shopper1@demo.com"
+        );
+
+        transactions.addTransaction(
+                List.of(p4),
+                349.99,
+                demoStore,
+                "shopper2@demo.com"
+        );
+
+        transactions.addTransaction(
+                List.of(p5, p6),
+                2699.98,
+                techStore,
+                "tech.fan@demo.com"
+        );
+
+        transactions.addTransaction(
+                List.of(p10, p13),
+                259.98,
+                fashionStore,
+                "fashionista@demo.com"
+        );
+
+        transactions.addTransaction(
+                List.of(p15),
+                199.99,
+                homeStore,
+                "shopper2@demo.com"
+        );
+
+
+
         /* Initialize services -------------------------------- */
         System.out.println("Initializing services...");
 
@@ -388,7 +435,7 @@ class BootstrapData {
         ServiceLocator.initialize(
                 new GuestRepository(),            // guests
                 users,                            // users
-                new TransactionRepository(),      // transactions
+                transactions,                     // transactions
                 stores,                           // stores
                 catalog,                          // catalog
                 new ExternalPaymentAndShippingService()         // payment

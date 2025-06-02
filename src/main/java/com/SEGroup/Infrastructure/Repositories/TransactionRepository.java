@@ -17,107 +17,63 @@ import org.springframework.stereotype.Repository;
  * TransactionRepository is responsible for managing transactions in the system.
  * It provides methods to add, retrieve, update, and delete transactions.
  */
+
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.TransactionData;
+import org.springframework.context.annotation.Profile;
+
 @Repository
+@Profile({"prod", "db"})
 public class TransactionRepository implements ITransactionRepository {
-    private final Map<Integer, Transaction> transactions = new ConcurrentHashMap<>(); // <Identifier, Transaction>
-    private final AtomicInteger nextId = new AtomicInteger(1); // Identifier for transactions
-    
-    public TransactionRepository() {
-        // Constructor can be used for initialization if needed
+
+    private final TransactionData transactionData;
+
+    public TransactionRepository(TransactionData transactionData) {
+        this.transactionData = transactionData;
     }
 
-    /**
-     * Adds a new transaction to the repository.
-     *
-     * @param shoppingProductIds List of product IDs involved in the transaction
-     * @param cost              Total cost of the transaction
-     * @param buyersEmail       Email of the buyer
-     * @param storeName         Name of the store where the transaction occurred
-     */
+    public TransactionRepository() {
+        this.transactionData = new com.SEGroup.Infrastructure.Repositories.RepositoryData.InMemoryTransactionData();
+    }
+
     @Override
     public void addTransaction(List<String> shoppingProductIds, double cost, String buyersEmail, String storeName) {
-        
         Transaction transaction = new Transaction(shoppingProductIds, cost, buyersEmail, storeName);
-        transactions.put(nextId.incrementAndGet(), transaction);
+        transactionData.saveTransaction(transaction);
     }
 
-    /**
-     * Retrieves a transaction by its ID.
-     *
-     * @param id The ID of the transaction to retrieve
-     * @return The TransactionDTO object representing the transaction
-     */
     @Override
-    public TransactionDTO getTransactionById(int id) { 
-        Transaction transaction = transactions.get(id);
+    public TransactionDTO getTransactionById(int id) {
+        Transaction transaction = transactionData.getTransactionById(id);
         if (transaction == null) {
             throw new RuntimeException("Transaction not found");
         }
         return TransactionMapper.toDTO(transaction);
     }
 
-    /**
-     * Retrieves all transactions in the repository.
-     *
-     * @return A list of TransactionDTO objects representing all transactions
-     */
     @Override
     public List<TransactionDTO> getAllTransactions() {
-        List<TransactionDTO> transactionDTOs = new ArrayList<>();
-        for (Transaction transaction : transactions.values()) {
-            transactionDTOs.add(TransactionMapper.toDTO(transaction));
-        }
-        return transactionDTOs;
+        return transactionData.getAllTransactions().stream()
+                .map(TransactionMapper::toDTO)
+                .toList();
     }
 
-    /**
-     * Updates an existing transaction in the repository.
-     *
-     * @param updated The updated Transaction object
-     */
     @Override
     public void updateTransaction(Transaction updated) {
-        for (Map.Entry<Integer, Transaction> entry : transactions.entrySet()) {
-            if (entry.getValue().equals(updated)) {
-                transactions.put(entry.getKey(), updated);
-                return;
-            }
-        }
+        transactionData.updateTransaction(updated);
     }
 
-    /**
-     * Deletes a transaction by its ID.
-     *
-     * @param id The ID of the transaction to delete
-     */
     @Override
     public void deleteTransaction(int id) {
-        if (!transactions.containsKey(id)) {
-            throw new RuntimeException("Transaction not found");
-        }
-        transactions.remove(id);
+        transactionData.deleteTransaction(id);
     }
 
-    /**
-     * Retrieves all transactions associated with a specific user email.
-     *
-     * @param userEmail The email of the user whose transactions to retrieve
-     * @return A list of TransactionDTO objects representing the user's transactions
-     */
     @Override
     public List<TransactionDTO> getTransactionsByUserEmail(String userEmail) {
         if (userEmail == null || userEmail.isEmpty()) {
             throw new IllegalArgumentException("User email cannot be null or empty");
         }
-        if (transactions.isEmpty()) {
-            throw new RuntimeException("No transactions found for the user");
-        }
-        List<TransactionDTO> result = new ArrayList<>();
-        for (Transaction t : transactions.values()) {
-            if (t.getBuyersEmail().equalsIgnoreCase(userEmail)) {
-                result.add(TransactionMapper.toDTO(t));
-            }
-        }
-        return result;
+        return transactionData.getTransactionsByUserEmail(userEmail).stream()
+                .map(TransactionMapper::toDTO)
+                .toList();
     }
 }
