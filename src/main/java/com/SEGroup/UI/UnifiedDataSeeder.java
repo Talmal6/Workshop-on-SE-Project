@@ -4,7 +4,15 @@ package com.SEGroup.UI;
 import com.SEGroup.Infrastructure.ExternalPaymentAndShippingService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.*;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaStoreRepository;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaTransactionRepository;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbStoreData;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbTransactionData;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbUserData;
 import com.SEGroup.UI.ServiceLocator;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -28,10 +36,10 @@ import java.util.List;
 @Component
 public class UnifiedDataSeeder implements ApplicationListener<ApplicationReadyEvent> {
 
-    private final UserRepository users;
-    private final StoreRepository stores;
+    private  UserRepository users;
+    private  StoreRepository stores;
     private final ProductCatalogRepository catalog;
-    private final TransactionRepository transactions;
+    private  TransactionRepository transactions;
     private final GuestRepository guests;
     private final ExternalPaymentAndShippingService shippingService;
 
@@ -50,11 +58,23 @@ public class UnifiedDataSeeder implements ApplicationListener<ApplicationReadyEv
         this.guests = guests;
         this.shippingService = shippingService;
     }
-
+    @Autowired
+    private JpaUserRepository jpaUserRepository;
+    @Autowired
+    private JpaStoreRepository jpaStoreRepository;
+    @Autowired
+    private JpaTransactionRepository jpaTransactionRepository;
+    @PostConstruct
+    public void init() {
+        this.users = new UserRepository(new DbUserData(jpaUserRepository));
+        this.stores = new StoreRepository(new DbStoreData(jpaStoreRepository));
+        this.transactions = new TransactionRepository(new DbTransactionData(jpaTransactionRepository));
+        // קריאות ל-service/DTO/Seeder methods
+    }
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         // 1) If there is already at least one user in the DB, skip everything.
-        if (!users.getAllEmails().isEmpty()) {
+        if (users.getAllEmails().size() > 1) {
             System.out.println("[seeder] Users already exist → skipping demo data.");
             // Still initialize ServiceLocator for everyone else:
             ServiceLocator.initialize(
@@ -62,7 +82,6 @@ public class UnifiedDataSeeder implements ApplicationListener<ApplicationReadyEv
             );
             return;
         }
-
         System.out.println("[seeder] No users found → inserting demo data…");
         PasswordEncoder encoder = new PasswordEncoder();
 
@@ -541,6 +560,52 @@ public class UnifiedDataSeeder implements ApplicationListener<ApplicationReadyEv
                 List.of("Wearables","Fitness","Health","GPS","Tracking","Coaching"));
         catalog.addCatalogProduct("BEAUTY-001","Premium Skincare Set","BrandV","",
                 List.of("Beauty","Skincare","Anti-Aging","Premium","Serums","Moisturizers"));
+
+        /* TRANSACTION ---------------------------------------------- */
+        System.out.println("Initializing transactions...");
+        // Create a few transactions for the demo store
+        transactions.addTransaction(
+                List.of(p1, p3), // products
+                1129.98, // total price
+                demoStore, // store
+                "user@demo.com" // buyer
+        );
+
+        transactions.addTransaction(
+                List.of(p2),
+                1499.99,
+                demoStore,
+                "shopper1@demo.com"
+        );
+
+        transactions.addTransaction(
+                List.of(p4),
+                349.99,
+                demoStore,
+                "shopper2@demo.com"
+        );
+
+        transactions.addTransaction(
+                List.of(p5, p6),
+                2699.98,
+                techStore,
+                "tech.fan@demo.com"
+        );
+
+        transactions.addTransaction(
+                List.of(p10, p13),
+                259.98,
+                fashionStore,
+                "fashionista@demo.com"
+        );
+
+        transactions.addTransaction(
+                List.of(p15),
+                199.99,
+                homeStore,
+                "shopper2@demo.com"
+        );
+
 
         /************************************************************************
          * STEP 7: INITIALIZE SERVICE LOCATOR
