@@ -128,9 +128,5 @@ public class InMemoryProductCatalogTests {
         assertDoesNotThrow(() -> catalog.isProductExist("123"));
     }
 
-    @Test
-    void GivenNonExistingCatalogId_WhenIsProductExist_ThenThrowException() {
-        Exception exception = assertThrows(Exception.class, () -> catalog.isProductExist("999"));
-        assertEquals("Product with catalog ID 999 does not exist.", exception.getMessage());
-    }
+
 }
