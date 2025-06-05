@@ -1,7 +1,11 @@
 package com.SEGroup.Domain;
 
+import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Domain.User.Guest;
 import com.SEGroup.Domain.User.ShoppingCart;
+
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -23,15 +27,13 @@ public interface IGuestRepository {
      * @param guestId The ID of the guest user.
      * @return The ShoppingCart object associated with the guest.
      */
-    ShoppingCart cartOf(String guestId);
-    /**
-     * Updates the shopping cart of a guest user.
-     *
-     * @param guestId The ID of the guest user.
-     * @param cart    The ShoppingCart object to update.
-     */
-    void updateCart(String guestId, ShoppingCart cart);
+    List<BasketDTO> cartOf(String guestId);
+
+
 
     void addToCart(String guestId, String storeID, String productID);
+
+    void modifyCartQuantity(String guestId, String productID, String storeName, int quantity);
+    ShoppingCart getShoppingCart(String guestId);
 
 }

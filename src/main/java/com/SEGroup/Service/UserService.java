@@ -12,6 +12,7 @@ import com.SEGroup.Domain.User.Role;
 import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.Infrastructure.PasswordEncoder;
+import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import com.SEGroup.Domain.Report.Report;
 import com.SEGroup.Domain.Report.ReportCenter;
 import org.springframework.stereotype.Component;
@@ -212,15 +213,7 @@ public class UserService {
     @Transactional
     public Result<String> addToGuestCart(String guestToken, String productId, String storeName) {
         try {
-            ShoppingCart cart = guestService.cart(guestToken); // Retrieve guest's cart
-
-            guestService.addToCart(guestToken, productId, storeName); // Add product to guest's cart
-            LoggerWrapper.info("Added product to guest cart: " + guestToken + ", Product ID: " + productId); // Log
-                                                                                                             // product
-                                                                                                             // addition
-                                                                                                             // to guest
-                                                                                                             // cart
-            return Result.success("Added item to guest cart successfully!");
+            return guestService.addToCart(guestToken, storeName, productId); // Add product to guest's cart
         } catch (Exception e) {
             LoggerWrapper.error("Error adding item to guest cart: " + e.getMessage(), e); // Log error on failure
             return Result.failure(e.getMessage());
@@ -266,15 +259,17 @@ public class UserService {
     public Result<String> removeFromUserCart(String sessionKey, String email, String productID, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            String owner = authenticationService.getUserBySession(sessionKey);
+            if (owner.startsWith("g-")) {
+                // If guest, delegate to guestService
+                return guestService.modifyCartQuantity(sessionKey, storeName, productID, 0);
+            }
+            userRepository.checkUserSuspension(owner);
             userRepository.modifyCartQuantity(email, productID, storeName, 0);
-            LoggerWrapper.info("Removed product from user cart: " + email + ", Product ID: " + productID); // Log
-                                                                                                           // product
-                                                                                                           // removal
-                                                                                                           // from cart
+            LoggerWrapper.info("Removed product from user cart: " + email + ", Product ID: " + productID);
             return Result.success("Removed item from cart successfully!");
         } catch (Exception e) {
-            LoggerWrapper.error("Error removing item from user cart: " + e.getMessage(), e); // Log error on failure
+            LoggerWrapper.error("Error removing item from user cart: " + e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
     }
@@ -299,7 +294,12 @@ public class UserService {
             int quantity) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            userRepository.checkUserSuspension(authenticationService.getUserBySession(sessionKey));
+            String owner = authenticationService.getUserBySession(sessionKey);
+            if (owner.startsWith("g-")) {
+                // If guest, delegate to guestService
+                return guestService.modifyCartQuantity(sessionKey, storeName, productID, quantity);
+            }
+            userRepository.checkUserSuspension(owner);
             userRepository.modifyCartQuantity(email, productID, storeName, quantity); // Modify product quantity in
                                                                                       // user's cart
             LoggerWrapper.info("Modified product quantity in cart: " + email + ", Product ID: " + productID
@@ -316,6 +316,23 @@ public class UserService {
     public Result<List<BasketDTO>> getUserCart(String sessionKey, String email) {
         try {
             authenticationService.checkSessionKey(sessionKey);
+            LoggerWrapper.info("Retrieved user cart: " + email);
+            return Result.success(userRepository.getUserCart(email));
+        } catch (Exception e) {
+            LoggerWrapper.error("Error retrieving user cart: " + e.getMessage(), e); // Log error on failure
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Result<List<BasketDTO>> getUserCart(String sessionKey) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            // Check if the user is a guest
+            if (email.startsWith("g-")) {
+                return guestService.cart(sessionKey); // Delegate to guestService for guest users
+            }
             LoggerWrapper.info("Retrieved user cart: " + email);
             return Result.success(userRepository.getUserCart(email));
         } catch (Exception e) {
@@ -414,8 +431,7 @@ public class UserService {
             authenticationService.checkSessionKey(sessionKey);
             String owner = authenticationService.getUserBySession(sessionKey);
             if (owner.startsWith("g-")) {
-                guestService.addToCart(sessionKey, storeName, productId);
-                
+                return guestService.addToCart(sessionKey, storeName, productId);
             } else {
                 User user = userRepository.findUserByEmail(owner);
                 userRepository.addToCart(user.getEmail(), storeName, productId);
@@ -462,8 +478,7 @@ public class UserService {
             String owner = authenticationService.getUserBySession(sessionKey);
 
             if (owner.startsWith("g-")) {
-                ShoppingCart cart = guestService.cart(sessionKey);
-                cart.changeQty(storeName, productId, newQty);
+                return guestService.modifyCartQuantity(sessionKey, storeName, productId, newQty);
             } else {
                 User user = userRepository.findUserByEmail(owner);
                 user.cart().changeQty(storeName, productId, newQty);

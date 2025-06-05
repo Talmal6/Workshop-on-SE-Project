@@ -182,9 +182,31 @@ class UserServiceJpaTests {
             String g = sut.guestLogin().getData();
             Result<String> r = sut.addToGuestCart(g, "P1", "S1");
             assertTrue(r.isSuccess());
-            
-            
         }
+
+        @Test @DisplayName("modify guest cart quantity updates basket")
+        void modifyGuestCartQuantity() {
+            String g = sut.guestLogin().getData();
+            Result<String> r = sut.addToGuestCart(g, "P1", "S1");
+            assertTrue(r.isSuccess());
+            Result<String> r2 = sut.addToCart(g, "P1", "S1");
+            assertTrue(r2.isSuccess());
+            Result<String> r3 = sut.modifyProductQuantityInCartItem(g,email, "P1", "S1", 3);
+            assertTrue(r3.isSuccess());
+            List<BasketDTO> cart = sut.getUserCart(g).getData();
+            assertEquals(3, cart.get(0).prod2qty().get("P1"));
+        }
+
+        @Test @DisplayName("Guest remove item sets qty=0")
+        void guestRemoveItem() {
+            String g = sut.guestLogin().getData();
+            assertTrue(sut.addToGuestCart(g, "P1", "S1").isSuccess());
+            Result<String> r = sut.removeFromCart(g, "P1", "S1");
+            assertTrue(r.isSuccess());
+            List<BasketDTO> cart = sut.getUserCart(g).getData();
+            assertTrue(cart.get(0).prod2qty().get("P1") == null || cart.get(0).prod2qty().get("P1") == 0);
+        }
+
     }
 
     /* ───────── Subscriber cart operations ───────── */
@@ -199,6 +221,17 @@ class UserServiceJpaTests {
             assertTrue(sut.addToUserCart(jwt, email, "P42", "S7").isSuccess());
             List<BasketDTO> cart2 = sut.getUserCart(jwt, email).getData();
             assertEquals(1, cart2.size());
+
+        }
+
+        @Test
+        @DisplayName("Add item as guest → basket created")
+        void addItemAsGuest(){
+            String guestSession = sut.guestLogin().getData();
+            Result<String> result = sut.addToCart(guestSession, "P42", "S7");
+            assertTrue(result.isSuccess());
+            List<BasketDTO> cart = sut.getUserCart(guestSession).getData();
+            assertEquals(1, cart.size());
         }
 
         @Test

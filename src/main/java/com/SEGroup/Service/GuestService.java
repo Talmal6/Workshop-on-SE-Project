@@ -1,8 +1,12 @@
 package com.SEGroup.Service;
 
+import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.User.ShoppingCart;
+
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,29 +52,40 @@ public class GuestService {
      * @return The shopping cart for the guest.
      * @throws Exception If the token is invalid or the token does not belong to a guest.
      */
-    public ShoppingCart cart(String guestToken) throws Exception {
+    public Result<List<BasketDTO>> cart(String guestToken) throws Exception {
         LoggerWrapper.info("Retrieving cart for guest token: " + guestToken);  // Logging the request for a shopping cart
         String subject = auth.getUserBySession(guestToken);
         // Check if the token belongs to a guest
+        
         if (!subject.startsWith("g-")) {
             LoggerWrapper.warning("Token does not belong to a guest: " + guestToken);  // Logging if the token is not a guest token
             throw new IllegalArgumentException("token does not belong to a guest");
         }
 
-        ;
-        ShoppingCart cart = guests.cartOf(subject);
+        List<BasketDTO> cart = guests.cartOf(subject);
+        return Result.success(cart);
+    }
 
-        LoggerWrapper.info("Retrieved shopping cart for guest with ID: " + subject);  // Logging the successful retrieval of the shopping cart
+    public Result<ShoppingCart> getShoppingCart(String guestToken) throws Exception {
+        LoggerWrapper.info("Retrieving cart for guest token: " + guestToken);  // Logging the request for a shopping cart
+        String gid = auth.getUserBySession(guestToken);
+        // Check if the token belongs to a guest
+        if (!gid.startsWith("g-")) {
+            LoggerWrapper.warning("Token does not belong to a guest: " + guestToken);  // Logging if the token is not a guest token
+            throw new IllegalArgumentException("token does not belong to a guest");
+        }
 
-        return cart;
+        ShoppingCart cart = guests.getShoppingCart(gid);
+        return Result.success(cart);
     }
 
 
     //add to cart
-    public void addToCart(String guestToken, String storeID, String productID) throws Exception {
+    public Result<String> addToCart(String guestToken, String storeID, String productID) throws Exception {
         LoggerWrapper.info("Adding product to cart for guest token: " + guestToken);  // Logging the addition of a product to the cart
         String subject = auth.getUserBySession(guestToken);
         // Check if the token belongs to a guest
+        guests.addToCart(subject, storeID, productID);
         if (!subject.startsWith("g-")) {
             LoggerWrapper.warning("Token does not belong to a guest: " + guestToken);  // Logging if the token is not a guest token
             throw new IllegalArgumentException("token does not belong to a guest");
@@ -78,5 +93,21 @@ public class GuestService {
 
         guests.addToCart(subject, storeID, productID);
         LoggerWrapper.info("Added product with ID: " + productID + " to cart for guest with ID: " + subject);  // Logging the successful addition of the product
+        return Result.success("Product added to cart");
+    }
+
+    public Result<String> modifyCartQuantity(String guestToken, String storeID, String productID, int quantity) throws Exception {
+        LoggerWrapper.info("Modifying cart quantity for guest token: " + guestToken);  // Logging the modification of cart quantity
+        String subject = auth.getUserBySession(guestToken);
+        // Check if the token belongs to a guest
+        if (!subject.startsWith("g-")) {
+            LoggerWrapper.warning("Token does not belong to a guest: " + guestToken);  // Logging if the token is not a guest token
+            throw new IllegalArgumentException("token does not belong to a guest");
+        }
+
+        guests.modifyCartQuantity(subject, productID, storeID, quantity);
+
+        LoggerWrapper.info("Modified quantity for product with ID: " + productID + " in cart for guest with ID: " + subject);  // Logging the successful modification of the cart quantity
+        return Result.success("Cart quantity modified");
     }
 }

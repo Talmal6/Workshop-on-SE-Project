@@ -81,7 +81,7 @@ public class CartPresenter {
                 try {
                     // Get the GuestService
                     GuestService guestService = ServiceLocator.getGuestService();
-                    ShoppingCart guestCart = guestService.cart(token);
+                    ShoppingCart guestCart = guestService.getShoppingCart(token).getData();
 
                     // Convert ShoppingCart to BasketDTO list
                     baskets = new ArrayList<>();

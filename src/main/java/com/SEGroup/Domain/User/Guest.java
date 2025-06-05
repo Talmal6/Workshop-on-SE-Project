@@ -13,8 +13,12 @@ public class Guest {
     @Column(nullable = false)
     private Instant issuedAt;
 
-    @Transient  // Not persisted—per session/in memory only!
+    @OneToOne(cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER,      // ← eager load instead of lazy
+            orphanRemoval = true)
+    @JoinColumn(name = "cart_id", referencedColumnName = "user_id")
     private ShoppingCart cart;
+
 
     // --- JPA needs this ---
     protected Guest() {}
