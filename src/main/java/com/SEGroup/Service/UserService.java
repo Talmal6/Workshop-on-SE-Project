@@ -77,7 +77,7 @@ public class UserService {
     @Transactional
     public Result<Void> register(String username, String email, String password, AddressDTO address) {
         try {
-            userRepository.addUserWithaddress(username, email, passwordEncoder.encrypt(password),address);
+            userRepository.addUserWithaddress(username, email, passwordEncoder.encrypt(password), address);
             LoggerWrapper.info("User registered successfully: " + username + ", Email: " + email); // Log successful
             // registration
             return Result.success(null);
@@ -213,7 +213,7 @@ public class UserService {
     public Result<String> addToGuestCart(String guestToken, String productId, String storeName) {
         try {
             ShoppingCart cart = guestService.cart(guestToken); // Retrieve guest's cart
-            
+
             guestService.addToCart(guestToken, productId, storeName); // Add product to guest's cart
             LoggerWrapper.info("Added product to guest cart: " + guestToken + ", Product ID: " + productId); // Log
                                                                                                              // product
@@ -418,7 +418,7 @@ public class UserService {
                 cart.add(storeName, productId, 1);
             } else {
                 User user = userRepository.findUserByEmail(owner);
-                user.addToCart(storeName, productId);
+                userRepository.addToCart(user.getEmail(), storeName, productId);
             }
             return Result.success("Added item to cart successfully!");
         } catch (Exception e) {

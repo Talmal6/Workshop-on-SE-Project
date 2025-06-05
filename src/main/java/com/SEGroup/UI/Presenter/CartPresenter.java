@@ -67,7 +67,7 @@ public class CartPresenter {
                 // For registered users
                 String email = SecurityContextHolder.email();
                 Result<List<BasketDTO>> result = userService.getUserCart(token, email);
-
+                
                 if (!result.isSuccess()) {
                     System.out.println("Error loading cart: " + result.getErrorMessage());
                     view.showError("Error loading cart: " + result.getErrorMessage());

@@ -194,7 +194,11 @@ class UserServiceJpaTests {
         @Test
         @DisplayName("Add item → basket created")
         void addItem() {
+            List<BasketDTO> cart = sut.getUserCart(jwt, email).getData();
+            assertEquals(0, cart.size());
             assertTrue(sut.addToUserCart(jwt, email, "P42", "S7").isSuccess());
+            List<BasketDTO> cart2 = sut.getUserCart(jwt, email).getData();
+            assertEquals(1, cart2.size());
         }
 
         @Test
@@ -203,7 +207,7 @@ class UserServiceJpaTests {
             sut.addToUserCart(jwt, email, "P42", "S7");
             Result<String> result = sut.modifyProductQuantityInCartItem(jwt, email, "P42", "S7", 3);
             assertTrue(result.isSuccess());
-            List<BasketDTO> cart = users.getUserCart(email);
+            List<BasketDTO> cart = sut.getUserCart(jwt, email).getData();
             assertEquals(3, cart.get(0).prod2qty().get("P42"));
         }
 
