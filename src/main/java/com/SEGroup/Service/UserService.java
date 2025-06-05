@@ -414,8 +414,8 @@ public class UserService {
             authenticationService.checkSessionKey(sessionKey);
             String owner = authenticationService.getUserBySession(sessionKey);
             if (owner.startsWith("g-")) {
-                ShoppingCart cart = guestService.cart(sessionKey);
-                cart.add(storeName, productId, 1);
+                guestService.addToCart(sessionKey, storeName, productId);
+                
             } else {
                 User user = userRepository.findUserByEmail(owner);
                 userRepository.addToCart(user.getEmail(), storeName, productId);
