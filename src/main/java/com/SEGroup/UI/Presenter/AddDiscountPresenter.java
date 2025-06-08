@@ -91,7 +91,7 @@ public class AddDiscountPresenter {
                 .orElse(null);
     }
 
-    public Result<Void> addDiscountToProduct(String category, String item, Integer value, int minAmount) {
+    public Result<Void> addDiscountToProduct(String category, String item, Integer value, int minAmount, int maxAmount) {
 //        return         Result.failure("Unknown error");
         return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,getItemId(category, item),value,null);
     }
@@ -106,7 +106,7 @@ public class AddDiscountPresenter {
 
     }
 
-    public Result<Void> addDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, String couponCode) {
+    public Result<Void> addDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, int maxAmount, String couponCode) {
         return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,getItemId(category, item),value,couponCode);
 
     }
@@ -123,11 +123,11 @@ public class AddDiscountPresenter {
 
     }
 
-    public Result<Void> addConditionalDiscountToProduct(String category, String item, Integer value, int minAmount, Integer minimumPrice) {
+    public Result<Void> addConditionalDiscountToProduct(String category, String item, Integer value, int minAmount, int maxAmount, Integer minimumPrice) {
 //        return         Result.failure("Unknown error");
         String itemId = getItemId(category, item);
 
-        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,itemId,value,minAmount,minimumPrice,null);
+        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,itemId,value,minAmount, maxAmount, minimumPrice,null);
     }
 
     public Result<Void> addConditionalDiscountToStoreWithCoupon(Integer value, String couponCode, Integer minimumPrice) {
@@ -140,10 +140,10 @@ public class AddDiscountPresenter {
 
     }
 
-    public Result<Void> addConditionalDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, String couponCode, Integer minimumPrice) {
+    public Result<Void> addConditionalDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, int maxAmount, String couponCode, Integer minimumPrice) {
         //first get item id
         String itemId = getItemId(category, item);
-        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,itemId,value,minAmount,minimumPrice,couponCode);
+        return storeService.addConditionalDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,itemId,value,minAmount,maxAmount, minimumPrice,couponCode);
 
     }
 } 

@@ -38,8 +38,9 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
 
 
     // we'll replace comboA/comboB with a dynamic list:
-    private final List<ComboBox<ShoppingProductDTO>>     productCombos = new ArrayList<>();
-    private final List<IntegerField>         qtyFields     = new ArrayList<>();
+    private final List<ComboBox<ShoppingProductDTO>> productCombos = new ArrayList<>();
+    private final List<IntegerField> qtyMinFields  = new ArrayList<>();
+    private final List<IntegerField> qtyMaxFields  = new ArrayList<>();
 
     private final IntegerField    minPrice      = new IntegerField("Min Price");
     private final IntegerField   discountPct   = new IntegerField("Discount %");
@@ -152,29 +153,34 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
                     .map(row -> ((IntegerField)row.getComponentAt(1)).getValue())
                     .toList();
 
+            var maxAmounts = productContainer.getChildren()
+                    .map(c -> (HorizontalLayout)c)
+                    .map(row -> ((IntegerField)row.getComponentAt(2)).getValue())
+                    .toList();
+
             if(select.getValue().equals("Entire Store")){
                 if(!couponField.isEnabled()) {
-                    presenter.apply_on_entire_store(operator, selectedProducts, minAmounts,
+                    presenter.apply_on_entire_store(operator, selectedProducts, minAmounts,maxAmounts,
                             minPrice.getValue(), discountPct.getValue(), null);
                 }
-                presenter.apply_on_entire_store(operator, selectedProducts, minAmounts,
+                presenter.apply_on_entire_store(operator, selectedProducts, minAmounts, maxAmounts,
                         minPrice.getValue(), discountPct.getValue(), couponField.getValue());
             }
             else
             if(select.getValue().equals("Product")){
                 if(!couponField.isEnabled()) {
                     presenter.apply_on_product(operator, products.getValue().getProductId(), selectedProducts, minAmounts,
-                            minPrice.getValue(), discountPct.getValue(), null);
+                            maxAmounts, minPrice.getValue(), discountPct.getValue(), null);
                 }
                 presenter.apply_on_product(operator, products.getValue().getProductId(), selectedProducts, minAmounts,
-                        minPrice.getValue(), discountPct.getValue(), couponField.getValue());
+                        maxAmounts, minPrice.getValue(), discountPct.getValue(), couponField.getValue());
             }
             else{
                 if(!couponField.isEnabled()) {
-                    presenter.apply_on_entire_category(operator, categories.getValue(), selectedProducts, minAmounts,
+                    presenter.apply_on_entire_category(operator, categories.getValue(), selectedProducts, minAmounts, maxAmounts,
                                 minPrice.getValue(), discountPct.getValue(), null);
                 }
-                presenter.apply_on_entire_category(operator, categories.getValue(), selectedProducts, minAmounts,
+                presenter.apply_on_entire_category(operator, categories.getValue(), selectedProducts, minAmounts, maxAmounts,
                         minPrice.getValue(), discountPct.getValue(), couponField.getValue());
             }
         });
@@ -199,15 +205,20 @@ public class ComplexCondDiscountView extends VerticalLayout implements HasUrlPar
 //        combo.setItemLabelGenerator(String::valueOf);
         combo.setItems(cachedProductNames);
 
-        IntegerField qty = new IntegerField("Min Amount");
-        qty.setRequiredIndicatorVisible(true);
-        qty.setMin(1);
+        IntegerField qtyMin = new IntegerField("Min Amount");
+        qtyMin.setRequiredIndicatorVisible(true);
+        qtyMin.setMin(1);
+
+        IntegerField qtyMax = new IntegerField("Max Amount");
+        qtyMax.setRequiredIndicatorVisible(true);
+
 
         // store in our lists:
         productCombos.add(combo);
-        qtyFields.add(qty);
+        qtyMinFields.add(qtyMin);
+        qtyMaxFields.add(qtyMax);
 
-        productContainer.add(new HorizontalLayout(combo, qty));
+        productContainer.add(new HorizontalLayout(combo, qtyMin, qtyMax));
     }
 
     private boolean allInputsValid() {
