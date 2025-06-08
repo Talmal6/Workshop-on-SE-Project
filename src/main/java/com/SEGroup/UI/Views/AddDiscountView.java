@@ -29,6 +29,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
     private final ComboBox<String> categoryComboBox;
     private final ComboBox<String> itemComboBox;
     private final IntegerField minAmountField;
+    private final IntegerField maxAmountField;
     private final IntegerField percentageField;
     private final TextField couponField;
     private final Checkbox useCouponCheckbox;
@@ -51,6 +52,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         categoryComboBox = new ComboBox<>("Discount Category");
         itemComboBox = new ComboBox<>("Item");
         minAmountField = new IntegerField("Minimum Amount");
+        maxAmountField = new IntegerField("Maximum Amount");
         percentageField = new IntegerField("Discount Percentage");
         confirmButton = new Button("Confirm Discount");
         couponField = new TextField("Coupon Code");
@@ -66,14 +68,17 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         //disable itemComboBox and minAmountField until a category is selected
         itemComboBox.setEnabled(false);
         minAmountField.setEnabled(false);
+        maxAmountField.setEnabled(false);
         categoryComboBox.addValueChangeListener(event -> {
             boolean isEntireStore = event.getValue() == null || "Entire Store".equals(event.getValue());
             itemComboBox.setEnabled(!isEntireStore);
             minAmountField.setEnabled(!isEntireStore);
+            maxAmountField.setEnabled(!isEntireStore);
 
             if (isEntireStore) {
                 itemComboBox.setValue(null);
                 minAmountField.setValue(null);
+                maxAmountField.setValue(null);
             }
             else {
                 List<String> items =
@@ -93,9 +98,11 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         itemComboBox.addValueChangeListener(event -> {
             boolean isEntireCategory = event.getValue() == null || "Entire Category".equals(event.getValue());
             minAmountField.setEnabled(!isEntireCategory);
+            maxAmountField.setEnabled(!isEntireCategory);
 
             if (isEntireCategory) {
                 minAmountField.setValue(null);
+                maxAmountField.setValue(null);
             }
         });
 
@@ -104,6 +111,12 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
         minAmountField.setPlaceholder("Enter minimum amount");
         minAmountField.setValue(1);
         minAmountField.setMin(0);
+
+        // Configure Maximum Amount Field
+        maxAmountField.setWidth("300px");
+        maxAmountField.setPlaceholder("Enter maximum amount");
+        maxAmountField.setValue(1);
+        maxAmountField.setMin(1);
 
         // Configure Percentage Field
         percentageField.setWidth("300px");
@@ -215,21 +228,26 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
                             minAmountField.setInvalid(true);
                             return;
                         }
+                        Integer max = maxAmountField.getValue();
+                        if (max == null || max <= 0) {
+                            maxAmountField.setInvalid(true);
+                            return;
+                        }
                         if (couponOn)
                         {
                             if(conditionalOn){
-                                result = presenter.addConditionalDiscountToProductWithCoupon(category, item, percent, min, coupon, minimumP);
+                                result = presenter.addConditionalDiscountToProductWithCoupon(category, item, percent, min, max, coupon, minimumP);
                             }
                             else {
-                                result = presenter.addDiscountToProductWithCoupon(category, item, percent, min, coupon);
+                                result = presenter.addDiscountToProductWithCoupon(category, item, percent, min, max, coupon);
                             }
                         }
                         else {
                             if(conditionalOn){
-                                result = presenter.addConditionalDiscountToProduct(category, item, percent, min, minimumP);
+                                result = presenter.addConditionalDiscountToProduct(category, item, percent, min, max, minimumP);
                             }
                             else {
-                                result = presenter.addDiscountToProduct(category, item, percent, min);
+                                result = presenter.addDiscountToProduct(category, item, percent, min, max);
                             }
                         }
                     }
@@ -241,6 +259,7 @@ public class AddDiscountView extends VerticalLayout implements HasUrlParameter<S
                 categoryComboBox.clear();
                 itemComboBox.clear();
                 minAmountField.clear();
+                maxAmountField.clear();
                 percentageField.clear();
                 couponField.clear();
                 useCouponCheckbox.setValue(false);

@@ -44,12 +44,13 @@ public class ComplexCondDiscountPresenter {
     public void apply_on_entire_store(String operator,
                  List<String> productIds,
                  List<Integer> minAmounts,
+                 List<Integer> maxAmounts,
                  int minPrice,
                  int percentage,
                  String couponCode){
         Result<Void> res = storeService.addLogicalCompositeConditionalDiscountToEntireStore(
                 SecurityContextHolder.token(),
-                storeName, percentage, productIds, minAmounts, minPrice, operator,couponCode);
+                storeName, percentage, productIds, minAmounts, maxAmounts, minPrice, operator,couponCode);
         if(res.isSuccess()){
             view.showSuccess("Discount added successfully!");
             view.navigateBack();
@@ -63,12 +64,13 @@ public class ComplexCondDiscountPresenter {
                                  String category,
                                  List<String> productIds,
                                  List<Integer> minAmounts,
+                                 List<Integer> maxAmounts,
                                  int minPrice,
                                  int percentage,
                                  String couponCode){
         Result<Void> res = storeService.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(
                 SecurityContextHolder.token(),
-                storeName, category, percentage, productIds, minAmounts, minPrice, operator,couponCode);
+                storeName, category, percentage, productIds, minAmounts, maxAmounts, minPrice, operator,couponCode);
         if(res.isSuccess()){
             view.showSuccess("Discount added successfully!");
             view.navigateBack();
@@ -82,6 +84,7 @@ public class ComplexCondDiscountPresenter {
                                       String product_id,
                                       List<String> productIds,
                                       List<Integer> minAmounts,
+                                      List<Integer> maxAmounts,
                                       int minPrice,
                                       int percentage,
                                       String couponCode){
@@ -89,7 +92,7 @@ public class ComplexCondDiscountPresenter {
         System.out.println(productIds);
         Result<Void> res = storeService.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(
                 SecurityContextHolder.token(),
-                storeName, product_id, percentage, productIds, minAmounts, minPrice, operator,couponCode);
+                storeName, product_id, percentage, productIds, minAmounts, maxAmounts, minPrice, operator,couponCode);
         if(res.isSuccess()){
             view.showSuccess("Discount added successfully!");
             view.navigateBack();
