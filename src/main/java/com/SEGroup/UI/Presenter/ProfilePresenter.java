@@ -6,6 +6,8 @@ import com.SEGroup.Service.UserService;
 import com.SEGroup.Service.Result;
 import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
+import com.SEGroup.UI.Views.CheckoutDialog;
+import com.SEGroup.UI.Views.PaymentDetailsDialog;
 import com.SEGroup.UI.Views.ProfileView;
 
 public class ProfilePresenter {
@@ -49,4 +51,40 @@ public class ProfilePresenter {
         }
         else return result1;
     }
-} 
+
+    public void navigateToPaymentDetails(String userEmail) {
+        LoggerWrapper.info("Navigating to payment details for user: " + userEmail);
+        PaymentDetailsDialog dialog = new PaymentDetailsDialog(this);
+        dialog.open();
+    }
+
+    public boolean doesAddressOnFileExist() {
+        if (!SecurityContextHolder.isLoggedIn()) return false;
+        Result<AddressDTO> addressResult = userService.getUserAddress(SecurityContextHolder.token(), SecurityContextHolder.email());
+        return addressResult.isSuccess() && addressResult.getData() != null && !addressResult.getData().getAddress().isEmpty();
+    }
+
+    public CheckoutDialog.CreditCardDetails getPaymentDetails() {
+        if (!SecurityContextHolder.isLoggedIn()) return null;
+        Result<CheckoutDialog.CreditCardDetails> creditCardDetails = userService.getUserPaymentDetails(SecurityContextHolder.token(), SecurityContextHolder.email());
+        if (creditCardDetails.isSuccess()) {
+            return creditCardDetails.getData();
+        } else {
+            LoggerWrapper.warning("Failed to retrieve payment details: " + creditCardDetails.getErrorMessage());
+            return null;
+        }
+    }
+
+    public boolean updatePaymentMethod(CheckoutDialog.CreditCardDetails creditCardDetails, AddressDTO address) {
+        if (!SecurityContextHolder.isLoggedIn()) return false;
+        Result<Void> result = userService.setUserPaymentDetails(SecurityContextHolder.token(), SecurityContextHolder.email(), creditCardDetails, address);
+        if (result.isSuccess()) {
+            LoggerWrapper.info("Payment method updated successfully for user: " + SecurityContextHolder.email());
+            return true;
+        } else {
+            LoggerWrapper.error("Failed to update payment method: " + result.getErrorMessage(),
+                new Exception("Update Payment Method Error"));
+            return false;
+        }
+    }
+}

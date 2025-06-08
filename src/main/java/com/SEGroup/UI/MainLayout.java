@@ -493,6 +493,8 @@ public class MainLayout extends AppLayout {
 
             greeting.setText("Hello " + displayName);
             greeting.setEnabled(true);
+            greeting.getStyle().set("cursor", "pointer");   // overrides the default I-beam
+// Java
             greeting.addClickListener(e -> {
                 // Navigate to user profile or settings page
                 UI.getCurrent().navigate("profile/" +
@@ -507,6 +509,9 @@ public class MainLayout extends AppLayout {
         } else {
             greeting.setText("Hello Guest");
             greeting.setEnabled(false);
+            greeting.getStyle().remove("cursor");
+            greeting.getStyle().set("cursor", null);   // overrides the default I-beam
+
             suspensionBar.setVisible(false);
         }
 
