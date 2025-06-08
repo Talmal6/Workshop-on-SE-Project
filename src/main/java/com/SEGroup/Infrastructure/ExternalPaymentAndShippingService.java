@@ -27,11 +27,21 @@ import static java.lang.Integer.parseInt;
 @Service
 @Component
 public class ExternalPaymentAndShippingService implements IPaymentGateway , IShippingService {
-    private static final String SERVER_URL = "https://damp-lynna-wsep-1984852e.koyeb.app/";
+    private static String SERVER_URL = "https://damp-lynna-wsep-1984852e.koyeb.app/";
     private static final HttpClient CLIENT = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(10))
             .build();
+
+
+
+    //constructor
+    public ExternalPaymentAndShippingService(String serverUrl) {
+        if (serverUrl != null && !serverUrl.isEmpty()) {
+            SERVER_URL = serverUrl;
+        }
+        LoggerWrapper.info("ExternalPaymentAndShippingService initialized with server URL: " + SERVER_URL);
+    }
 
     @Override
     public Boolean cancelShipping(int shippingId) {
