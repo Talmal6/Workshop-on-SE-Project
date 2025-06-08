@@ -15,6 +15,7 @@ import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import com.SEGroup.Domain.Report.Report;
 import com.SEGroup.Domain.Report.ReportCenter;
+import com.SEGroup.UI.Views.CheckoutDialog;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -680,5 +681,15 @@ public class UserService {
         } catch (Exception e) {
             return Result.failure("Error setting user name: " + e.getMessage());
         }
+    }
+
+    public Result<CheckoutDialog.CreditCardDetails> getUserPaymentDetails(String token, String email) {
+        //todo implement this method
+        return Result.failure("Method not implemented yet");
+    }
+
+    public Result<Void> setUserPaymentDetails(String token, String email, CheckoutDialog.CreditCardDetails creditCardDetails, AddressDTO address) {
+        //todo implement this method
+        return Result.failure("Method not implemented yet");
     }
 }

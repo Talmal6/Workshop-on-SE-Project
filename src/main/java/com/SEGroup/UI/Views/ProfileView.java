@@ -109,6 +109,18 @@ public class ProfileView extends VerticalLayout implements BeforeEnterObserver {
         saveButton.setWidthFull();
         saveButton.addClickListener(e -> saveChanges());
 
+        Button paymentButton = new Button("Payment details", new Icon(VaadinIcon.MONEY));
+        paymentButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        paymentButton.setWidthFull();
+        paymentButton.addClickListener((e) -> {
+            // Navigate to payment details view
+            presenter.navigateToPaymentDetails(userEmail);
+
+        });
+//        CheckoutDialog dialog = new CheckoutDialog(this);
+//        dialog.open();
+
+
         /* assemble card */
         VerticalLayout formLayout = new VerticalLayout(
                 profilePicture,
@@ -120,7 +132,8 @@ public class ProfileView extends VerticalLayout implements BeforeEnterObserver {
                 cityField,
                 countryField,
                 zipField,
-                saveButton
+                saveButton,
+                paymentButton
         );
         formLayout.setSpacing(true);
         formLayout.setWidthFull();
