@@ -75,16 +75,8 @@ public class ProfilePresenter {
         }
     }
 
-    public boolean updatePaymentMethod(CheckoutDialog.CreditCardDetails creditCardDetails, AddressDTO address) {
-        if (!SecurityContextHolder.isLoggedIn()) return false;
-        Result<Void> result = userService.setUserPaymentDetails(SecurityContextHolder.token(), SecurityContextHolder.email(), creditCardDetails, address);
-        if (result.isSuccess()) {
-            LoggerWrapper.info("Payment method updated successfully for user: " + SecurityContextHolder.email());
-            return true;
-        } else {
-            LoggerWrapper.error("Failed to update payment method: " + result.getErrorMessage(),
-                new Exception("Update Payment Method Error"));
-            return false;
-        }
+    public Result<Void> updatePaymentMethod(CheckoutDialog.CreditCardDetails creditCardDetails, AddressDTO address) {
+        if (!SecurityContextHolder.isLoggedIn()) return Result.failure("User is not logged in");
+        return userService.setUserPaymentDetails(SecurityContextHolder.token(), SecurityContextHolder.email(), creditCardDetails, address);
     }
 }
