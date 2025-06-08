@@ -1,0 +1,10 @@
+[
+  { "useCase": "guest-registration",
+    "args": ["alice", "pass", {}] },
+
+  { "useCase": "login",
+    "args": ["alice", "pass"] },
+
+  { "useCase": "open-shop",
+    "args": ["alice", "BookShop", {}] }
+]
