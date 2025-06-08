@@ -1,6 +1,7 @@
 package com.SEGroup.UI.Views;
 
 import com.SEGroup.DTO.AddressDTO;
+import com.SEGroup.Service.Result;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.CartPresenter;
 import com.SEGroup.UI.Presenter.ProfilePresenter;
@@ -240,11 +241,14 @@ public class PaymentDetailsDialog extends Dialog {
                             country.getValue(),
                             zipCode.getValue()
                     );
-                    boolean success = presenter.updatePaymentMethod(creditCardDetails, addressDTO);
-                    if (success) {
+                    Result<Void> result = presenter.updatePaymentMethod(creditCardDetails, addressDTO);
+                    if (result.isSuccess()) {
                         //show a success notification
                         showSuccess("Payment details updated successfully!");
                         close();
+                    }
+                    else {
+                        showError("Failed to update payment details. error: " + result.getErrorMessage() + "\nPlease try again.");
                     }
                 } else {
                     Notification notification = Notification.show("Please fill in all fields correctly", 3000, Notification.Position.MIDDLE);
