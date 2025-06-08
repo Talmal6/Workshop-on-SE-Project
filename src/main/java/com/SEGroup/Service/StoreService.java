@@ -993,7 +993,7 @@ public class StoreService {
         }
     }
 
-    public Result<Void> addConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage,int minAmount,int minPrice,String Coupon){
+    public Result<Void> addConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage,int minAmount,int maxAmount, int minPrice,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
             String email = authenticationService.getUserBySession(sessionKey);
@@ -1005,7 +1005,7 @@ public class StoreService {
         }
     }
 
-    public Result<Void> addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, List<String> products, List<Integer> amounts, int minPrice, String logicType, String coupon) {
+    public Result<Void> addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, List<String> products, List<Integer> amounts, List<Integer> maxAmounts, int minPrice, String logicType, String coupon) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             String email = authenticationService.getUserBySession(sessionKey);
@@ -1016,7 +1016,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-    public Result<Void> addLogicalCompositeConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage, List<String> products, List<Integer> amounts, int minPrice, String logicType, String coupon) {
+    public Result<Void> addLogicalCompositeConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage, List<String> products, List<Integer> amounts, List<Integer> maxAmounts, int minPrice, String logicType, String coupon) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             String email = authenticationService.getUserBySession(sessionKey);
@@ -1028,7 +1028,7 @@ public class StoreService {
         }
     }
 
-    public Result<Void> addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage, List<String> products, List<Integer> amounts, int minPrice, String logicType, String coupon) {
+    public Result<Void> addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage, List<String> products, List<Integer> amounts, List<Integer> maxAmounts, int minPrice, String logicType, String coupon) {
         try {
             authenticationService.checkSessionKey(sessionKey);
             String email = authenticationService.getUserBySession(sessionKey);
