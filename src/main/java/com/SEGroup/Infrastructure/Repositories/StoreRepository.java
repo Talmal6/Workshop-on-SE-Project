@@ -490,6 +490,14 @@ public class StoreRepository implements IStoreRepository {
             }
 
             double price = calculatePrice(store, basketDTO);
+            if(store.getDiscounts()==null){
+                for (Map.Entry<ShoppingProduct, Integer> entry : productsWithQuantities.entrySet()) {
+                    ShoppingProduct product = entry.getKey();
+                    int quantity = entry.getValue();
+                    discountedPrices.put(product.getProductId(), product.getPrice() * quantity);
+                }
+                continue; // move to next basketDTO
+            }
             store.activateConditionDiscount((int) price);
 
             // Get discounts from store in bulk

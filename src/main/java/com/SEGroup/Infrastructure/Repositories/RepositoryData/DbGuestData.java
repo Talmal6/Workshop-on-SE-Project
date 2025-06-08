@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.SEGroup.Domain.User.Guest;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaGuestRepository;
-
+import static com.SEGroup.Infrastructure.Repositories.RepositoryData.DbSafeExecutor.safeExecute;
 public class DbGuestData implements GuestData {
 
     JpaGuestRepository jpaGuestRepository;
@@ -15,22 +15,31 @@ public class DbGuestData implements GuestData {
 
     @Override
     public Guest getGuestById(String guestId) {
-        return jpaGuestRepository.findById(guestId).orElse(null);
+        return safeExecute("getGuestById", () ->
+                jpaGuestRepository.findById(guestId).orElse(null));
     }
-
     @Override
     public void saveGuest(Guest guest) {
-        jpaGuestRepository.save(guest);
+        safeExecute("saveGuest", () -> {
+            jpaGuestRepository.save(guest);
+            return null;
+        });
     }
 
     @Override
     public void updateGuest(Guest guest) {
-        jpaGuestRepository.save(guest);
+        safeExecute("updateGuest", () -> {
+            jpaGuestRepository.save(guest);
+            return null;
+        });
     }
 
     @Override
     public void deleteGuest(String guestId) {
-        jpaGuestRepository.deleteById(guestId);
+        safeExecute("deleteGuest", () -> {
+            jpaGuestRepository.deleteById(guestId);
+            return null;
+        });
     }
 
 }

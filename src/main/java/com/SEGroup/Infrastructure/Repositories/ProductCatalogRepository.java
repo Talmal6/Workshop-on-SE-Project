@@ -40,7 +40,7 @@ public class ProductCatalogRepository implements IProductCatalog {
      *   • Under "mem" profile, InMemoryProductCatalog
      * Data is injected automatically.
      */
-    @Autowired
+//    @Autowired
     public ProductCatalogRepository(ProductCatalogData data) {
         this.data = data;
     }

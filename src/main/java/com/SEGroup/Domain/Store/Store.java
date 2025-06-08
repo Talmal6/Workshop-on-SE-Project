@@ -935,4 +935,5 @@ public class Store {
     public void setDiscounts(NumericalComposite discounts) {
         this.discounts = discounts;
     }
+    public NumericalComposite getDiscounts() {return this.discounts;}
 }
