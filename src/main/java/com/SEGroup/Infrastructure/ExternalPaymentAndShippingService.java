@@ -97,6 +97,23 @@ public class ExternalPaymentAndShippingService implements IPaymentGateway , IShi
 
     @Override
     public boolean validatePayment(String paymentDetails) {
+        //modify ammount to be 0 for validation
+        LoggerWrapper.info("validatePayment called with paymentDetails=" + paymentDetails);
+        Map<String, String> toSend = parsePayment(paymentDetails);
+        LoggerWrapper.debug("Parsed payment details for validation: " + toSend);
+        toSend.put("amount", "0"); // Set amount to 0 for validation
+        String result = sendPost(toSend);
+        LoggerWrapper.info("Payment validation response: " + result);
+        if ("OK".equalsIgnoreCase(result.trim())) {
+            LoggerWrapper.info("Payment validation successful");
+            return true;
+        } else {
+            LoggerWrapper.error("Payment validation failed with response: " + result, new RuntimeException("Payment validation failed"));
+            return false;
+        }
+    }
+
+    public boolean isServiceAvailable() {
         LoggerWrapper.info("validatePayment called");
         String ok = sendPost(Map.of("action_type", Action.HANDSHAKE.value()));
         LoggerWrapper.debug("Handshake response: " + ok);
