@@ -139,7 +139,9 @@ public class UserRepository implements IUserRepository {
      */
     @Override
     public void addToCart(String email, String storeID, String productID) {
+
         User user = requireUser(email);
+        user.addToCart(storeID, productID);
         if (user.isSuspended()) {
             throw new IllegalArgumentException("User is suspended: " + email);
         }

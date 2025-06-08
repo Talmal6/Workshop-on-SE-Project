@@ -3,18 +3,13 @@ package com.SEGroup.Service;
 import java.util.*;
 
 import com.SEGroup.DTO.AddressDTO;
+import com.SEGroup.Domain.*;
+import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import org.checkerframework.checker.units.qual.t;
 
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.TransactionDTO;
-import com.SEGroup.Domain.IAuthenticationService;
-import com.SEGroup.Domain.INotificationCenter;
-import com.SEGroup.Domain.IPaymentGateway;
-import com.SEGroup.Domain.IStoreRepository;
-import com.SEGroup.Domain.ITransactionRepository;
-import com.SEGroup.Domain.IUserRepository;
-import com.SEGroup.Domain.IShippingService;
 
 import org.springframework.stereotype.Service;
 
@@ -34,6 +29,7 @@ public class TransactionService {
     private final IUserRepository userRepository; // Added UserRepository
     private final IShippingService shippingService; // Added ShippingService
     private final INotificationCenter notificationService;
+    private final IGuestRepository guestRepository;
 
     /**
      * Constructs a new TransactionService instance with the provided dependencies.
@@ -47,12 +43,12 @@ public class TransactionService {
      * @param userRepository        The user repository for managing user data.
      */
     public TransactionService(IAuthenticationService authenticationService,
-            IPaymentGateway paymentGateway,
-            ITransactionRepository transactionRepository,
-            IStoreRepository storeRepository,
-            IUserRepository userRepository,
-            IShippingService shippingService,
-            INotificationCenter notificationService) {
+                              IPaymentGateway paymentGateway,
+                              ITransactionRepository transactionRepository,
+                              IStoreRepository storeRepository,
+                              IUserRepository userRepository,
+                              IShippingService shippingService,
+                              INotificationCenter notificationService, IGuestRepository guestRepository) {
         this.authenticationService = authenticationService;
         this.paymentGateway = paymentGateway;
         this.transactionRepository = transactionRepository;
@@ -60,6 +56,7 @@ public class TransactionService {
         this.userRepository = userRepository;
         this.shippingService = shippingService; // Initialize ShippingService
         this.notificationService = notificationService;
+        this.guestRepository = guestRepository;
     }
 
     /**
@@ -446,7 +443,13 @@ public class TransactionService {
             String userEmail = authenticationService.getUserBySession(buyerSessionKey);
             userRepository.checkUserSuspension(userEmail);
 
-            List<BasketDTO> cart = userRepository.getUserCart(userEmail);
+            List<BasketDTO> cart;
+            try {
+                cart = userRepository.getUserCart(userEmail);
+            } catch (Exception e) {
+                // אם נכשלה הגישה ל־userRepository ננסה את guestRepository
+                cart = guestRepository.cartOf(userEmail);
+            }
 
             Map<String, Double> discountedPrices = storeRepository.CalculateDiscountToStores(cart);
 

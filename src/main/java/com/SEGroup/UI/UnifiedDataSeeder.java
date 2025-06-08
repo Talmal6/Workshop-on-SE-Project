@@ -4,9 +4,8 @@ package com.SEGroup.UI;
 import com.SEGroup.Infrastructure.ExternalPaymentAndShippingService;
 import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.*;
-import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaStoreRepository;
-import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaTransactionRepository;
-import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaUserRepository;
+import com.SEGroup.Infrastructure.Repositories.JpaDatabase.*;
+import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbProductCatalog;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbStoreData;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbTransactionData;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbUserData;
@@ -38,7 +37,7 @@ public class UnifiedDataSeeder implements ApplicationListener<ApplicationReadyEv
 
     private  UserRepository users;
     private  StoreRepository stores;
-    private final ProductCatalogRepository catalog;
+    private  ProductCatalogRepository catalog;
     private  TransactionRepository transactions;
     private final GuestRepository guests;
     private final ExternalPaymentAndShippingService shippingService;
@@ -66,9 +65,10 @@ public class UnifiedDataSeeder implements ApplicationListener<ApplicationReadyEv
     private JpaTransactionRepository jpaTransactionRepository;
     @PostConstruct
     public void init() {
-        this.users = new UserRepository(new DbUserData(jpaUserRepository));
-        this.stores = new StoreRepository(new DbStoreData(jpaStoreRepository));
-        this.transactions = new TransactionRepository(new DbTransactionData(jpaTransactionRepository));
+        //discount available
+//        this.users = new UserRepository(new DbUserData(jpaUserRepository));
+//        this.stores = new StoreRepository(new DbStoreData(jpaStoreRepository));
+//        this.transactions = new TransactionRepository(new DbTransactionData(jpaTransactionRepository));
         // קריאות ל-service/DTO/Seeder methods
     }
     @Override

@@ -10,6 +10,7 @@ import com.SEGroup.Domain.Discount.DiscountType;
 import com.SEGroup.Domain.Discount.Numerical.MaxDiscount;
 import com.SEGroup.Domain.Discount.SimpleDiscount;
 import com.SEGroup.Domain.IAuthenticationService;
+import com.SEGroup.Domain.IGuestRepository;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.Store.ShoppingProduct;
 import com.SEGroup.Domain.Store.Store;
@@ -43,6 +44,7 @@ public class DiscountAcceptanceTest {
     IAuthenticationService authenticationService;
     ProductCatalogRepository productCatalog;
     IUserRepository userRepository;
+    IGuestRepository guestRepository;
     UserService userService;
     NotificationCenter notificationService;
     ReportCenter reportCenter;
@@ -58,6 +60,7 @@ public class DiscountAcceptanceTest {
         ((SecurityAdapter) authenticationService).setPasswordEncoder(new com.SEGroup.Infrastructure.PasswordEncoder());
         notificationService = new NotificationCenter(authenticationService);
         userRepository = new UserRepository();
+        guestRepository = new GuestRepository();
         reportCenter = new ReportCenter();
         storeService = new StoreService(storeRepository, productCatalog, authenticationService, userRepository,
                 notificationService);
@@ -70,7 +73,8 @@ public class DiscountAcceptanceTest {
                 storeRepository,
                 userRepository,
                 null,
-                notificationService
+                notificationService,
+                guestRepository
         );
         VALID_SESSION = regLoginAndGetSession(OWNER, OWNER_EMAIL, OWNER_PASS);
     }

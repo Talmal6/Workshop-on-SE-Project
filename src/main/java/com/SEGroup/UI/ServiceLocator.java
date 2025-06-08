@@ -77,7 +77,7 @@ public class ServiceLocator implements ApplicationContextAware {
         userService = new UserService(guestService, userRepository, authService,reportCenter);
         storeService = new StoreService(storeRepository, productCatalog, authService, userRepository, notificationCenter);
         shippingService = mock(IShippingService.class);
-        transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService, notificationCenter);
+        transactionService = new TransactionService(authService, paymentGateway, transactionRepository, storeRepository, userRepository, shippingService, notificationCenter,guestRepository);
     }
 
     public static INotificationCenter getNotificationCenter() {

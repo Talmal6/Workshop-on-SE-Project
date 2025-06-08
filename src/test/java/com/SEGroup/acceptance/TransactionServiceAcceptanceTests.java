@@ -55,6 +55,7 @@ public class TransactionServiceAcceptanceTests {
         private ITransactionRepository transactionRepository;
         private IStoreRepository storeRepository;
         private IUserRepository userRepository;
+        private IGuestRepository guestRepository;
         private StoreService storeService;
         private IProductCatalog productCatalog;
         private TransactionService transactionService;
@@ -69,6 +70,7 @@ public class TransactionServiceAcceptanceTests {
                 // copy
                 storeRepository = new StoreRepository();
                 productCatalog = new ProductCatalogRepository();
+                guestRepository = new GuestRepository();
                 Security security = new Security();
                 // io.jsonwebtoken.security.Keys#secretKeyFor(SignatureAlgorithm) method to
                 // create a key
@@ -102,7 +104,8 @@ public class TransactionServiceAcceptanceTests {
                                 storeRepository,
                                 userRepository,
                                 shippingService,
-                                notificationService);
+                                notificationService,
+                                guestRepository);
                 storeService.createStore(
                                 SELLER_TOKEN, STORE_ID);
                 productCatalog.addCatalogProduct(
@@ -196,7 +199,7 @@ public class TransactionServiceAcceptanceTests {
                 TransactionDTO tx = history.get(0);
                 assertEquals(USER_EMAIL, tx.buyersEmail); // אימייל הקונה
                 assertEquals(STORE_ID, tx.getSellerStore()); // החנות
-                assertEquals(100.0, tx.getCost()); // העלות הכוללת (1 × ‎100‎)
+                assertEquals(200.0, tx.getCost()); // העלות הכוללת (2× ‎100‎)
 
         }
 
