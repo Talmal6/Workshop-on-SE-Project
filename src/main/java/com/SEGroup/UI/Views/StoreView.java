@@ -139,11 +139,11 @@ public class StoreView extends VerticalLayout implements HasUrlParameter<String>
         configureProductsGrid();
 
         // REMOVE THESE LINES:
-        // productsGrid.getStyle().set("overflow", "auto");
-        // productsGrid.setHeight("800px");
+         productsGrid.getStyle().set("overflow", "auto");
+         productsGrid.setHeight("800px");
 
         // INSTEAD USE THESE CONFIGURATIONS:
-        productsGrid.setSizeFull();
+//        productsGrid.setSizeFull();
 
         // Create a container for the grid that takes available space
         Div gridContainer = new Div(productsGrid);
