@@ -12,6 +12,7 @@ import com.SEGroup.DTO.BidDTO;
 import com.SEGroup.DTO.TransactionDTO;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * TransactionService handles the operations related to transactions, including
@@ -69,6 +70,7 @@ public class TransactionService {
      * @return A Result object containing the transaction history if successful, or
      *         an error message.
      */
+    @Transactional
     public Result<List<TransactionDTO>> getTransactionHistory(String sessionKey, String userEmail) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -93,6 +95,7 @@ public class TransactionService {
      * @param paymentDetails The payment details used for the transaction.
      * @return A Result object indicating success or failure of the operation.
      */
+    @Transactional
     public Result<Void> purchaseShoppingCart(String sessionKey, String userEmail, String paymentDetails) {
         try {
             List<Integer> shippingIds = new ArrayList<>();
@@ -161,6 +164,7 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<Void> purchaseShoppingCartWithAddress(String sessionKey, String userEmail, String paymentDetails, AddressDTO address){
         try {
             List<Integer> shippingIds = new ArrayList<>();
@@ -229,7 +233,7 @@ public class TransactionService {
         }
     }
 
-
+    @Transactional
     public Result<Void> purchaseGuestShoppingCart(String sessionKey, String paymentDetails, AddressDTO address){
         try {
             List<Integer> shippingIds = new ArrayList<>();
@@ -308,6 +312,7 @@ public class TransactionService {
      * @return A Result object containing the user's purchase history if successful,
      *         or an error message.
      */
+    @Transactional
     public Result<List<TransactionDTO>> viewPurcaseHistory(String sessionKey, String userEmail) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -326,7 +331,7 @@ public class TransactionService {
      * 
      * 
      */
-
+    @Transactional
     public Result<Void> acceptBid(String sessionKey, String storeName, BidDTO bidDTO) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -370,7 +375,7 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Void> executeAuction(String sessionKey, String storeName, BidDTO bidDTO) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -418,7 +423,7 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Void> rejectBid(String sessionKey, String storeName, BidDTO bidDTO) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -437,6 +442,7 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<Map<String, Double>> getDiscountsForCart(String buyerSessionKey) {
         try {
             authenticationService.checkSessionKey(buyerSessionKey);
@@ -458,6 +464,7 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<Void> applyCouponToCart(String buyerSessionKey, String coupon) {
         try {
             authenticationService.checkSessionKey(buyerSessionKey);

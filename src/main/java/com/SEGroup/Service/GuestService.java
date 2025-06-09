@@ -8,6 +8,7 @@ import com.SEGroup.Domain.User.ShoppingCart;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class for managing guest sessions and shopping carts.
@@ -36,6 +37,7 @@ public class GuestService {
      *
      * @return A Result object containing the guest ID.
      */
+    @Transactional
     public Result<String> createGuestSession() {
         String guestId = guests.create().id();
         LoggerWrapper.info("Created a new guest session with ID: " + guestId);  // Logging the creation of a guest session
@@ -52,6 +54,7 @@ public class GuestService {
      * @return The shopping cart for the guest.
      * @throws Exception If the token is invalid or the token does not belong to a guest.
      */
+    @Transactional
     public Result<List<BasketDTO>> cart(String guestToken) throws Exception {
         LoggerWrapper.info("Retrieving cart for guest token: " + guestToken);  // Logging the request for a shopping cart
         String subject = auth.getUserBySession(guestToken);
@@ -65,7 +68,7 @@ public class GuestService {
         List<BasketDTO> cart = guests.cartOf(subject);
         return Result.success(cart);
     }
-
+    @Transactional
     public Result<ShoppingCart> getShoppingCart(String guestToken) throws Exception {
         LoggerWrapper.info("Retrieving cart for guest token: " + guestToken);  // Logging the request for a shopping cart
         String gid = auth.getUserBySession(guestToken);
@@ -81,6 +84,7 @@ public class GuestService {
 
 
     //add to cart
+    @Transactional
     public Result<String> addToCart(String guestToken, String storeID, String productID) throws Exception {
         LoggerWrapper.info("Adding product to cart for guest token: " + guestToken);  // Logging the addition of a product to the cart
         String subject = auth.getUserBySession(guestToken);
@@ -95,7 +99,7 @@ public class GuestService {
         LoggerWrapper.info("Added product with ID: " + productID + " to cart for guest with ID: " + subject);  // Logging the successful addition of the product
         return Result.success("Product added to cart");
     }
-
+    @Transactional
     public Result<String> modifyCartQuantity(String guestToken, String storeID, String productID, int quantity) throws Exception {
         LoggerWrapper.info("Modifying cart quantity for guest token: " + guestToken);  // Logging the modification of cart quantity
         String subject = auth.getUserBySession(guestToken);

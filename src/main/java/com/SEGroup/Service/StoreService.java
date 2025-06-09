@@ -15,6 +15,7 @@ import com.SEGroup.Domain.ProductCatalog.StoreSearchEntry;
 import com.SEGroup.Domain.Store.Review;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * StoreService: handles store-related operations (public browsing, management)
@@ -61,6 +62,7 @@ public class StoreService {
      * @return A Result object containing the catalog ID if successful, or an error
      *         message.
      */
+    @Transactional
     public Result<String> addProductToCatalog(String catalogID, String name, String brand, String description,
             List<String> categories) {
 
@@ -82,6 +84,7 @@ public class StoreService {
      * @return A Result object containing the store DTO if successful, or an error
      *         message.
      */
+    @Transactional
     public Result<StoreDTO> viewStore(String storeName) {
         try {
             LoggerWrapper.info("Viewing store: " + storeName); // Log the viewing of the store
@@ -99,6 +102,7 @@ public class StoreService {
      * @return A Result object containing the list of all store DTOs if successful,
      *         or an error message.
      */
+    @Transactional
     public Result<List<StoreDTO>> viewAllStores() {
         try {
             LoggerWrapper.info("Fetching all public stores."); // Log the fetching of all public stores
@@ -115,6 +119,7 @@ public class StoreService {
      * @return A Result object containing the list of catalog products if
      *         successful, or an error message.
      */
+    @Transactional
     public Result<List<CatalogProduct>> viewPublicProductCatalog() {
         try {
             LoggerWrapper.info("Fetching public product catalog."); // Log the fetching of the product catalog
@@ -135,6 +140,7 @@ public class StoreService {
      * @param storeName  The name of the store to create.
      * @return A Result object indicating success or failure.
      */
+    @Transactional
     public Result<Void> createStore(String sessionKey, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -156,6 +162,7 @@ public class StoreService {
      * @param storeName  The name of the store to close.
      * @return A Result object indicating success or failure.
      */
+    @Transactional
     public Result<Void> closeStore(String sessionKey, String storeName) {
         try {
             StoreDTO storeDTO = storeRepository.getStore(storeName);
@@ -189,6 +196,7 @@ public class StoreService {
      * @param storeName  The name of the store to reopen.
      * @return A Result object indicating success or failure.
      */
+    @Transactional
     public Result<Void> reopenStore(String sessionKey, String storeName) {
         try {
             String email = authenticationService.getUserBySession(sessionKey);
@@ -228,6 +236,7 @@ public class StoreService {
      * @param quantity    The quantity of the product.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<String> addProductToStore(String sessionKey, String storeName, String catalogID, String productName,
             String description, double price, int quantity, String imageURL) {
         try {
@@ -262,6 +271,7 @@ public class StoreService {
      * @param price       The updated price of the product.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<Void> updateShoppingProduct(String sessionKey, String storeName, String productID, String description,
             Double price) {
         try {
@@ -288,6 +298,7 @@ public class StoreService {
      * @param productID  The ID of the product to be deleted.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<Void> deleteShoppingProduct(String sessionKey, String storeName, String productID) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -315,6 +326,7 @@ public class StoreService {
      * @param review     The review written for the store.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<Void> rateStore(String sessionKey, String storeName, int rating, String review) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -339,6 +351,7 @@ public class StoreService {
      * @param review     The review written for the product.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<Void> rateProduct(String sessionKey, String storeName, String productID, int rating, String review) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -371,6 +384,7 @@ public class StoreService {
      * @param apointeeEmail The email of the new owner.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<Void> appointOwner(String sessionKey, String storeName, String apointeeEmail) {
         try {
             authenticationService.authenticate(sessionKey);
@@ -399,6 +413,7 @@ public class StoreService {
      * @param apointeeEmail The email of the owner being removed.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<Void> removeOwner(String sessionKey, String storeName, String apointeeEmail) {
         try {
             authenticationService.authenticate(sessionKey);
@@ -427,6 +442,7 @@ public class StoreService {
      * @param storeName  The name of the store from which the owner is resigning.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<Void> resignOwnership(String sessionKey, String storeName) {
         try {
             authenticationService.authenticate(sessionKey);
@@ -454,6 +470,7 @@ public class StoreService {
      * @param permissions   The permissions granted to the manager.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<Void> appointManager(String sessionKey, String storeName, String apointeeEmail,
             List<String> permissions) {
         try {
@@ -486,6 +503,7 @@ public class StoreService {
      * @param permissions   The updated list of permissions for the manager.
      * @return A Result object indicating the success or failure of the operation.
      */
+    @Transactional
     public Result<Void> updateManagerPermissions(String sessionKey, String storeName, String apointeeEmail,
             List<String> permissions) {
         try {
@@ -515,6 +533,7 @@ public class StoreService {
      * @return A Result object containing the manager's permissions if successful,
      *         or an error message.
      */
+    @Transactional
     public Result<List<String>> getManagerPermission(String sessionKey, String storeName, String managerEmail) {
         try {
             authenticationService.authenticate(sessionKey);
@@ -533,6 +552,7 @@ public class StoreService {
      * @param storeName The name of the store
      * @return True if the user is an owner, false otherwise
      */
+    @Transactional
     public boolean isOwner(String email, String storeName) {
         return storeRepository.getAllOwners(storeName, email).contains(email);
     }
@@ -547,6 +567,7 @@ public class StoreService {
      * @return A Result object containing a list of all owners if successful, or an
      *         error message.
      */
+    @Transactional
     public Result<List<String>> getAllOwners(String sessionKey, String storeName, String operatorEmail) {
         try {
             authenticationService.authenticate(sessionKey);
@@ -568,6 +589,7 @@ public class StoreService {
      * @return A Result object containing a list of all managers if successful, or
      *         an error message.
      */
+    @Transactional
     public Result<List<String>> getAllManagers(String sessionKey, String storeName, String operatorEmail) {
         try {
             authenticationService.authenticate(sessionKey);
@@ -590,6 +612,7 @@ public class StoreService {
      * @return A Result object containing a list of found products if successful, or
      *         an error message.
      */
+    @Transactional
     public Result<List<ShoppingProductDTO>> searchProducts(String query, List<String> searchFilters, String storeName,
             List<String> categories) {
         try {
@@ -606,6 +629,7 @@ public class StoreService {
     }
 
     // 3.9
+    @Transactional
     public Result<Void> submitBidToShoppingItem(String sessionKey,
             String storeName,
             String productId,
@@ -631,6 +655,7 @@ public class StoreService {
     }
 
     // 3.11
+    @Transactional
     public Result<Void> sendAuctionOffer(String sessionKey,
             String storeName,
             String productId,
@@ -645,6 +670,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<Void> closeAuction(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.authenticate(sessionKey);
@@ -656,6 +682,7 @@ public class StoreService {
         }
     }
     // 3.12
+    @Transactional
     public Result<Void> sendMessageToStoreFounder(String sessionKey, String storeName, String messageContent) {
         try {
             authenticationService.authenticate(sessionKey);
@@ -676,7 +703,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Integer> getProductQuantity(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -685,7 +712,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<ShoppingProductDTO> getProductFromStore(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -694,7 +721,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Void> startAuction(String sessionKey, String storeName, String productId, double minPrice,
             Date endDate) {
         try {
@@ -715,6 +742,7 @@ public class StoreService {
      * @param storeName The name of the store to get products for.
      * @return A Result object containing a list of products in the store if successful, or an error message.
      */
+    @Transactional
     public Result<List<ShoppingProductDTO>> getStoreProducts(String storeName) {
         try {
             LoggerWrapper.info("Fetching products for store: " + storeName);
@@ -725,7 +753,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<List<BidDTO>> getProductBids(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -734,7 +762,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Date> getAuctionEndDate(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -746,7 +774,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<List<BidDTO>> getAllBids(String sessionKey, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -757,7 +785,7 @@ public class StoreService {
         }
     }
 
-
+    @Transactional
     public Result<BidDTO> getAuctionHighestBidByProduct(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -766,6 +794,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<List<ShoppingProductDTO>> getAllProducts() {
         try {
             LoggerWrapper.info("Fetching all products from all stores");
@@ -807,6 +836,7 @@ public class StoreService {
      * @param ownerEmail Email of the store owner
      * @return List of store card DTOs for stores owned by the specified user
      */
+    @Transactional
     public List<StoreCardDto> listStoresOwnedBy(String ownerEmail) {
         return storeRepository.getStoresOwnedBy(ownerEmail)
                 .stream()
@@ -816,6 +846,7 @@ public class StoreService {
     /**
      * Helper method to convert StoreDTO to StoreCardDto
      */
+    @Transactional
     public StoreCardDto toCard(StoreDTO dto) {
         return new StoreCardDto(
                 dto.getName(),
@@ -828,6 +859,7 @@ public class StoreService {
      *
      * @return List of store card DTOs for all stores
      */
+    @Transactional
     public List<StoreCardDto> listAllStores() {
         return storeRepository.getAllStores()
                 .stream()
@@ -840,6 +872,7 @@ public class StoreService {
      * @param catalogId the unique ID of the catalog product
      * @return a Result containing a CatalogProductDTO on success, or an error message on failure
      */
+    @Transactional
     public Result<CatalogProductDTO> getCatalogProduct(String catalogId) {
         try {
             LoggerWrapper.info("Fetching catalog product: " + catalogId);
@@ -863,6 +896,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<List<RatingDto>> getStoreRatings(String sessionKey, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -877,6 +911,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<List<RatingDto>> getProductRatings(String sessionKey, String storeName, String productId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -891,6 +926,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<Void> reviewStore(String sessionKey, String storeName, String reviewText, String rating) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -901,7 +937,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<List<Review>> getStoreReviews(String sessionKey, String storeName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -910,7 +946,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Review> getReviewById(String sessionKey, String storeName, String reviewId) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -919,7 +955,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Void> giveStoreCommentOnReview(String sessionKey, String storeName, String reviewId, String comment) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -935,6 +971,7 @@ public class StoreService {
 
     //this section is dedicated for discount related service
     //part 1 is dedicated to store owner/manager wanting to add a discount
+    @Transactional
     public Result<Void> addSimpleDiscountToEntireStore(String sessionKey, String storeName, int percentage,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -946,6 +983,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<Void> addSimpleDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -957,7 +995,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Void> addSimpleDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -969,7 +1007,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Void> addConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage,int minimumPrice,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -981,6 +1019,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<Void> addConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage,int minimumPrice,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -992,7 +1031,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Void> addConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage,int minAmount,int maxAmount, int minPrice,String Coupon){
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -1004,7 +1043,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Void> addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String sessionKey, String storeName, String product_id, int percentage, List<String> products, List<Integer> amounts, List<Integer> maxAmounts, int minPrice, String logicType, String coupon) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -1016,6 +1055,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+    @Transactional
     public Result<Void> addLogicalCompositeConditionalDiscountToEntireStore(String sessionKey, String storeName, int percentage, List<String> products, List<Integer> amounts, List<Integer> maxAmounts, int minPrice, String logicType, String coupon) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -1027,7 +1067,7 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
-
+    @Transactional
     public Result<Void> addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String sessionKey, String storeName, String category, int percentage, List<String> products, List<Integer> amounts, List<Integer> maxAmounts, int minPrice, String logicType, String coupon) {
         try {
             authenticationService.checkSessionKey(sessionKey);

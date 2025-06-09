@@ -4,6 +4,7 @@ import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.Domain.IShippingService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 public class MockShippingService implements IShippingService {
@@ -24,11 +25,13 @@ public class MockShippingService implements IShippingService {
 //        return null;
 //    }
     @Override
+    @Transactional
     public Integer ship(AddressDTO address_detail, String name){
         return 0;
     }
 
     @Override
+    @Transactional
     public Boolean cancelShipping(int shippingId){
         return false;
     }
