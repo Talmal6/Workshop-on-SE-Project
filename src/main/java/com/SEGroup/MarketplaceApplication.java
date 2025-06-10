@@ -25,13 +25,13 @@ public class MarketplaceApplication extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
 
-		// בדיקה מוקדמת של חיבור מסד נתונים
-		if (!isDatabaseAvailable()) {
-			System.err.println("❌ Database connection failed - Application will not start");
-			System.exit(1);
-		}
-		System.out.println("✅ Database connection validated successfully");
-		System.out.println("📚 Initializing Spring Boot application...");
+//		// בדיקה מוקדמת של חיבור מסד נתונים
+//		if (!isDatabaseAvailable()) {
+//			System.err.println("❌ Database connection failed - Application will not start");
+//			System.exit(1);
+//		}
+//		System.out.println("✅ Database connection validated successfully");
+//		System.out.println("📚 Initializing Spring Boot application...");
 		SpringApplication.run(MarketplaceApplication.class, args);
 	}
 	// הוסף מתוד לבדיקת חיבור

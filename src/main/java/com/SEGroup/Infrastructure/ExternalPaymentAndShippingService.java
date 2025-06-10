@@ -36,12 +36,12 @@ public class ExternalPaymentAndShippingService implements IPaymentGateway , IShi
 
 
     //constructor
-    public ExternalPaymentAndShippingService(String serverUrl) {
-        if (serverUrl != null && !serverUrl.isEmpty()) {
-            SERVER_URL = serverUrl;
-        }
-        LoggerWrapper.info("ExternalPaymentAndShippingService initialized with server URL: " + SERVER_URL);
-    }
+//    public ExternalPaymentAndShippingService(String serverUrl) {
+//        if (serverUrl != null && !serverUrl.isEmpty()) {
+//            SERVER_URL = serverUrl;
+//        }
+//        LoggerWrapper.info("ExternalPaymentAndShippingService initialized with server URL: " + SERVER_URL);
+//    }
 
     @Override
     public Boolean cancelShipping(int shippingId) {

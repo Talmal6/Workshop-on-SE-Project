@@ -66,9 +66,9 @@ public class UnifiedDataSeeder implements ApplicationListener<ApplicationReadyEv
     @PostConstruct
     public void init() {
         //discount available
-//        this.users = new UserRepository(new DbUserData(jpaUserRepository));
-//        this.stores = new StoreRepository(new DbStoreData(jpaStoreRepository));
-//        this.transactions = new TransactionRepository(new DbTransactionData(jpaTransactionRepository));
+        this.users = new UserRepository(new DbUserData(jpaUserRepository));
+        this.stores = new StoreRepository(new DbStoreData(jpaStoreRepository));
+        this.transactions = new TransactionRepository(new DbTransactionData(jpaTransactionRepository));
         // קריאות ל-service/DTO/Seeder methods
     }
 
