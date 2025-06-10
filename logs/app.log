@@ -1,0 +1,325 @@
+2025-06-09T19:28:38.475+03:00  INFO 34900 --- [marketplace] [restartedMain] com.SEGroup.MarketplaceApplication       : Starting MarketplaceApplication using Java 23.0.1 with PID 34900 (C:\Users\gilpl\Desktop\Workshop-on-SE-Project\target\classes started by gilpl in C:\Users\gilpl\Desktop\Workshop-on-SE-Project)
+2025-06-09T19:28:38.477+03:00  INFO 34900 --- [marketplace] [restartedMain] com.SEGroup.MarketplaceApplication       : The following 1 profile is active: "prod"
+2025-06-09T19:28:38.563+03:00  INFO 34900 --- [marketplace] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-06-09T19:28:38.563+03:00  INFO 34900 --- [marketplace] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-06-09T19:28:40.081+03:00  INFO 34900 --- [marketplace] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-06-09T19:28:40.475+03:00  INFO 34900 --- [marketplace] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 380 ms. Found 6 JPA repository interfaces.
+2025-06-09T19:28:41.687+03:00  INFO 34900 --- [marketplace] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-06-09T19:28:41.727+03:00  INFO 34900 --- [marketplace] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-06-09T19:28:41.727+03:00  INFO 34900 --- [marketplace] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.39]
+2025-06-09T19:28:41.827+03:00  INFO 34900 --- [marketplace] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-06-09T19:28:41.828+03:00  INFO 34900 --- [marketplace] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3263 ms
+2025-06-09T19:28:42.039+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereHandler com.vaadin.hilla.push.PushEndpoint mapped to context-path: /HILLA/push
+2025-06-09T19:28:42.041+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed the following AtmosphereInterceptor mapped to AtmosphereHandler com.vaadin.hilla.push.PushEndpoint
+2025-06-09T19:28:42.041+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor : Atmosphere LifeCycle
+2025-06-09T19:28:42.041+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.client.TrackMessageSizeInterceptor :  Track Message Size Interceptor using |
+2025-06-09T19:28:42.041+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.SuspendTrackerInterceptor : UUID Tracking Interceptor
+2025-06-09T19:28:42.097+03:00  INFO 34900 --- [marketplace] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing AtmosphereFramework
+2025-06-09T19:29:13.909+03:00  INFO 34900 --- [marketplace] [restartedMain] c.v.f.s.VaadinServletContextInitializer  : Search for subclasses and classes with annotations took 32829 ms
+2025-06-09T19:29:13.911+03:00  INFO 34900 --- [marketplace] [restartedMain] c.v.f.s.VaadinServletContextInitializer  : Due to slow search it is recommended to use the allowed-packages feature to make scanning faster.
+
+See the allowed-packages section in the docs at https://vaadin.com/docs/latest/flow/integrations/spring/configuration#special-configuration-parameters
+2025-06-09T19:29:14.466+03:00  INFO 34900 --- [marketplace] [restartedMain] c.v.b.d.startup.DevModeStartupListener   : Starting dev-mode updaters in C:\Users\gilpl\Desktop\Workshop-on-SE-Project folder.
+2025-06-09T19:29:14.516+03:00  INFO 34900 --- [marketplace] [restartedMain] c.v.f.s.f.s.FullDependenciesScanner      : Visited 122 classes. Took 29 ms.
+2025-06-09T19:29:14.518+03:00  INFO 34900 --- [marketplace] [restartedMain] c.v.f.s.frontend.BundleValidationUtil    : Checking if a development mode bundle build is needed
+2025-06-09T19:29:14.779+03:00  INFO 34900 --- [marketplace] [restartedMain] c.v.f.s.frontend.BundleValidationUtil    : A development mode bundle build is not needed
+2025-06-09T19:29:14.811+03:00  INFO 34900 --- [marketplace] [ForkJoinPool.commonPool-worker-2] c.v.f.s.frontend.TaskCopyFrontendFiles   : Copying frontend resources from jar files ...
+2025-06-09T19:29:14.903+03:00  INFO 34900 --- [marketplace] [ForkJoinPool.commonPool-worker-2] c.v.f.s.f.TaskCopyLocalFrontendFiles     : Copied 1 local frontend files. Took 80 ms.
+2025-06-09T19:29:14.973+03:00  INFO 34900 --- [marketplace] [ForkJoinPool.commonPool-worker-2] c.v.f.s.f.TaskCopyLocalFrontendFiles     : Copied 1 local frontend files. Took 68 ms.
+2025-06-09T19:29:15.009+03:00  INFO 34900 --- [marketplace] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-06-09T19:29:15.043+03:00  INFO 34900 --- [marketplace] [ForkJoinPool.commonPool-worker-2] c.v.f.s.frontend.TaskCopyFrontendFiles   : Visited 19 resources. Took 232 ms.
+2025-06-09T19:29:15.045+03:00  INFO 34900 --- [marketplace] [ForkJoinPool.commonPool-worker-2] c.v.f.s.f.TaskCopyLocalFrontendFiles     : Copying project local frontend resources.
+2025-06-09T19:29:15.116+03:00  INFO 34900 --- [marketplace] [ForkJoinPool.commonPool-worker-2] c.v.f.s.f.TaskCopyLocalFrontendFiles     : Copied 1 local frontend files. Took 69 ms.
+2025-06-09T19:29:15.117+03:00  INFO 34900 --- [marketplace] [ForkJoinPool.commonPool-worker-2] c.v.f.s.f.TaskCopyLocalFrontendFiles     : Copying frontend directory completed.
+2025-06-09T19:29:15.119+03:00  INFO 34900 --- [marketplace] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.11.Final
+2025-06-09T19:29:15.197+03:00  INFO 34900 --- [marketplace] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-06-09T19:29:15.692+03:00  INFO 34900 --- [marketplace] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-06-09T19:29:15.738+03:00  INFO 34900 --- [marketplace] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-06-09T19:29:16.127+03:00  INFO 34900 --- [marketplace] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:file:./data/prod-db user=SA
+2025-06-09T19:29:16.138+03:00  INFO 34900 --- [marketplace] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-06-09T19:29:16.195+03:00  WARN 34900 --- [marketplace] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-06-09T19:29:16.231+03:00  INFO 34900 --- [marketplace] [restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-06-09T19:29:18.589+03:00  INFO 34900 --- [marketplace] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-06-09T19:29:18.706+03:00  INFO 34900 --- [marketplace] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-06-09T19:29:19.444+03:00  INFO 34900 --- [marketplace] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-06-09T19:29:20.209+03:00  WARN 34900 --- [marketplace] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-06-09T19:29:20.309+03:00  INFO 34900 --- [marketplace] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-06-09T19:29:21.031+03:00  INFO 34900 --- [marketplace] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:file:./data/prod-db'
+2025-06-09T19:29:21.143+03:00  INFO 34900 --- [marketplace] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-06-09T19:29:21.177+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereHandler com.vaadin.flow.server.communication.PushAtmosphereHandler mapped to context-path: /*
+2025-06-09T19:29:21.177+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed the following AtmosphereInterceptor mapped to AtmosphereHandler com.vaadin.flow.server.communication.PushAtmosphereHandler
+2025-06-09T19:29:21.216+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Atmosphere is using org.atmosphere.util.VoidAnnotationProcessor for processing annotation
+2025-06-09T19:29:21.223+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.util.ForkJoinPool         : Using ForkJoinPool  java.util.concurrent.ForkJoinPool. Set the org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads to -1 to fully use its power.
+2025-06-09T19:29:21.229+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed WebSocketProtocol org.atmosphere.websocket.protocol.SimpleHttpProtocol 
+2025-06-09T19:29:21.233+03:00  INFO 34900 --- [marketplace] [restartedMain] o.a.container.JSR356AsyncSupport         : JSR 356 Mapping path /VAADIN/push
+2025-06-09T19:29:21.249+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installing Default AtmosphereInterceptors
+2025-06-09T19:29:21.250+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.CorsInterceptor : CORS Interceptor Support
+2025-06-09T19:29:21.250+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.CacheHeadersInterceptor : Default Response's Headers Interceptor
+2025-06-09T19:29:21.250+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.PaddingAtmosphereInterceptor : Browser Padding Interceptor Support
+2025-06-09T19:29:21.251+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.AndroidAtmosphereInterceptor : Android Interceptor Support
+2025-06-09T19:29:21.252+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.HeartbeatInterceptor : Heartbeat Interceptor Support
+2025-06-09T19:29:21.253+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.SSEAtmosphereInterceptor : SSE Interceptor Support
+2025-06-09T19:29:21.254+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.JSONPAtmosphereInterceptor : JSONP Interceptor Support
+2025-06-09T19:29:21.256+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.JavaScriptProtocol : Atmosphere JavaScript Protocol
+2025-06-09T19:29:21.256+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.WebSocketMessageSuspendInterceptor : org.atmosphere.interceptor.WebSocketMessageSuspendInterceptor
+2025-06-09T19:29:21.257+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.OnDisconnectInterceptor : Browser disconnection detection
+2025-06-09T19:29:21.258+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.IdleResourceInterceptor : org.atmosphere.interceptor.IdleResourceInterceptor
+2025-06-09T19:29:21.258+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Set org.atmosphere.cpr.AtmosphereInterceptor.disableDefaults to disable them.
+2025-06-09T19:29:21.258+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor CORS Interceptor Support with priority FIRST_BEFORE_DEFAULT 
+2025-06-09T19:29:21.259+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Default Response's Headers Interceptor with priority AFTER_DEFAULT 
+2025-06-09T19:29:21.259+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Browser Padding Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:21.259+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Android Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:21.259+03:00  INFO 34900 --- [marketplace] [restartedMain] o.a.interceptor.HeartbeatInterceptor     : HeartbeatInterceptor configured with padding value 'X', client frequency 0 seconds and server frequency 60 seconds
+2025-06-09T19:29:21.260+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Heartbeat Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:21.260+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor SSE Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:21.260+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor JSONP Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:21.260+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Atmosphere JavaScript Protocol with priority AFTER_DEFAULT 
+2025-06-09T19:29:21.260+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor org.atmosphere.interceptor.WebSocketMessageSuspendInterceptor with priority AFTER_DEFAULT 
+2025-06-09T19:29:21.260+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Browser disconnection detection with priority AFTER_DEFAULT 
+2025-06-09T19:29:21.260+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor org.atmosphere.interceptor.IdleResourceInterceptor with priority BEFORE_DEFAULT 
+2025-06-09T19:29:21.261+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Using EndpointMapper class org.atmosphere.util.DefaultEndpointMapper
+2025-06-09T19:29:21.261+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Using BroadcasterCache: org.atmosphere.cache.UUIDBroadcasterCache
+2025-06-09T19:29:21.261+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Default Broadcaster Class: org.atmosphere.cpr.DefaultBroadcaster
+2025-06-09T19:29:21.261+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Broadcaster Shared List Resources: false
+2025-06-09T19:29:21.261+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Broadcaster Polling Wait Time 100
+2025-06-09T19:29:21.262+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Shared ExecutorService supported: true
+2025-06-09T19:29:21.262+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Messaging ExecutorService Pool Size unavailable - Not instance of ThreadPoolExecutor
+2025-06-09T19:29:21.262+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Async I/O Thread Pool Size: 200
+2025-06-09T19:29:21.262+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Using BroadcasterFactory: org.atmosphere.cpr.DefaultBroadcasterFactory
+2025-06-09T19:29:21.262+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Using AtmosphereResurceFactory: org.atmosphere.cpr.DefaultAtmosphereResourceFactory
+2025-06-09T19:29:21.262+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Using WebSocketProcessor: org.atmosphere.websocket.DefaultWebSocketProcessor
+2025-06-09T19:29:21.265+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Invoke AtmosphereInterceptor on WebSocket message true
+2025-06-09T19:29:21.265+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : HttpSession supported: true
+2025-06-09T19:29:21.265+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Atmosphere is using org.atmosphere.inject.InjectableObjectFactory for dependency injection and object creation
+2025-06-09T19:29:21.265+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Atmosphere is using async support: org.atmosphere.container.JSR356AsyncSupport running under container: Apache Tomcat/10.1.39 using jakarta.servlet/3.0 and jsr356/WebSocket API
+2025-06-09T19:29:21.266+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Atmosphere Framework 3.0.5.slf4jvaadin1 started.
+2025-06-09T19:29:21.269+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor  Track Message Size Interceptor using | with priority BEFORE_DEFAULT 
+2025-06-09T19:29:21.308+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Atmosphere is using org.atmosphere.cpr.DefaultAnnotationProcessor for processing annotation
+2025-06-09T19:29:21.309+03:00  INFO 34900 --- [marketplace] [restartedMain] o.a.cpr.DefaultAnnotationProcessor       : AnnotationProcessor class org.atmosphere.cpr.DefaultAnnotationProcessor$BytecodeBasedAnnotationProcessor being used
+2025-06-09T19:29:21.707+03:00  INFO 34900 --- [marketplace] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-06-09T19:29:21.707+03:00  INFO 34900 --- [marketplace] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-06-09T19:29:21.709+03:00  INFO 34900 --- [marketplace] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2025-06-09T19:29:21.803+03:00  INFO 34900 --- [marketplace] [http-nio-8080-exec-2] c.v.f.s.DefaultDeploymentConfiguration   : 
+Vaadin is running in DEVELOPMENT mode - do not use for production deployments.
+2025-06-09T19:29:21.832+03:00  INFO 34900 --- [marketplace] [http-nio-8080-exec-2] c.vaadin.flow.spring.SpringInstantiator  : The number of beans implementing 'I18NProvider' is 0. Cannot use Spring beans for I18N, falling back to the default behavior
+2025-06-09T19:29:23.803+03:00 ERROR 34900 --- [marketplace] [http-nio-8080-exec-8] c.v.flow.router.InternalServerError      : There was an exception while trying to navigate to 'signin'
+
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'mainLayout' defined in file [C:\Users\gilpl\Desktop\Workshop-on-SE-Project\target\classes\com\SEGroup\UI\MainLayout.class]: Failed to instantiate [com.SEGroup.UI.MainLayout]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:321) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:309) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1381) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1218) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:563) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:523) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$1(AbstractBeanFactory.java:378) ~[spring-beans-6.2.5.jar:6.2.5]
+	at com.vaadin.flow.spring.scopes.BeanStore.doGet(BeanStore.java:138) ~[vaadin-spring-24.4.8.jar:na]
+	at com.vaadin.flow.spring.scopes.BeanStore.lambda$get$0(BeanStore.java:71) ~[vaadin-spring-24.4.8.jar:na]
+	at com.vaadin.flow.spring.scopes.BeanStore.execute(BeanStore.java:150) ~[vaadin-spring-24.4.8.jar:na]
+	at com.vaadin.flow.spring.scopes.BeanStore.get(BeanStore.java:71) ~[vaadin-spring-24.4.8.jar:na]
+	at com.vaadin.flow.spring.scopes.AbstractScope.get(AbstractScope.java:44) ~[vaadin-spring-24.4.8.jar:na]
+	at com.vaadin.flow.spring.scopes.VaadinUIScope.get(VaadinUIScope.java:42) ~[vaadin-spring-24.4.8.jar:na]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:375) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:227) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveNamedBean(DefaultListableBeanFactory.java:1525) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveNamedBean(DefaultListableBeanFactory.java:1483) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveBean(DefaultListableBeanFactory.java:542) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBean(DefaultListableBeanFactory.java:371) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBean(DefaultListableBeanFactory.java:364) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:1290) ~[spring-context-6.2.5.jar:6.2.5]
+	at com.vaadin.flow.spring.SpringInstantiator.getOrCreate(SpringInstantiator.java:144) ~[vaadin-spring-24.4.8.jar:na]
+	at com.vaadin.flow.di.Instantiator.createRouteTarget(Instantiator.java:170) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.router.internal.AbstractNavigationStateRenderer.lambda$getRouteTarget$1(AbstractNavigationStateRenderer.java:148) ~[flow-server-24.4.8.jar:24.4.8]
+	at java.base/java.util.Optional.orElseGet(Optional.java:364) ~[na:na]
+	at com.vaadin.flow.router.internal.AbstractNavigationStateRenderer.getRouteTarget(AbstractNavigationStateRenderer.java:147) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.router.internal.AbstractNavigationStateRenderer.sendBeforeEnterEventAndPopulateChain(AbstractNavigationStateRenderer.java:502) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.router.internal.AbstractNavigationStateRenderer.createChainIfEmptyAndExecuteBeforeEnterNavigation(AbstractNavigationStateRenderer.java:483) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.router.internal.AbstractNavigationStateRenderer.handle(AbstractNavigationStateRenderer.java:227) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.component.internal.JavaScriptNavigationStateRenderer.handle(JavaScriptNavigationStateRenderer.java:78) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.component.UI.handleNavigation(UI.java:2005) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.component.UI.renderViewForRoute(UI.java:1968) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.component.UI.browserNavigate(UI.java:1833) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.component.ComponentEventBus.fireEventForListener(ComponentEventBus.java:239) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.component.ComponentEventBus.handleDomEvent(ComponentEventBus.java:488) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.component.ComponentEventBus.lambda$addDomTrigger$dd1b7957$1(ComponentEventBus.java:298) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.internal.nodefeature.ElementListenerMap.lambda$fireEvent$2(ElementListenerMap.java:473) ~[flow-server-24.4.8.jar:24.4.8]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597) ~[na:na]
+	at com.vaadin.flow.internal.nodefeature.ElementListenerMap.fireEvent(ElementListenerMap.java:473) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.server.communication.rpc.EventRpcHandler.handleNode(EventRpcHandler.java:62) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.server.communication.rpc.AbstractRpcInvocationHandler.handle(AbstractRpcInvocationHandler.java:73) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.server.communication.ServerRpcHandler.handleInvocationData(ServerRpcHandler.java:475) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.server.communication.ServerRpcHandler.lambda$handleInvocations$5(ServerRpcHandler.java:456) ~[flow-server-24.4.8.jar:24.4.8]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597) ~[na:na]
+	at com.vaadin.flow.server.communication.ServerRpcHandler.handleInvocations(ServerRpcHandler.java:456) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.server.communication.ServerRpcHandler.handleRpc(ServerRpcHandler.java:324) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.server.communication.UidlRequestHandler.synchronizedHandleRequest(UidlRequestHandler.java:114) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.server.SynchronizedRequestHandler.handleRequest(SynchronizedRequestHandler.java:40) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.server.VaadinService.handleRequest(VaadinService.java:1584) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.server.VaadinServlet.service(VaadinServlet.java:398) ~[flow-server-24.4.8.jar:24.4.8]
+	at com.vaadin.flow.spring.SpringServlet.service(SpringServlet.java:106) ~[vaadin-spring-24.4.8.jar:na]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.39.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationDispatcher.invoke(ApplicationDispatcher.java:633) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationDispatcher.processRequest(ApplicationDispatcher.java:409) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationDispatcher.doForward(ApplicationDispatcher.java:304) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationDispatcher.forward(ApplicationDispatcher.java:268) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.springframework.web.servlet.mvc.ServletForwardingController.handleRequestInternal(ServletForwardingController.java:142) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at org.springframework.web.servlet.mvc.AbstractController.handleRequest(AbstractController.java:178) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter.handle(SimpleControllerHandlerAdapter.java:51) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590) ~[tomcat-embed-core-10.1.39.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.39.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:365) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243) ~[spring-webmvc-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238) ~[spring-security-config-6.4.4.jar:6.4.4]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.5.jar:6.2.5]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:905) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1743) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.39.jar:10.1.39]
+	at java.base/java.lang.Thread.run(Thread.java:1575) ~[na:na]
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.SEGroup.UI.MainLayout]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:222) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:145) ~[spring-beans-6.2.5.jar:6.2.5]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:318) ~[spring-beans-6.2.5.jar:6.2.5]
+	... 141 common frames omitted
+Caused by: java.lang.NullPointerException: Cannot invoke "com.SEGroup.Service.UserService.guestLogin()" because the return value of "com.SEGroup.UI.ServiceLocator.getUserService()" is null
+	at com.SEGroup.UI.MainLayout.<init>(MainLayout.java:285) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:501) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:485) ~[na:na]
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:209) ~[spring-beans-6.2.5.jar:6.2.5]
+	... 143 common frames omitted
+
+2025-06-09T19:29:24.730+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Auto detecting WebSocketHandler in /WEB-INF/classes/
+2025-06-09T19:29:24.731+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed WebSocketProtocol org.atmosphere.websocket.protocol.SimpleHttpProtocol 
+2025-06-09T19:29:24.732+03:00  INFO 34900 --- [marketplace] [restartedMain] o.a.container.JSR356AsyncSupport         : JSR 356 Mapping path /HILLA/push
+2025-06-09T19:29:24.733+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installing Default AtmosphereInterceptors
+2025-06-09T19:29:24.734+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.CorsInterceptor : CORS Interceptor Support
+2025-06-09T19:29:24.734+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.CacheHeadersInterceptor : Default Response's Headers Interceptor
+2025-06-09T19:29:24.734+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.PaddingAtmosphereInterceptor : Browser Padding Interceptor Support
+2025-06-09T19:29:24.735+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.AndroidAtmosphereInterceptor : Android Interceptor Support
+2025-06-09T19:29:24.735+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.HeartbeatInterceptor : Heartbeat Interceptor Support
+2025-06-09T19:29:24.735+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.SSEAtmosphereInterceptor : SSE Interceptor Support
+2025-06-09T19:29:24.735+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.JSONPAtmosphereInterceptor : JSONP Interceptor Support
+2025-06-09T19:29:24.735+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.JavaScriptProtocol : Atmosphere JavaScript Protocol
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.WebSocketMessageSuspendInterceptor : org.atmosphere.interceptor.WebSocketMessageSuspendInterceptor
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.OnDisconnectInterceptor : Browser disconnection detection
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : 	org.atmosphere.interceptor.IdleResourceInterceptor : org.atmosphere.interceptor.IdleResourceInterceptor
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Set org.atmosphere.cpr.AtmosphereInterceptor.disableDefaults to disable them.
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor CORS Interceptor Support with priority FIRST_BEFORE_DEFAULT 
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Default Response's Headers Interceptor with priority AFTER_DEFAULT 
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Browser Padding Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Android Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] o.a.interceptor.HeartbeatInterceptor     : HeartbeatInterceptor configured with padding value 'X', client frequency 0 seconds and server frequency 60 seconds
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Heartbeat Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor SSE Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:24.736+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor JSONP Interceptor Support with priority AFTER_DEFAULT 
+2025-06-09T19:29:24.737+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Atmosphere JavaScript Protocol with priority AFTER_DEFAULT 
+2025-06-09T19:29:24.737+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor org.atmosphere.interceptor.WebSocketMessageSuspendInterceptor with priority AFTER_DEFAULT 
+2025-06-09T19:29:24.737+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor Browser disconnection detection with priority AFTER_DEFAULT 
+2025-06-09T19:29:24.737+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Installed AtmosphereInterceptor org.atmosphere.interceptor.IdleResourceInterceptor with priority BEFORE_DEFAULT 
+2025-06-09T19:29:24.738+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Using EndpointMapper class org.atmosphere.util.DefaultEndpointMapper
+2025-06-09T19:29:24.738+03:00  WARN 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : No BroadcasterCache configured. Broadcasted message between client reconnection will be LOST. It is recommended to configure the org.atmosphere.cache.UUIDBroadcasterCache
+2025-06-09T19:29:24.738+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Default Broadcaster Class: org.atmosphere.util.SimpleBroadcaster
+2025-06-09T19:29:24.738+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Broadcaster Shared List Resources: false
+2025-06-09T19:29:24.738+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Broadcaster Polling Wait Time 100
+2025-06-09T19:29:24.738+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Shared ExecutorService supported: true
+2025-06-09T19:29:24.738+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.util.ForkJoinPool         : Using ForkJoinPool  java.util.concurrent.ForkJoinPool. Set the org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads to -1 to fully use its power.
+2025-06-09T19:29:24.738+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Messaging ExecutorService Pool Size unavailable - Not instance of ThreadPoolExecutor
+2025-06-09T19:29:24.739+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Async I/O Thread Pool Size: 200
+2025-06-09T19:29:24.739+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Using BroadcasterFactory: org.atmosphere.cpr.DefaultBroadcasterFactory
+2025-06-09T19:29:24.739+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Using AtmosphereResurceFactory: org.atmosphere.cpr.DefaultAtmosphereResourceFactory
+2025-06-09T19:29:24.739+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Using WebSocketProcessor: org.atmosphere.websocket.DefaultWebSocketProcessor
+2025-06-09T19:29:24.739+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Invoke AtmosphereInterceptor on WebSocket message true
+2025-06-09T19:29:24.739+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : HttpSession supported: false
+2025-06-09T19:29:24.739+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Atmosphere is using org.atmosphere.inject.InjectableObjectFactory for dependency injection and object creation
+2025-06-09T19:29:24.739+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Atmosphere is using async support: org.atmosphere.container.JSR356AsyncSupport running under container: Apache Tomcat/10.1.39 using jakarta.servlet/3.0 and jsr356/WebSocket API
+2025-06-09T19:29:24.739+03:00  INFO 34900 --- [marketplace] [restartedMain] org.atmosphere.cpr.AtmosphereFramework   : Atmosphere Framework 3.0.5.slf4jvaadin1 started.
+2025-06-09T19:29:24.741+03:00  INFO 34900 --- [marketplace] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-06-09T19:29:24.752+03:00  INFO 34900 --- [marketplace] [restartedMain] com.SEGroup.MarketplaceApplication       : Started MarketplaceApplication in 46.969 seconds (process running for 51.804)
+2025-06-09T19:29:27.653+03:00  INFO 34900 --- [marketplace] [http-nio-8080-exec-4] com.SEGroup.Service.LoggerWrapper        : Creating a guest session.
+2025-06-09T19:29:27.654+03:00  INFO 34900 --- [marketplace] [http-nio-8080-exec-4] com.SEGroup.Service.LoggerWrapper        : Created a new guest session with ID: g-78521f01-2a9a-447c-9aac-f1a1ff5d3730
+2025-06-09T19:29:55.804+03:00  INFO 34900 --- [marketplace] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-06-09T19:29:55.814+03:00  INFO 34900 --- [marketplace] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-06-09T19:29:55.823+03:00  INFO 34900 --- [marketplace] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-06-09T19:29:55.830+03:00  INFO 34900 --- [marketplace] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-06-09T19:29:55.840+03:00  INFO 34900 --- [marketplace] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-06-09T19:29:55.852+03:00  INFO 34900 --- [marketplace] [SpringApplicationShutdownHook] org.atmosphere.util.ForkJoinPool         : Using ForkJoinPool  java.util.concurrent.ForkJoinPool. Set the org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads to -1 to fully use its power.
+2025-06-09T19:29:55.854+03:00  WARN 34900 --- [marketplace] [SpringApplicationShutdownHook] org.atmosphere.cpr.DefaultBroadcaster    : AtmosphereResource fc05bd9e-e596-4e7d-977e-dc4cfa41c877 is not suspended. If cached messages exists, this may cause unexpected situation. Suspend first
