@@ -17,7 +17,7 @@ public class Transaction {
     @Column(name = "id", nullable = false)
     private int id;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "transaction_items", joinColumns = @JoinColumn(name = "transaction_id"))
     @Column(name = "product_id")
     private List<String> itemsToTransact = new ArrayList<>();

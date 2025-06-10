@@ -26,7 +26,7 @@ public class Basket {
     @Column(name = "product2qty", columnDefinition = "JSON")
     private final Map<String, Integer> product2qty = new ConcurrentHashMap<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private ShoppingCart cart;
 

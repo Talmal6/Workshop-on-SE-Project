@@ -19,7 +19,7 @@ public class CatalogProductEntity {
     private String brand;
     private String description;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "catalog_product_categories",
             joinColumns = @JoinColumn(name = "catalog_id")

@@ -71,6 +71,8 @@ public class UnifiedDataSeeder implements ApplicationListener<ApplicationReadyEv
 //        this.transactions = new TransactionRepository(new DbTransactionData(jpaTransactionRepository));
         // קריאות ל-service/DTO/Seeder methods
     }
+
+
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         // 1) If there is already at least one user in the DB, skip everything.

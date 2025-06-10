@@ -238,6 +238,7 @@ public class DiscountAcceptanceTest {
                 50,
                 List.of(phoneId, laptopId), // required products
                 List.of(1, 1), // min amounts
+                List.of(5,5),
                 100,
                 "AND",
                 ""
