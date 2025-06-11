@@ -654,19 +654,23 @@ public class Store {
     public void addConditionalDiscountToEntireStore(String operatorEmail, int percentage,int minPrice ,String coupon) {
         if (!isOwnerOrHasManagerPermissions(operatorEmail))
             throw new IllegalArgumentException("Only owners can control discount");
-        discounts.add(new ConditionalDiscount(DiscountType.STORE, percentage,  minPrice,-1,null, coupon));
+        discounts.add(new ConditionalDiscount(DiscountType.STORE, percentage,  minPrice,-1,-1,null, coupon));
     }
 
     public void addConditionalDiscountToEntireCategoryInStore(String operatorEmail, String category, int percentage,int minPrice , String coupon) {
         if (!isOwnerOrHasManagerPermissions(operatorEmail))
             throw new IllegalArgumentException("Only owners can control discount");
-        discounts.add(new ConditionalDiscount(DiscountType.CATEGORY, percentage, minPrice,-1,category ,coupon));
+        discounts.add(new ConditionalDiscount(DiscountType.CATEGORY, percentage, minPrice,-1,-1,category ,coupon));
     }
 
-    public void addConditionalDiscountToSpecificProductInStorePercentage(String operatorEmail, String productId, int percentage,int minPrice,int minAmount, String coupon) {
+    public void addConditionalDiscountToSpecificProductInStorePercentage(String operatorEmail, String productId, int percentage,int minPrice,int minAmount, int maxAmount, String coupon) {
         if (!isOwnerOrHasManagerPermissions(operatorEmail))
             throw new IllegalArgumentException("Only owners can control discount");
-        discounts.add(new ConditionalDiscount(DiscountType.PRODUCT, percentage, minPrice,minAmount,productId, coupon));
+        discounts.add(new ConditionalDiscount(DiscountType.PRODUCT, percentage, minPrice,minAmount, maxAmount,productId, coupon));
+    }
+
+    public void addConditionalDiscountToSpecificProductInStorePercentage(String operatorEmail, String productId, int percentage, int minPrice, int minAmount, String coupon) {
+        addConditionalDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage, minPrice, minAmount, Integer.MAX_VALUE, coupon);
     }
 
     public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(

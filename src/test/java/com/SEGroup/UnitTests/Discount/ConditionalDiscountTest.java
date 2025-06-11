@@ -266,4 +266,42 @@ public class ConditionalDiscountTest {
         assertEquals(expectedPrice, totalPrice, 0.001);
     }
 
+    @Test
+    public void shouldApplyDiscount_WhenQuantityWithinMinAndMaxAmount() {
+        List<String> vegetables = List.of("vegetables");
+
+        ShoppingProduct tomato = new ShoppingProduct(
+                "YuvalStore", "cat1", "p1", "Tomato", "Red Tomato", 10.0, 5, "", vegetables
+        ); // quantity = 3 (between 2 and 5)
+
+        ConditionalDiscount discount = new ConditionalDiscount(
+                DiscountType.PRODUCT, 20, 0, 2, 5, "p1", null
+        );
+        discount.Activate(30); // Activate with any price ≥ 0
+
+        double discountedPrice = discount.calculate(tomato, 3); // 3 * 10 = 30 → 20% off = 24
+
+        assertEquals(24.0, discountedPrice, 0.001);
+    }
+
+    @Test
+    public void shouldNotApplyDiscount_WhenQuantityExceedsMaxAmount() {
+        List<String> vegetables = List.of("vegetables");
+
+        ShoppingProduct tomato = new ShoppingProduct(
+                "YuvalStore", "cat1", "p1", "Tomato", "Red Tomato", 10.0, 10, "", vegetables
+        ); // quantity = 6 (above max = 5)
+
+        ConditionalDiscount discount = new ConditionalDiscount(
+                DiscountType.PRODUCT, 20, 0, 2, 5, "p1", null
+        );
+        discount.Activate(60); // Activate with any price ≥ 0
+
+        double discountedPrice = discount.calculate(tomato, 6); // no discount → 6 * 10 = 60
+
+        assertEquals(60.0, discountedPrice, 0.001);
+    }
+
+
+
 }

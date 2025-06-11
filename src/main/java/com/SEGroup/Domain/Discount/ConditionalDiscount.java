@@ -7,12 +7,17 @@ import java.util.List;
 public class ConditionalDiscount extends Discount {
     private final int minPrice;
     private final int minAmount;
+    private final int maxAmount;
 
-    public ConditionalDiscount(DiscountType type, double percent,int minPrice,int minAmount,String scopeKey,String Coupon) {
+    public ConditionalDiscount(DiscountType type, double percent,int minPrice,int minAmount, int maxAmount,String scopeKey,String Coupon) {
         super(type, percent,scopeKey,Coupon);
         this.minPrice = minPrice;
         this.minAmount = minAmount;
+        this.maxAmount = maxAmount;
         this.setActive(false);
+    }
+    public ConditionalDiscount(DiscountType type, double percent, int minPrice, int minAmount, String scopeKey, String coupon) {
+        this(type, percent, minPrice, minAmount, Integer.MAX_VALUE, scopeKey, coupon);
     }
 
     @Override
@@ -20,7 +25,7 @@ public class ConditionalDiscount extends Discount {
         if(getCoupon()!=null && !isActive() ) {
             return product.getPrice() * quantity;
         }
-        if(!isActive() || quantity < minAmount) {
+        if(!isActive() || quantity < minAmount || quantity > maxAmount) {
             return product.getPrice() * quantity;
         }
 

@@ -1037,7 +1037,7 @@ public class StoreService {
             authenticationService.checkSessionKey(sessionKey);
             String email = authenticationService.getUserBySession(sessionKey);
             userRepository.checkUserSuspension(email);
-            storeRepository.addConditionalDiscountToSpecificProductInStorePercentage(storeName,email,product_id,percentage,minPrice,minAmount,Coupon);
+            storeRepository.addConditionalDiscountToSpecificProductInStorePercentage(storeName,email,product_id,percentage,minPrice,minAmount, maxAmount,Coupon);
             return Result.success(null);
         } catch (Exception e) {
             return Result.failure(e.getMessage());
