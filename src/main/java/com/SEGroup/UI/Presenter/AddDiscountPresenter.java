@@ -91,7 +91,7 @@ public class AddDiscountPresenter {
                 .orElse(null);
     }
 
-    public Result<Void> addDiscountToProduct(String category, String item, Integer value, int minAmount, int maxAmount) {
+    public Result<Void> addDiscountToProduct(String category, String item, Integer value) {
 //        return         Result.failure("Unknown error");
         return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,getItemId(category, item),value,null);
     }
@@ -106,7 +106,7 @@ public class AddDiscountPresenter {
 
     }
 
-    public Result<Void> addDiscountToProductWithCoupon(String category, String item, Integer value, int minAmount, int maxAmount, String couponCode) {
+    public Result<Void> addDiscountToProductWithCoupon(String category, String item, Integer value, String couponCode) {
         return storeService.addSimpleDiscountToSpecificProductInStorePercentage(SecurityContextHolder.token(),storeName,getItemId(category, item),value,couponCode);
 
     }
