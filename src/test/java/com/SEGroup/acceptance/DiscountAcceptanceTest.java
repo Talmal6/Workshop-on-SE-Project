@@ -261,6 +261,225 @@ public class DiscountAcceptanceTest {
         double discountedCoffee = result.get(coffeeId);
         assertEquals(50.0, discountedCoffee, 0.01); // 100 * 50% = 50
     }
+
+    @Test
+    public void purchase_WithCompositeDiscount_WithMaxAmountCondition_ShouldApplyCorrectly() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+
+        // Add products to catalog
+        storeService.addProductToCatalog("cat1", "Coffee Maker", "Deluxe", "Coffee Maker Deluxe", List.of("kitchen"));
+        storeService.addProductToCatalog("cat2", "Smartphone", "X Pro", "High-end smartphone", List.of("electronics"));
+        storeService.addProductToCatalog("cat3", "Laptop", "Pro Max", "High-end laptop", List.of("electronics"));
+
+        // Add products to store
+        String coffeeId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Coffee Maker", "Deluxe", 100.0, 5, "").getData();
+        String phoneId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Smartphone", "X Pro", 300.0, 5, "").getData();
+        String laptopId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat3", "Laptop", "Pro Max", 700.0, 5, "").getData();
+
+        // Add composite discount with min=1 and max=2 for both phone and laptop
+        storeService.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(
+                VALID_SESSION,
+                STORE_NAME,
+                coffeeId,
+                50,
+                List.of(phoneId, laptopId),
+                List.of(1, 1),
+                List.of(2, 2),  // maxAmount
+                100,
+                "AND",
+                ""
+        );
+
+        // Prepare basket with valid quantity (within max limit)
+        BasketDTO basket = new BasketDTO(
+                STORE_NAME,
+                Map.of(
+                        coffeeId, 1,
+                        phoneId, 2,    // within limit
+                        laptopId, 2    // within limit
+                )
+        );
+
+        // Act
+        Map<String, Double> result = storeRepository.CalculateDiscountToStores(List.of(basket));
+
+        // Assert
+        double discountedCoffee = result.get(coffeeId);
+        assertEquals(50.0, discountedCoffee, 0.01); // 50% discount on 100
+    }
+
+    @Test
+    public void purchase_WithCompositeDiscount_ExceedingMaxAmount_ShouldNotApplyDiscount() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+
+        storeService.addProductToCatalog("cat1", "Coffee Maker", "Deluxe", "Coffee Maker Deluxe", List.of("kitchen"));
+        storeService.addProductToCatalog("cat2", "Smartphone", "X Pro", "High-end smartphone", List.of("electronics"));
+        storeService.addProductToCatalog("cat3", "Laptop", "Pro Max", "High-end laptop", List.of("electronics"));
+
+        String coffeeId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Coffee Maker", "Deluxe", 100.0, 5, "").getData();
+        String phoneId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Smartphone", "X Pro", 300.0, 5, "").getData();
+        String laptopId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat3", "Laptop", "Pro Max", 700.0, 5, "").getData();
+
+        // Add composite discount with maxAmount = 2
+        storeService.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(
+                VALID_SESSION,
+                STORE_NAME,
+                coffeeId,
+                50,
+                List.of(phoneId, laptopId),
+                List.of(1, 1),
+                List.of(2, 2),
+                100,
+                "AND",
+                ""
+        );
+
+        // Prepare basket with too many laptops (exceeding max)
+        BasketDTO basket = new BasketDTO(
+                STORE_NAME,
+                Map.of(
+                        coffeeId, 1,
+                        phoneId, 2,
+                        laptopId, 3 // exceeds maxAmount
+                )
+        );
+
+        Map<String, Double> result = storeRepository.CalculateDiscountToStores(List.of(basket));
+
+        double discountedCoffee = result.get(coffeeId);
+        assertEquals(100.0, discountedCoffee, 0.01); // No discount applied
+    }
+
+    @Test
+    public void specificProductDiscount_WithMaxAmount_ConditionMet_ShouldApplyDiscount() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.addProductToCatalog("cat1", "Juice", "Orange", "Orange Juice", List.of("beverages"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Juice", "Orange", 20.0, 10, "").getData();
+
+        // Add discount: applies if buy 2–5 units
+        storeService.addConditionalDiscountToSpecificProductInStorePercentage(
+                VALID_SESSION,
+                STORE_NAME,
+                productId,
+                25,
+                0,
+                5,
+                5,
+                ""
+        );
+
+        BasketDTO basket = new BasketDTO(STORE_NAME, Map.of(productId, 3)); // 3 within [2,5]
+        Map<String, Double> result = storeRepository.CalculateDiscountToStores(List.of(basket));
+
+        double discounted = result.get(productId);
+        assertEquals(45.0, discounted, 0.01); // 20*3=60 → 25% → 45
+    }
+
+    @Test
+    public void specificProductDiscount_WithMaxAmount_Exceeded_ShouldNotApplyDiscount() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        storeService.addProductToCatalog("cat1", "Juice", "Orange", "Orange Juice", List.of("beverages"));
+        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Juice", "Orange", 20.0, 10, "").getData();
+
+        // Discount: applies only if quantity ∈ [2,5]
+        storeService.addConditionalDiscountToSpecificProductInStorePercentage(
+                VALID_SESSION,
+                STORE_NAME,
+                productId,
+                25,
+                0,
+                2,
+                5,
+                ""
+        );
+
+        BasketDTO basket = new BasketDTO(STORE_NAME, Map.of(productId, 6)); // 6 > 5
+        Map<String, Double> result = storeRepository.CalculateDiscountToStores(List.of(basket));
+
+        double discounted = result.get(productId);
+        assertEquals(120.0, discounted, 0.01); // No discount applied
+    }
+
+    @Test
+    public void compositeCategoryDiscount_WithAmountInRange_ShouldApplyDiscount() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+
+        // Add products to catalog and store under the "dairy" category
+        storeService.addProductToCatalog("cat1", "Milk", "1L", "Whole Milk", List.of("dairy"));
+        storeService.addProductToCatalog("cat2", "Cheese", "Cheddar", "Cheddar Cheese", List.of("dairy"));
+
+        String milkId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Milk", "1L", 10.0, 10, "").getData();
+        String cheeseId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Cheese", "Cheddar", 20.0, 10, "").getData();
+
+        // Add composite discount: 20% on "dairy" if:
+        // - Milk quantity is between 2–5
+        // - Cheese quantity is between 1–3
+        storeService.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(
+                VALID_SESSION,
+                STORE_NAME,
+                "dairy",                     // category name
+                20,                          // discount percentage
+                List.of(milkId, cheeseId),   // product IDs
+                List.of(2, 1),               // min amounts
+                List.of(5, 3),               // max amounts
+                0,                           // no minimum price condition
+                "AND",                       // logical operator
+                null                         // no coupon
+        );
+
+        // Prepare basket: both products meet quantity conditions
+        BasketDTO basket = new BasketDTO(STORE_NAME, Map.of(
+                milkId, 3,    // within [2–5]
+                cheeseId, 2   // within [1–3]
+        ));
+
+        // Calculate discount
+        Map<String, Double> result = storeRepository.CalculateDiscountToStores(List.of(basket));
+
+        double total = result.get(milkId) + result.get(cheeseId);
+        assertEquals(62.0, total, 0.01);
+    }
+
+    @Test
+    public void compositeCategoryDiscount_ExceedingMaxAmount_ShouldNotApplyDiscount() throws Exception {
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+
+        // Add "dairy" products to catalog and store
+        storeService.addProductToCatalog("cat1", "Milk", "1L", "Whole Milk", List.of("dairy"));
+        storeService.addProductToCatalog("cat2", "Cheese", "Cheddar", "Cheddar Cheese", List.of("dairy"));
+
+        String milkId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat1", "Milk", "1L", 10.0, 10, "").getData();
+        String cheeseId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, "cat2", "Cheese", "Cheddar", 20.0, 10, "").getData();
+
+        // Add composite discount: 20% if Milk ∈ [2–5], Cheese ∈ [1–3]
+        storeService.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(
+                VALID_SESSION,
+                STORE_NAME,
+                "dairy",
+                20,
+                List.of(milkId, cheeseId),
+                List.of(2, 1),
+                List.of(5, 3),
+                0,
+                "AND",
+                null
+        );
+
+        // Prepare basket: milk quantity exceeds max (6 > 5)
+        BasketDTO basket = new BasketDTO(STORE_NAME, Map.of(
+                milkId, 6,     // exceeds max of 5
+                cheeseId, 2    // valid
+        ));
+
+        // Expect: no discount applied → total = 10*6 + 20*2 = 100.0
+        Map<String, Double> result = storeRepository.CalculateDiscountToStores(List.of(basket));
+        double total = result.get(milkId) + result.get(cheeseId);
+        assertEquals(100.0, total, 0.01);
+    }
+
+
+
+
 //    @Test
 //    public void test_AddSimpleDiscountToSpecificProductInStorePercentage_ViaServiceOnly() throws Exception {
 //        // Arrange

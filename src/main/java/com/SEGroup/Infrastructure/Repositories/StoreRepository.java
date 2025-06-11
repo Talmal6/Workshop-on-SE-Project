@@ -961,22 +961,22 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email, String productId, int percentage, List<String> products, List<Integer> amounts, int minPrice, String coupon, String logicType) {
+    public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email, String productId, int percentage, List<String> products, List<Integer> minAmount, List<Integer> maxAmount, int minPrice, String coupon, String logicType) {
         Store store = findByName(storeName);
-        store.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(email, productId, percentage, minPrice, products, amounts,coupon, logicType);
+        store.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(email, productId, percentage, minPrice, products, minAmount,maxAmount, coupon, logicType);
         storeData.updateStore(store);
     }
     @Override
-    public void addLogicalCompositeConditionalDiscountToEntireStore(String storeName, String email, int percentage, List<String> products, List<Integer> amounts, int minPrice, String coupon, String logicType) {
+    public void addLogicalCompositeConditionalDiscountToEntireStore(String storeName, String email, int percentage, List<String> products, List<Integer> minAmount, List<Integer> maxAmount, int minPrice, String coupon, String logicType) {
         Store store = findByName(storeName);
-        store.addLogicalCompositeConditionalDiscountToEntireStore(email ,percentage, minPrice, products, amounts,coupon, logicType);
+        store.addLogicalCompositeConditionalDiscountToEntireStore(email ,percentage, minPrice, products, minAmount, maxAmount,coupon, logicType);
         storeData.updateStore(store);
     }
 
     @Override
-    public void addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String storeName, String email, String category, int percentage, List<String> products, List<Integer> amounts, int minPrice, String coupon, String logicType) {
+    public void addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String storeName, String email, String category, int percentage, List<String> products, List<Integer> minAmount, List<Integer> maxAmount, int minPrice, String coupon, String logicType) {
         Store store = findByName(storeName);
-        store.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(email, category, percentage, minPrice, products, amounts,coupon, logicType);
+        store.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(email, category, percentage, minPrice, products, minAmount, maxAmount,coupon, logicType);
         storeData.updateStore(store);
     }
 }
