@@ -942,9 +942,9 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage,int minimumPrice,int minAmount , String coupon) {
+    public void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage,int minimumPrice,int minAmount, int maxAmount , String coupon) {
         Store store = findByName(storeName);
-        store.addConditionalDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage,minimumPrice,minAmount,coupon);
+        store.addConditionalDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage,minimumPrice,minAmount, maxAmount,coupon);
         storeData.updateStore(store);
     }
 
