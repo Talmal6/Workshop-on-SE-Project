@@ -290,8 +290,8 @@ public interface IStoreRepository {
         void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage,int minimumPrice,int minAmount, int maxAmount ,String coupon);
         void applyCouponToCart(List<BasketDTO> basketDTOList,String Coupon);
 
-        void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email, String productId, int percentage, List<String> products, List<Integer> amounts, int minPrice, String coupon, String logicType);
-        void addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String storeName, String email, String category, int percentage, List<String> products, List<Integer> amounts, int minPrice, String coupon, String logicType);
-        void addLogicalCompositeConditionalDiscountToEntireStore(String storeName, String email, int percentage, List<String> products, List<Integer> amounts, int minPrice, String coupon, String logicType);
+        void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email, String productId, int percentage, List<String> products, List<Integer> minAmounts,List<Integer> maxAmount ,int minPrice, String coupon, String logicType);
+        void addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String storeName, String email, String category, int percentage, List<String> products, List<Integer> minAmounts, List<Integer> maxAmount, int minPrice, String coupon, String logicType);
+        void addLogicalCompositeConditionalDiscountToEntireStore(String storeName, String email, int percentage, List<String> products, List<Integer> minAmounts, List<Integer> maxAmount, int minPrice, String coupon, String logicType);
 
 }
