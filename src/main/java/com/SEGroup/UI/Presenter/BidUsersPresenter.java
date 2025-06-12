@@ -13,7 +13,9 @@ import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.BidUsersView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ public class BidUsersPresenter {
     private final TransactionService transactionService;
     private final DirectNotificationSender notificationSender;
     private List<BidRequest> currentRequests = new ArrayList<>();
+    Map<String, BidDTO> bidMap = new HashMap<>();
 
     @Autowired
     private BidApprovalManager approvalManager;
@@ -75,6 +78,10 @@ public class BidUsersPresenter {
                     .map(dto -> new BidRequest(dto.getOriginalBidderEmail(), dto.getPrice()))
                     .toList();
             currentRequests = new ArrayList<>(requests); // ← cache
+            bidMap.clear();
+            for (BidDTO dto : r.getData()) {
+                bidMap.put(getStringKeyForDto(dto) , dto);
+            }
             view.displayBidUsers(currentRequests);
         } else {
             view.showError("Failed to load bids: " + r.getErrorMessage());
@@ -100,7 +107,7 @@ public class BidUsersPresenter {
             Result<Void> res = transactionService.acceptBid(
                     SecurityContextHolder.token(),
                     storeName,
-                    new BidDTO(userEmail, productId, amount));
+                    bidMap.get(getStringKeyForDto(userEmail, productId, amount)));
 
             if (res.isSuccess()) {
                 // 4) Notify the bidder
@@ -118,6 +125,7 @@ public class BidUsersPresenter {
                 approvalManager.removeBid(bidId);
                 currentRequests.removeIf(rq -> rq.email().equals(userEmail)
                         && Double.compare(rq.amount(), amount) == 0);
+                bidMap.remove(getStringKeyForDto(userEmail, productId, amount));
                 view.displayBidUsers(currentRequests);
 
             } else {
@@ -169,7 +177,7 @@ public class BidUsersPresenter {
         Result<Void> res = transactionService.rejectBid(
                 SecurityContextHolder.token(),
                 this.storeName,
-                new BidDTO(userEmail, this.productId, amount));
+                bidMap.get(getStringKeyForDto(userEmail, productId, amount)));
 
         if (res.isSuccess()) {
             String ownerEmail = SecurityContextHolder.email();
@@ -206,5 +214,12 @@ public class BidUsersPresenter {
 
         view.showSuccess("Counter-offer of $" + String.format("%,.2f", counterAmount) +
                 " sent to " + userEmail);
+    }
+
+    String getStringKeyForDto(BidDTO dto) {
+        return dto.getOriginalBidderEmail() + ":" + dto.getProductId() + ":" + dto.getPrice();
+    }
+    String getStringKeyForDto(String email, String productId, double price) {
+        return email + ":" + productId + ":" + price;
     }
 }

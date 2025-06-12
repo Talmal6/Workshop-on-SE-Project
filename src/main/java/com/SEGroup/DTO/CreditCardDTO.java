@@ -57,7 +57,7 @@ public class CreditCardDTO {
         }
     }
 
-    private CreditCardDTO(){
+    public CreditCardDTO(){
 
     }
 
