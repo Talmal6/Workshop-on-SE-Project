@@ -44,12 +44,12 @@ public class TransactionService {
      * @param userRepository        The user repository for managing user data.
      */
     public TransactionService(IAuthenticationService authenticationService,
-                              IPaymentGateway paymentGateway,
-                              ITransactionRepository transactionRepository,
-                              IStoreRepository storeRepository,
-                              IUserRepository userRepository,
-                              IShippingService shippingService,
-                              INotificationCenter notificationService, IGuestRepository guestRepository) {
+            IPaymentGateway paymentGateway,
+            ITransactionRepository transactionRepository,
+            IStoreRepository storeRepository,
+            IUserRepository userRepository,
+            IShippingService shippingService,
+            INotificationCenter notificationService, IGuestRepository guestRepository) {
         this.authenticationService = authenticationService;
         this.paymentGateway = paymentGateway;
         this.transactionRepository = transactionRepository;
@@ -111,10 +111,11 @@ public class TransactionService {
             try {
                 for (BasketDTO basket : cart) {
                     AddressDTO addressDTO = userRepository.getAddress(userEmail);
-                    //to do need to create a address DTO from the user address and use the same one for each shipping
+                    // to do need to create a address DTO from the user address and use the same one
+                    // for each shipping
                     Integer ShipingId = shippingService.ship(addressDTO, userEmail);
                     shippingIds.add(ShipingId);
-                    //to do need to save all shipping id's so we can cancel them
+                    // to do need to save all shipping id's so we can cancel them
                 }
                 try {
 
@@ -132,7 +133,7 @@ public class TransactionService {
                 }
             } catch (Exception e) {
                 for (BasketDTO basket : cart) {
-                    //to do need to save all shipping id's so we can cancel them
+                    // to do need to save all shipping id's so we can cancel them
                     for (Integer shippingId : shippingIds) {
                         shippingService.cancelShipping(shippingId);
                     }
@@ -164,8 +165,10 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+
     @Transactional
-    public Result<Void> purchaseShoppingCartWithAddress(String sessionKey, String userEmail, String paymentDetails, AddressDTO address){
+    public Result<Void> purchaseShoppingCartWithAddress(String sessionKey, String userEmail, String paymentDetails,
+            AddressDTO address) {
         try {
             List<Integer> shippingIds = new ArrayList<>();
             authenticationService.checkSessionKey(sessionKey);
@@ -179,10 +182,11 @@ public class TransactionService {
                     .sum();
             try {
                 for (BasketDTO basket : cart) {
-                    //to do need to create a address DTO from the user address and use the same one for each shipping
+                    // to do need to create a address DTO from the user address and use the same one
+                    // for each shipping
                     Integer ShipingId = shippingService.ship(address, userEmail);
                     shippingIds.add(ShipingId);
-                    //to do need to save all shipping id's so we can cancel them
+                    // to do need to save all shipping id's so we can cancel them
                 }
                 try {
 
@@ -200,7 +204,7 @@ public class TransactionService {
                 }
             } catch (Exception e) {
                 for (BasketDTO basket : cart) {
-                    //to do need to save all shipping id's so we can cancel them
+                    // to do need to save all shipping id's so we can cancel them
                     for (Integer shippingId : shippingIds) {
                         shippingService.cancelShipping(shippingId);
                     }
@@ -234,7 +238,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public Result<Void> purchaseGuestShoppingCart(String sessionKey, String paymentDetails, AddressDTO address){
+    public Result<Void> purchaseGuestShoppingCart(String sessionKey, String paymentDetails, AddressDTO address) {
         try {
             List<Integer> shippingIds = new ArrayList<>();
             authenticationService.checkSessionKey(sessionKey);
@@ -248,10 +252,11 @@ public class TransactionService {
                     .sum();
             try {
                 for (BasketDTO basket : cart) {
-                    //to do need to create a address DTO from the user address and use the same one for each shipping
+                    // to do need to create a address DTO from the user address and use the same one
+                    // for each shipping
                     Integer ShipingId = shippingService.ship(address, userEmail);
                     shippingIds.add(ShipingId);
-                    //to do need to save all shipping id's so we can cancel them
+                    // to do need to save all shipping id's so we can cancel them
                 }
                 try {
 
@@ -269,7 +274,7 @@ public class TransactionService {
                 }
             } catch (Exception e) {
                 for (BasketDTO basket : cart) {
-                    //to do need to save all shipping id's so we can cancel them
+                    // to do need to save all shipping id's so we can cancel them
                     for (Integer shippingId : shippingIds) {
                         shippingService.cancelShipping(shippingId);
                     }
@@ -335,20 +340,22 @@ public class TransactionService {
     public Result<Void> acceptBid(String sessionKey, String storeName, BidDTO bidDTO) {
         try {
             authenticationService.checkSessionKey(sessionKey);
-            String userEmail = authenticationService.getUserBySession(sessionKey);
-            storeRepository.acceptBid(storeName, userEmail, bidDTO.getProductId(), bidDTO);
-            double cost = bidDTO.getPrice()*1;
+            String email = authenticationService.getUserBySession(sessionKey);
+            storeRepository.acceptBid(storeName, email, bidDTO.getProductId(), bidDTO);
+            
+            double cost = bidDTO.getPrice() * 1;
             try {
-                //to do need to create a address DTO from the user address and use the same one for each shipping
-                shippingService.ship(userRepository.getAddress(userEmail), userEmail);
+                // to do need to create a address DTO from the user address and use the same one
+                // for each shipping
+                shippingService.ship(userRepository.getAddress(email), email);
 
             } catch (Exception e) {
                 LoggerWrapper.error("Shipping failed for bid acceptance: " + e.getMessage(), e); // Log shipping failure
                 throw new RuntimeException("Shipping failed: " + e.getMessage());
             }
             try {
-                paymentGateway.processPayment(userEmail, cost);
-                LoggerWrapper.info("Payment processed for bid acceptance: " + userEmail + ", Amount: " + cost); // Log
+                paymentGateway.processPayment(email, cost);
+                LoggerWrapper.info("Payment processed for bid acceptance: " + email + ", Amount: " + cost); // Log
                                                                                                                 // successful
                                                                                                                 // payment
                                                                                                                 // processing
@@ -362,12 +369,14 @@ public class TransactionService {
                     storeFounder,
                     "A bid has been accepted for product '" + bidDTO.getProductId() + "' in your store '" + storeName
                             + "'.");
-            String user = bidDTO.getBidderEmail();
+            String user = bidDTO.getOriginalBidderEmail();
             notificationService.sendSystemNotification(
-                    userRepository.getUserName(userEmail),
+                    userRepository.getUserName(email),
                     "Your bid for product '" + bidDTO.getProductId() + "' in store '" + storeName
                             + "' has been accepted.");
-            transactionRepository.addTransaction(List.of(bidDTO.getProductId()), cost, bidDTO.getBidderEmail(), storeName);
+            transactionRepository.addTransaction(List.of(bidDTO.getProductId()), cost, bidDTO.getOriginalBidderEmail(),
+                    storeName);
+            userRepository.removeBidFromUser(email, bidDTO);
             return Result.success(null);
         } catch (Exception e) {
             LoggerWrapper.error("Error accepting bid for store: " + storeName + " - " + e.getMessage(), e); // Log error
@@ -375,6 +384,7 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+
     @Transactional
     public Result<Void> executeAuction(String sessionKey, String storeName, BidDTO bidDTO) {
         try {
@@ -383,7 +393,8 @@ public class TransactionService {
             storeRepository.executeAuctionBid(userEmail, storeName, bidDTO);
             double cost = bidDTO.getPrice();
             try {
-                //to do need to create a address DTO from the user address and use the same one for each shipping
+                // to do need to create a address DTO from the user address and use the same one
+                // for each shipping
                 shippingService.ship(userRepository.getAddress(userEmail), userEmail);
 
             } catch (Exception e) {
@@ -408,13 +419,14 @@ public class TransactionService {
                     storeFounder,
                     "A bid has been accepted for product '" + bidDTO.getProductId() + "' in your store '" + storeName
                             + "'.");
-            String user = bidDTO.getBidderEmail();
+            String user = bidDTO.getOriginalBidderEmail();
             notificationService.sendSystemNotification(
-                    userRepository.getUserName(bidDTO.getBidderEmail()),
+                    userRepository.getUserName(bidDTO.getOriginalBidderEmail()),
                     "Your bid for product '" + bidDTO.getProductId() + "' in store '" + storeName
                             + "' has been accepted.");
 
-            transactionRepository.addTransaction(List.of(bidDTO.getProductId()), cost, bidDTO.getBidderEmail(), storeName);
+            transactionRepository.addTransaction(List.of(bidDTO.getProductId()), cost, bidDTO.getOriginalBidderEmail(),
+                    storeName);
 
             return Result.success(null); // Ensure success is returned if no exceptions occur
         } catch (Exception e) {
@@ -423,6 +435,7 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+
     @Transactional
     public Result<Void> rejectBid(String sessionKey, String storeName, BidDTO bidDTO) {
         try {
@@ -433,7 +446,7 @@ public class TransactionService {
 
             storeRepository.rejectBid(userEmail, storeName, bidDTO);
             notificationService.sendSystemNotification(
-                    userRepository.getUserName(bidDTO.getBidderEmail()),
+                    userRepository.getUserName(bidDTO.getOriginalBidderEmail()),
                     "Your bid for product '" + bidDTO.getProductId() + "' in store '" + storeName
                             + "' has been rejected.");
             return Result.success(null);
@@ -442,6 +455,7 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+
     @Transactional
     public Result<Map<String, Double>> getDiscountsForCart(String buyerSessionKey) {
         try {
@@ -464,6 +478,7 @@ public class TransactionService {
             return Result.failure(e.getMessage());
         }
     }
+
     @Transactional
     public Result<Void> applyCouponToCart(String buyerSessionKey, String coupon) {
         try {
@@ -473,7 +488,7 @@ public class TransactionService {
 
             List<BasketDTO> cart = userRepository.getUserCart(userEmail);
 
-            storeRepository.applyCouponToCart(cart,coupon);
+            storeRepository.applyCouponToCart(cart, coupon);
 
             return Result.success(null);
         } catch (Exception e) {

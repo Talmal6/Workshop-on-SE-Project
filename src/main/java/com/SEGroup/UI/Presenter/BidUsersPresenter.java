@@ -13,7 +13,9 @@ import com.SEGroup.UI.ServiceLocator;
 import com.SEGroup.UI.Views.BidUsersView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,7 @@ public class BidUsersPresenter {
     private final TransactionService transactionService;
     private final DirectNotificationSender notificationSender;
     private List<BidRequest> currentRequests = new ArrayList<>();
-
+    Map<String, BidDTO> bidMap = new HashMap<>();
 
     @Autowired
     private BidApprovalManager approvalManager;
@@ -51,8 +53,7 @@ public class BidUsersPresenter {
             Result<List<String>> ownersResult = storeService.getAllOwners(
                     SecurityContextHolder.token(),
                     this.storeName,
-                    SecurityContextHolder.email()
-            );
+                    SecurityContextHolder.email());
 
             if (ownersResult.isSuccess() && ownersResult.getData() != null) {
                 this.totalOwnersCount = ownersResult.getData().size();
@@ -71,18 +72,22 @@ public class BidUsersPresenter {
         Result<List<BidDTO>> r = storeService.getProductBids(
                 SecurityContextHolder.token(),
                 this.storeName,
-                this.productId
-        );
+                this.productId);
         if (r.isSuccess()) {
             var requests = r.getData().stream()
-                    .map(dto -> new BidRequest(dto.getBidderEmail(), dto.getPrice()))
+                    .map(dto -> new BidRequest(dto.getOriginalBidderEmail(), dto.getPrice()))
                     .toList();
-            currentRequests = new ArrayList<>(requests);       // ← cache
+            currentRequests = new ArrayList<>(requests); // ← cache
+            bidMap.clear();
+            for (BidDTO dto : r.getData()) {
+                bidMap.put(getStringKeyForDto(dto) , dto);
+            }
             view.displayBidUsers(currentRequests);
         } else {
             view.showError("Failed to load bids: " + r.getErrorMessage());
         }
     }
+
     public void acceptBid(String userEmail, double amount) {
         logger.info("Accepting bid from " + userEmail + " for $" + amount + " on product " + productId);
 
@@ -93,8 +98,7 @@ public class BidUsersPresenter {
         boolean allApproved = approvalManager.recordApproval(
                 bidId,
                 SecurityContextHolder.email(),
-                totalOwnersCount
-        );
+                totalOwnersCount);
         int currentApprovals = approvalManager.getApprovalCount(bidId);
         logger.info("Current approvals: " + currentApprovals + " of " + totalOwnersCount + " required");
 
@@ -103,8 +107,7 @@ public class BidUsersPresenter {
             Result<Void> res = transactionService.acceptBid(
                     SecurityContextHolder.token(),
                     storeName,
-                    new BidDTO(userEmail, productId, amount)
-            );
+                    bidMap.get(getStringKeyForDto(userEmail, productId, amount)));
 
             if (res.isSuccess()) {
                 // 4) Notify the bidder
@@ -116,15 +119,13 @@ public class BidUsersPresenter {
                                 + " was accepted by " + ownerEmail,
                         amount,
                         productId,
-                        ownerEmail
-                );
+                        ownerEmail);
 
                 // 5) Cleanup tracking and UI
                 approvalManager.removeBid(bidId);
-                currentRequests.removeIf(rq ->
-                        rq.email().equals(userEmail)
-                                && Double.compare(rq.amount(), amount) == 0
-                );
+                currentRequests.removeIf(rq -> rq.email().equals(userEmail)
+                        && Double.compare(rq.amount(), amount) == 0);
+                bidMap.remove(getStringKeyForDto(userEmail, productId, amount));
                 view.displayBidUsers(currentRequests);
 
             } else {
@@ -135,20 +136,16 @@ public class BidUsersPresenter {
             sendApprovalRequestToOtherOwners(userEmail, amount);
             view.showInfo("Your approval has been recorded. "
                     + (totalOwnersCount - currentApprovals)
-                    + " more approval(s) needed."
-            );
+                    + " more approval(s) needed.");
         }
     }
-
-
 
     private void sendApprovalRequestToOtherOwners(String bidderEmail, double amount) {
         try {
             Result<List<String>> ownersResult = storeService.getAllOwners(
                     SecurityContextHolder.token(),
                     this.storeName,
-                    SecurityContextHolder.email()
-            );
+                    SecurityContextHolder.email());
 
             if (ownersResult.isSuccess() && ownersResult.getData() != null) {
                 String currentOwner = SecurityContextHolder.email();
@@ -164,7 +161,7 @@ public class BidUsersPresenter {
                                         String.format("%,.2f", amount) + " from " + bidderEmail,
                                 amount,
                                 productId,
-                                bidderEmail  // Include bidder's email as extra info
+                                bidderEmail // Include bidder's email as extra info
                         );
                     }
                 }
@@ -180,8 +177,7 @@ public class BidUsersPresenter {
         Result<Void> res = transactionService.rejectBid(
                 SecurityContextHolder.token(),
                 this.storeName,
-                new BidDTO(userEmail, this.productId, amount)
-        );
+                bidMap.get(getStringKeyForDto(userEmail, productId, amount)));
 
         if (res.isSuccess()) {
             String ownerEmail = SecurityContextHolder.email();
@@ -192,8 +188,7 @@ public class BidUsersPresenter {
                     "Your bid of $" + String.format("%,.2f", amount) + " was rejected by " + ownerEmail,
                     amount,
                     productId,
-                    ownerEmail
-            );
+                    ownerEmail);
 
             view.showSuccess("Rejected " + userEmail + "'s bid of $" + String.format("%,.2f", amount));
             // simply reload the entire list instead of trying to filter one out
@@ -203,7 +198,6 @@ public class BidUsersPresenter {
         }
     }
 
-
     public void counterOffer(String userEmail, double originalAmount, double counterAmount, String message) {
         logger.info("Sending counter-offer of $" + counterAmount + " to " + userEmail);
 
@@ -211,14 +205,21 @@ public class BidUsersPresenter {
         notificationSender.send(
                 NotificationType.BID_COUNTER,
                 userEmail,
-                message != null && !message.isEmpty() ? message :
-                        "Counter-offer: $" + String.format("%,.2f", counterAmount),
+                message != null && !message.isEmpty() ? message
+                        : "Counter-offer: $" + String.format("%,.2f", counterAmount),
                 counterAmount,
                 productId,
-                SecurityContextHolder.email()  // Include owner's email as extra info
+                SecurityContextHolder.email() // Include owner's email as extra info
         );
 
         view.showSuccess("Counter-offer of $" + String.format("%,.2f", counterAmount) +
                 " sent to " + userEmail);
+    }
+
+    String getStringKeyForDto(BidDTO dto) {
+        return dto.getOriginalBidderEmail() + ":" + dto.getProductId() + ":" + dto.getPrice();
+    }
+    String getStringKeyForDto(String email, String productId, double price) {
+        return email + ":" + productId + ":" + price;
     }
 }

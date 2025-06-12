@@ -107,7 +107,7 @@ public class StoreTests {
     public void Given_StoreWithProduct_When_SubmitBidValid_Then_True() {
         store.addProductToStore(founderEmail, storeName, "CID", "Name", "Desc", 10.0, 5, false,"",List.of());
         ShoppingProduct prod = store.getAllProducts().iterator().next();
-        assertTrue(store.submitBidToShoppingItem(prod.getProductId(), 15.0, "bidder@test.com"));
+        assertTrue(store.submitBidToShoppingItem(prod.getProductId(), 15.0, "bidder@test.com") != null);
     }
 
     @Test

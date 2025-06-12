@@ -3,6 +3,7 @@ package com.SEGroup.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import com.SEGroup.DTO.*;
 import com.SEGroup.Domain.IAuthenticationService;
@@ -638,9 +639,24 @@ public class StoreService {
             authenticationService.authenticate(sessionKey);
             String bidderEmail = authenticationService.getUserBySession(sessionKey);
             userRepository.checkUserSuspension(bidderEmail);
-            storeRepository.submitBidToShoppingItem(bidderEmail, storeName,
+            CreditCardDTO creditCard = userRepository.getCreditCard(bidderEmail);
+            if (creditCard == null) {
+                return Result.failure("You must have a credit card to submit a bid.");
+            }
+            Integer bidId = storeRepository.submitBidToShoppingItem(bidderEmail, storeName,
                     productId, bidAmount);
             List<String> ownersAndManagers = storeRepository.getAllBidManagers(storeName);
+            userRepository.addBidToUser(
+                bidderEmail,
+                new BidDTO(
+                    bidId,
+                    bidderEmail,
+                    productId,
+                    bidAmount,
+                    BidState.PENDINGFORSELLER,
+                    storeName
+                )
+            );
             for (String recipient : ownersAndManagers) {
                 notificationService.sendSystemNotification(
                         recipient,
@@ -1079,6 +1095,75 @@ public class StoreService {
             return Result.failure(e.getMessage());
         }
     }
+
+    @Transactional
+    public Result<Void> sendCounterOfferFromSeller(String sessionKey, String storeName, BidDTO bidDTO){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.sendCounterOfferFromSeller(storeName, email, bidDTO);
+            BidDTO updatedBid = storeRepository.getBidById(bidDTO.getId(), storeName, bidDTO.getProductId());
+
+            notificationService.sendSystemNotification(
+                bidDTO.getOriginalBidderEmail(),
+                "A counter-offer has been made on your bid for product '" + bidDTO.getProductId() +
+                "' in store '" + bidDTO.getStoreName() + "'"
+            );
+
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+
+    }
+
+    @Transactional
+    public Result<Void> sendCounterOfferFromCostumer(String sessionKey, String storeName, BidDTO bidDTO) {
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String email = authenticationService.getUserBySession(sessionKey);
+            userRepository.checkUserSuspension(email);
+            storeRepository.sendCounterOfferFromCostumer(storeName, email, bidDTO);
+            List<String> ownersAndManagers = storeRepository.getAllBidManagers(storeName);
+            BidDTO updatedBid = storeRepository.getBidById(bidDTO.getId(), storeName, bidDTO.getProductId());
+            for (String recipient : ownersAndManagers) {
+                notificationService.sendSystemNotification(
+                        recipient,
+                        "a counter offer submitted by " + bidDTO.getOriginalBidderEmail() +
+                                " on product '" + bidDTO.getProductId() + "' in store '" + storeName +
+                                "' for amount: " + bidDTO.getPrice());
+            }
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Result<List<BidDTO>> getUserBids(String sessionKey){
+        try {
+            authenticationService.checkSessionKey(sessionKey);
+            String user = authenticationService.getUserBySession(sessionKey);
+            if (user.startsWith("g-")) {
+                return Result.failure("Guests cannot have bids.");
+            }
+            Set<BidDTOforUser> bidsSet = userRepository.getActiveBids(user);
+            List<BidDTO> bids = new ArrayList<>();
+            for (BidDTOforUser bid : bidsSet) {
+                BidDTO bidDetails = storeRepository.getBidById(bid.getBidId(), bid.getStoreName(), bid.getProductId());
+                if (bidDetails != null) {
+                    bids.add(bidDetails);
+                }
+            }
+            LoggerWrapper.info("Retrieved bids for user: " + user); // Log successful retrieval of bids
+            return Result.success(bids);
+        } catch (Exception e) {
+            return Result.failure("Error retrieving bids: " + e.getMessage());
+        }
+    }
+
+    
 
 
 

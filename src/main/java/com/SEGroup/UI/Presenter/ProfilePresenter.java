@@ -1,12 +1,12 @@
 package com.SEGroup.UI.Presenter;
 
 import com.SEGroup.DTO.AddressDTO;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.Service.LoggerWrapper;
 import com.SEGroup.Service.UserService;
 import com.SEGroup.Service.Result;
 import com.SEGroup.UI.SecurityContextHolder;
 import com.SEGroup.UI.ServiceLocator;
-import com.SEGroup.UI.Views.CheckoutDialog;
 import com.SEGroup.UI.Views.PaymentDetailsDialog;
 import com.SEGroup.UI.Views.ProfileView;
 
@@ -43,13 +43,13 @@ public class ProfilePresenter {
         }
     }
 
-    private Result<Void> updateUserProfile(String token,  String fullName, AddressDTO address) {
+    private Result<Void> updateUserProfile(String token, String fullName, AddressDTO address) {
         LoggerWrapper.info("Updating user profile with token: " + token);
         Result<Void> result1 = userService.setUserName(token, fullName);
-        if (!result1.isSuccess()){
+        if (!result1.isSuccess()) {
             return userService.setUserAddress(token, address);
-        }
-        else return result1;
+        } else
+            return result1;
     }
 
     public void navigateToPaymentDetails(String userEmail) {
@@ -59,14 +59,19 @@ public class ProfilePresenter {
     }
 
     public boolean doesAddressOnFileExist() {
-        if (!SecurityContextHolder.isLoggedIn()) return false;
-        Result<AddressDTO> addressResult = userService.getUserAddress(SecurityContextHolder.token(), SecurityContextHolder.email());
-        return addressResult.isSuccess() && addressResult.getData() != null && !addressResult.getData().getAddress().isEmpty();
+        if (!SecurityContextHolder.isLoggedIn())
+            return false;
+        Result<AddressDTO> addressResult = userService.getUserAddress(SecurityContextHolder.token(),
+                SecurityContextHolder.email());
+        return addressResult.isSuccess() && addressResult.getData() != null
+                && !addressResult.getData().getAddress().isEmpty();
     }
 
-    public CheckoutDialog.CreditCardDetails getPaymentDetails() {
-        if (!SecurityContextHolder.isLoggedIn()) return null;
-        Result<CheckoutDialog.CreditCardDetails> creditCardDetails = userService.getUserPaymentDetails(SecurityContextHolder.token(), SecurityContextHolder.email());
+    public CreditCardDTO getPaymentDetails() {
+        if (!SecurityContextHolder.isLoggedIn())
+            return null;
+        Result<CreditCardDTO> creditCardDetails = userService
+                .getUserPaymentDetails(SecurityContextHolder.token(), SecurityContextHolder.email());
         if (creditCardDetails.isSuccess()) {
             return creditCardDetails.getData();
         } else {
@@ -75,8 +80,10 @@ public class ProfilePresenter {
         }
     }
 
-    public Result<Void> updatePaymentMethod(CheckoutDialog.CreditCardDetails creditCardDetails, AddressDTO address) {
-        if (!SecurityContextHolder.isLoggedIn()) return Result.failure("User is not logged in");
-        return userService.setUserPaymentDetails(SecurityContextHolder.token(), SecurityContextHolder.email(), creditCardDetails, address);
+    public Result<Void> updatePaymentMethod(CreditCardDTO creditCardDetails, AddressDTO address) {
+        if (!SecurityContextHolder.isLoggedIn())
+            return Result.failure("User is not logged in");
+        return userService.setUserPaymentDetails(SecurityContextHolder.token(), SecurityContextHolder.email(),
+                creditCardDetails, address);
     }
 }

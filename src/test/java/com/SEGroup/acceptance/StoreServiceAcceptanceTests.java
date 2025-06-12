@@ -11,24 +11,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
-import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
-import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.*;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.validation.constraints.Email;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.DTO.BidDTO;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.Report.ReportCenter;
-import com.SEGroup.Service.Result;
-import com.SEGroup.Service.StoreService;
 
 import javax.crypto.SecretKey;
 
@@ -117,7 +117,7 @@ public class StoreServiceAcceptanceTests {
 
         Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName",
                 "Desc",
-                9.99, 5,"");
+                9.99, 5, "");
         assertTrue(result.isSuccess());
         Result<List<ShoppingProductDTO>> productResult = storeService.searchProducts("iphone", Collections.emptyList(),
                 null, null);
@@ -130,7 +130,7 @@ public class StoreServiceAcceptanceTests {
     public void addProductToStore_WithNegativeQuantity_ShouldFail() {
         Result<String> result = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName",
                 "Desc",
-                9.99, -1,"");
+                9.99, -1, "");
         assertFalse(result.isSuccess());
     }
 
@@ -282,7 +282,7 @@ public class StoreServiceAcceptanceTests {
     public void rateProduct_WithValidData_ShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         productCatalog.addCatalogProduct(CATALOG_ID, "ProdName", "someBrand", "Desc", List.of("Clothes"));
-        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 5.0, 3,"");
+        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 5.0, 3, "");
         Result<Void> result = storeService.rateProduct(VALID_SESSION, STORE_NAME,
                 storeService.viewStore(STORE_NAME).getData().getProducts().get(0).getProductId(), 4, "Good");
         assertTrue(result.isSuccess());
@@ -381,8 +381,8 @@ public class StoreServiceAcceptanceTests {
         // Then: The bid should be accepted and the auction should be update
         storeService.createStore(VALID_SESSION, STORE_NAME);
         storeService.addProductToCatalog(CATALOG_ID, "iphone13", "apple", "Desc", Collections.singletonList("phones"));
-        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 9.99, 5,"");
-        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 9.99, 5,"");
+        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProdName", "Desc", 9.99, 5, "");
+        storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 9.99, 5, "");
     }
 
     @Test
@@ -390,16 +390,19 @@ public class StoreServiceAcceptanceTests {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
         Result<String> added = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName",
-                "Desc", 20.0, 5,"");
+                "Desc", 20.0, 5, "");
         assertTrue(added.isSuccess());
         String productId = added.getData();
-
+        CreditCardDTO creditCard = new CreditCardDTO("1234567890123456", "12/25", "123", "John Doe",
+                "123 Main St", "City", "12345", "Country", "cc-1");
+        AddressDTO address = new AddressDTO("123 Main St", "City", "12345", "Country");
+        userService.setUserPaymentDetails(VALID_SESSION, OWNER_EMAIL, creditCard, address);
         Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0);
 
         assertTrue(result.isSuccess());
 
         // Check if the bid can be seen by the store owner
-        Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, "0_"+STORE_NAME);
+        Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, "0_" + STORE_NAME);
         assertTrue(productsResult.isSuccess());
         List<BidDTO> bids = productsResult.getData();
         assertFalse(bids.isEmpty());
@@ -408,44 +411,57 @@ public class StoreServiceAcceptanceTests {
 
     @Test
     public void submitBid_WithNegativeAmount_ShouldFail() throws Exception {
-    storeService.createStore(VALID_SESSION, STORE_NAME);
-    productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
-    String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5,"").getData();
-    Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, -5.0);
-    assertFalse(result.isSuccess());
+        storeService.createStore(VALID_SESSION, STORE_NAME);
+        productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5, "").getData();
+        Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, -5.0);
+        assertFalse(result.isSuccess());
     }
+
     @Test
     public void WhenBidSubmited_ThenAcceptBid_ShouldSucceed() throws Exception {
         // Given: A store with an auction product
         addProductsToStore();
         productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
         // When: A user sends a bid
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5,"").getData();
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5, "").getData();
+        CreditCardDTO creditCard = new CreditCardDTO("1234567890123456", "12/25", "123", "John Doe",
+                "123 Main St", "City", "12345", "Country", "cc-1");
+        AddressDTO address = new AddressDTO("123 Main St", "City", "12345", "Country");
+        userService.setUserPaymentDetails(VALID_SESSION, OWNER_EMAIL, creditCard, address);
         Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0);
         assertTrue(result.isSuccess());
-        
+
         Result<List<BidDTO>> productsResult = storeService.getProductBids(VALID_SESSION, STORE_NAME, productId);
         assertTrue(productsResult.isSuccess());
         List<BidDTO> bids = productsResult.getData();
         assertFalse(bids.isEmpty());
         assertEquals(productId, bids.get(0).getProductId());
     }
+
     @Test
     public void startAuction_WithValidData_ShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10,"").getData();
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10, "")
+                .getData();
 
-        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24); 
+        Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
 
         Result<Void> result = storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
         assertTrue(result.isSuccess());
     }
+
     @Test
     public void submitAuctionBid_WithValidData_ShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10,"").getData();
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10, "")
+                .getData();
 
         Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
         storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 30.0, endDate);
@@ -453,11 +469,14 @@ public class StoreServiceAcceptanceTests {
         Result<Void> result = storeService.sendAuctionOffer(VALID_SESSION, STORE_NAME, productId, 35.0);
         assertTrue(result.isSuccess());
     }
+
     @Test
     public void submitAuctionBid_TooLow_ShouldFail() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10,"").getData();
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10, "")
+                .getData();
 
         Date endDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
         storeService.startAuction(VALID_SESSION, STORE_NAME, productId, 40.0, endDate);
@@ -470,7 +489,9 @@ public class StoreServiceAcceptanceTests {
     public void submitBid_AfterAuctionEnd_ShouldFail() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);
         productCatalog.addCatalogProduct(CATALOG_ID, "AuctionProduct", "Brand", "Desc", List.of("Auctions"));
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10,"").getData();
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "AuctionProduct", "Desc", 50.0, 10, "")
+                .getData();
 
         // End date in the past
         Date endDate = new Date(System.currentTimeMillis() - 1000 * 60);

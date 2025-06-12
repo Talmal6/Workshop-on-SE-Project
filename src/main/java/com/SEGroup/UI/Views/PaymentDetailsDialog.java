@@ -1,6 +1,7 @@
 package com.SEGroup.UI.Views;
 
 import com.SEGroup.DTO.AddressDTO;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.Service.Result;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.CartPresenter;
@@ -20,13 +21,12 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.BinderValidationStatus;
 import com.vaadin.flow.data.validator.StringLengthValidator;
-import com.SEGroup.UI.Views.CheckoutDialog.CreditCardDetails;
 
 public class PaymentDetailsDialog extends Dialog {
     private final ProfilePresenter presenter;
     private final MainLayout mainLayout;
-    private final Binder<CreditCardDetails> binder;
-    private final CreditCardDetails creditCardDetails;
+    private final Binder<CreditCardDTO> binder;
+    private final CreditCardDTO creditCardDetails;
     private final TextField cardNumber;
     private final TextField cardHolder;
     private final TextField expiryDate;
@@ -41,8 +41,8 @@ public class PaymentDetailsDialog extends Dialog {
     public PaymentDetailsDialog(ProfilePresenter presenter) {
         this.presenter = presenter;
         this.mainLayout = MainLayout.getInstance();
-        this.creditCardDetails = new CreditCardDetails();
-        this.binder = new Binder<>(CreditCardDetails.class);
+        this.creditCardDetails = new CreditCardDTO();
+        this.binder = new Binder<>(CreditCardDTO.class);
 
         setWidth("500px");
         setCloseOnEsc(true);
@@ -59,8 +59,7 @@ public class PaymentDetailsDialog extends Dialog {
         FormLayout formLayout = new FormLayout();
         formLayout.setResponsiveSteps(
                 new FormLayout.ResponsiveStep("0", 1),
-                new FormLayout.ResponsiveStep("500px", 2)
-        );
+                new FormLayout.ResponsiveStep("500px", 2));
 
         // Payment information
         H3 paymentTitle = new H3("Payment Information");
@@ -163,8 +162,8 @@ public class PaymentDetailsDialog extends Dialog {
             shippingTitle.setVisible(true);
         }
 
-        //if payment details are already available, populate the fields
-        CreditCardDetails existingDetails = presenter.getPaymentDetails();
+        // if payment details are already available, populate the fields
+        CreditCardDTO existingDetails = presenter.getPaymentDetails();
         if (existingDetails != null) {
             creditCardDetails.setCardNumber(existingDetails.getCardNumber());
             creditCardDetails.setCardHolder(existingDetails.getCardHolder());
@@ -198,25 +197,25 @@ public class PaymentDetailsDialog extends Dialog {
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         Button savePaymentDetails = new Button("Save Payment Details", e -> {
-            BinderValidationStatus<CreditCardDetails> status = binder.validate();
+            BinderValidationStatus<CreditCardDTO> status = binder.validate();
             if (useAddressOnFile.getValue()) {
                 if (status.isOk()) {
                     // Ensure the bean is updated with the latest values
                     binder.writeBeanIfValid(creditCardDetails);
-                    boolean success = true;//presenter.onCheckout(creditCardDetails);
+                    boolean success = true;// presenter.onCheckout(creditCardDetails);
                     if (success) {
-                        close();//        CheckoutDialog dialog = new CheckoutDialog(this);
-//        dialog.open();
+                        close();// CheckoutDialog dialog = new CheckoutDialog(this);
+                        // dialog.open();
 
                     }
-                }
-                else {
-                    //get the validation issue
+                } else {
+                    // get the validation issue
                     StringBuilder errorMessage = new StringBuilder("Please fill in all fields correctly:\n");
                     status.getFieldValidationErrors().forEach(error -> {
                         errorMessage.append(error.getField()).append(": ").append(error.getMessage()).append("\n");
                     });
-                    Notification notification = Notification.show(errorMessage.toString(), 3000, Notification.Position.MIDDLE);
+                    Notification notification = Notification.show(errorMessage.toString(), 3000,
+                            Notification.Position.MIDDLE);
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             } else {
@@ -231,7 +230,8 @@ public class PaymentDetailsDialog extends Dialog {
                             zipCode.getValue() == null || zipCode.getValue().trim().isEmpty() ||
                             country.getValue() == null || country.getValue().trim().isEmpty()) {
 
-                        Notification notification = Notification.show("Please fill in all shipping address fields", 3000, Notification.Position.MIDDLE);
+                        Notification notification = Notification.show("Please fill in all shipping address fields",
+                                3000, Notification.Position.MIDDLE);
                         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                     }
@@ -239,19 +239,19 @@ public class PaymentDetailsDialog extends Dialog {
                             address.getValue(),
                             city.getValue(),
                             country.getValue(),
-                            zipCode.getValue()
-                    );
+                            zipCode.getValue());
                     Result<Void> result = presenter.updatePaymentMethod(creditCardDetails, addressDTO);
                     if (result.isSuccess()) {
-                        //show a success notification
+                        // show a success notification
                         showSuccess("Payment details updated successfully!");
                         close();
-                    }
-                    else {
-                        showError("Failed to update payment details. error: " + result.getErrorMessage() + "\nPlease try again.");
+                    } else {
+                        showError("Failed to update payment details. error: " + result.getErrorMessage()
+                                + "\nPlease try again.");
                     }
                 } else {
-                    Notification notification = Notification.show("Please fill in all fields correctly", 3000, Notification.Position.MIDDLE);
+                    Notification notification = Notification.show("Please fill in all fields correctly", 3000,
+                            Notification.Position.MIDDLE);
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             }
@@ -272,7 +272,6 @@ public class PaymentDetailsDialog extends Dialog {
         useAddressOnFile.setValue(presenter.doesAddressOnFileExist());
         updateBinder(useAddressOnFile.getValue());
     }
-
 
     /**
      * Shows a success notification.
@@ -300,43 +299,42 @@ public class PaymentDetailsDialog extends Dialog {
         binder.removeBean();
         binder.forField(cardNumber)
                 .withValidator(new StringLengthValidator("Card number must be 16 digits", 16, 19))
-                .bind(CreditCardDetails::getCardNumber, CreditCardDetails::setCardNumber);
+                .bind(CreditCardDTO::getCardNumber, CreditCardDTO::setCardNumber);
 
         binder.forField(cardHolder)
                 .withValidator(new StringLengthValidator("Card holder name is required", 1, null))
-                .bind(CreditCardDetails::getCardHolder, CreditCardDetails::setCardHolder);
+                .bind(CreditCardDTO::getCardHolder, CreditCardDTO::setCardHolder);
 
         binder.forField(expiryDate)
                 .withValidator(new StringLengthValidator("Expiry date must be in MM/YY format", 5, 5))
-                .bind(CreditCardDetails::getExpiryDate, CreditCardDetails::setExpiryDate);
+                .bind(CreditCardDTO::getExpiryDate, CreditCardDTO::setExpiryDate);
 
         binder.forField(cvv)
                 .withValidator(new StringLengthValidator("CVV must be 3 digits", 3, 3))
-                .bind(CreditCardDetails::getCvv, CreditCardDetails::setCvv);
-
+                .bind(CreditCardDTO::getCvv, CreditCardDTO::setCvv);
 
         binder.forField(id)
                 .withValidator(new StringLengthValidator("Id is required", 9, 9))
-                .bind(CreditCardDetails::getId, CreditCardDetails::setId);
+                .bind(CreditCardDTO::getId, CreditCardDTO::setId);
         // Set the bean to be bound
         binder.setBean(creditCardDetails);
 
         if (!isAddressOnFile) {
             binder.forField(address)
                     .withValidator(new StringLengthValidator("Address is required", 1, null))
-                    .bind(CreditCardDetails::getAddress, CreditCardDetails::setAddress);
+                    .bind(CreditCardDTO::getAddress, CreditCardDTO::setAddress);
 
             binder.forField(city)
                     .withValidator(new StringLengthValidator("City is required", 1, null))
-                    .bind(CreditCardDetails::getCity, CreditCardDetails::setCity);
+                    .bind(CreditCardDTO::getCity, CreditCardDTO::setCity);
 
             binder.forField(zipCode)
                     .withValidator(new StringLengthValidator("Zip/Postal code is required", 1, null))
-                    .bind(CreditCardDetails::getZipCode, CreditCardDetails::setZipCode);
+                    .bind(CreditCardDTO::getZipCode, CreditCardDTO::setZipCode);
 
             binder.forField(country)
                     .withValidator(new StringLengthValidator("Country is required", 1, null))
-                    .bind(CreditCardDetails::getCountry, CreditCardDetails::setCountry);
+                    .bind(CreditCardDTO::getCountry, CreditCardDTO::setCountry);
 
         }
         binder.setBean(creditCardDetails);

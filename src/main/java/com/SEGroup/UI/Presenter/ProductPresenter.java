@@ -20,7 +20,6 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
 public class ProductPresenter {
     private static final Logger logger = Logger.getLogger(ProductPresenter.class.getName());
     private Registration pollRegistration;
@@ -38,7 +37,8 @@ public class ProductPresenter {
     private int totalOwnersCount = 0;
     private int currentApprovals = 0;
 
-    public ProductPresenter(ProductView view, String productId, String storeName, DirectNotificationSender notificationSender) {
+    public ProductPresenter(ProductView view, String productId, String storeName,
+            DirectNotificationSender notificationSender) {
         this.view = view;
         this.productId = productId;
         this.storeName = storeName;
@@ -51,20 +51,18 @@ public class ProductPresenter {
     public AuctionDTO getAuction() {
         return auction;
     }
+
     private void notify(NotificationType t,
-                        String target,
-                        String text,
-                        double price,
-                        String extra)
-    {
+            String target,
+            String text,
+            double price,
+            String extra) {
         notificationSender.send(t, target, text, price, productId, extra);
     }
 
-
-
-
     /**
      * Sends a notification to all store owners
+     * 
      * @param message The message to send
      * @return The number of owners notified
      */
@@ -73,8 +71,7 @@ public class ProductPresenter {
             Result<List<String>> ownersResult = storeService.getAllOwners(
                     SecurityContextHolder.token(),
                     storeName,
-                    SecurityContextHolder.email()
-            );
+                    SecurityContextHolder.email());
 
             if (ownersResult.isSuccess() && ownersResult.getData() != null) {
                 int count = 0;
@@ -90,6 +87,7 @@ public class ProductPresenter {
         }
         return 0;
     }
+
     private List<String> loadOwners() {
         if (owners.isEmpty()) {
             try {
@@ -122,8 +120,7 @@ public class ProductPresenter {
             Result<List<String>> ownersResult = storeService.getAllOwners(
                     SecurityContextHolder.token(),
                     storeName,
-                    SecurityContextHolder.email()
-            );
+                    SecurityContextHolder.email());
 
             if (ownersResult.isSuccess() && ownersResult.getData() != null) {
                 this.totalOwnersCount = ownersResult.getData().size();
@@ -142,14 +139,16 @@ public class ProductPresenter {
 
     /**
      * Loads the current approval count for a specific bid from the server
+     * 
      * @param bidderEmail The bidder's email
-     * @param bidPrice The bid price
+     * @param bidPrice    The bid price
      * @return Number of current approvals
      */
     private int loadCurrentApprovals(String bidderEmail, double bidPrice) {
         try {
             // This would be replaced with an actual call to your backend service
-            // For example: storeService.getBidApprovalCount(storeName, productId, bidderEmail, bidPrice);
+            // For example: storeService.getBidApprovalCount(storeName, productId,
+            // bidderEmail, bidPrice);
             // For now, we'll simulate this by returning our in-memory counter
             return currentApprovals;
         } catch (Exception e) {
@@ -157,7 +156,6 @@ public class ProductPresenter {
             return 0;
         }
     }
-
 
     /**
      * Loads auction information for the current product
@@ -186,10 +184,9 @@ public class ProductPresenter {
             }
 
             // Get highest bid for the auction
-            Result<BidDTO> highestBidResult =
-                    storeService.getAuctionHighestBidByProduct(token, storeName, productId);
+            Result<BidDTO> highestBidResult = storeService.getAuctionHighestBidByProduct(token, storeName, productId);
 
-// ── Determine starting- and current-price ─────────────
+            // ── Determine starting- and current-price ─────────────
             double startingPrice;
             AuctionDTO cached = ProductCache.getAuction(productId);
             if (cached != null) {
@@ -200,17 +197,17 @@ public class ProductPresenter {
                 startingPrice = 0.0;
             }
 
-            Double  highestBid    = null;
-            String  highestBidder = null;
+            Double highestBid = null;
+            String highestBidder = null;
 
-// If there's a highest bid, use it
+            // If there's a highest bid, use it
             if (highestBidResult.isSuccess() && highestBidResult.getData() != null) {
-                highestBid    = highestBidResult.getData().getPrice();
-                highestBidder = highestBidResult.getData().getBidderEmail();
+                highestBid = highestBidResult.getData().getPrice();
+                highestBidder = highestBidResult.getData().getOriginalBidderEmail();
             }
 
             if (highestBid == null && cached != null && cached.getHighestBid() != null) {
-                highestBid    = cached.getHighestBid();
+                highestBid = cached.getHighestBid();
                 highestBidder = cached.getHighestBidder();
             }
 
@@ -225,8 +222,7 @@ public class ProductPresenter {
                     highestBid,
                     highestBidder,
                     endDate,
-                    timeRemaining
-            );
+                    timeRemaining);
 
             // Display the auction info in the view
             view.displayAuctionInfo(auction);
@@ -243,10 +239,10 @@ public class ProductPresenter {
     /**
      * Sets up automatic polling to refresh auction data
      */
-// --- add at the top with the other fields ---------------
+    // --- add at the top with the other fields ---------------
     private void scheduleAuctionRefresh() {
         // Avoid stacking listeners
-        if (pollRegistration != null) {        // already polling – nothing to do
+        if (pollRegistration != null) { // already polling – nothing to do
             return;
         }
 
@@ -257,7 +253,7 @@ public class ProductPresenter {
             currentUI.setPollInterval(10000);
 
             pollRegistration = currentUI.addPollListener(event -> {
-                if (auction == null) {         // auction was removed
+                if (auction == null) { // auction was removed
                     currentUI.setPollInterval(-1);
                     pollRegistration.remove();
                     pollRegistration = null;
@@ -294,14 +290,14 @@ public class ProductPresenter {
                 // Only update UI if there's a new bid that's not from current user
                 if (auction == null || auction.getHighestBid() == null ||
                         highestBid.getPrice() > auction.getHighestBid() &&
-                                !highestBid.getBidderEmail().equals(SecurityContextHolder.email())) {
+                                !highestBid.getOriginalBidderEmail().equals(SecurityContextHolder.email())) {
 
                     // Update auction object
                     auction.setHighestBid(highestBid.getPrice());
-                    auction.setHighestBidder(highestBid.getBidderEmail());
+                    auction.setHighestBidder(highestBid.getOriginalBidderEmail());
 
                     // Update UI with minimal changes
-                    view.updateAuctionHighestBid(highestBid.getPrice(), highestBid.getBidderEmail());
+                    view.updateAuctionHighestBid(highestBid.getPrice(), highestBid.getOriginalBidderEmail());
                 }
             }
         } catch (Exception e) {
@@ -321,8 +317,10 @@ public class ProductPresenter {
      * Called when the auction ends—determine winner, notify all, and update UI.
      */
     public void processAuctionEnd() {
-        if (auction == null) return;
-        if (!GlobalAuctionRegistry.markClosed(productId)) return;
+        if (auction == null)
+            return;
+        if (!GlobalAuctionRegistry.markClosed(productId))
+            return;
 
         // 1) Gather all participants
         Set<String> all = GlobalAuctionRegistry.getBidders(productId);
@@ -339,21 +337,20 @@ public class ProductPresenter {
                 SecurityContextHolder.token(), storeName, productId);
         BidDTO winBid = highRes.isSuccess() ? highRes.getData() : null;
 
-        double finalPrice = winBid  != null
+        double finalPrice = winBid != null
                 ? winBid.getPrice()
                 : auction.getHighestBid() != null
-                ? auction.getHighestBid()
-                : auction.getStartingPrice();
+                        ? auction.getHighestBid()
+                        : auction.getStartingPrice();
 
         String winner = winBid != null
-                ? winBid.getBidderEmail()
+                ? winBid.getOriginalBidderEmail()
                 : auction.getHighestBidder();
 
         // 4) Update UI
         view.showAuctionEnded(
                 winner != null ? winner : "—",
-                finalPrice
-        );
+                finalPrice);
 
         String ownerEmail = SecurityContextHolder.email();
 
@@ -367,8 +364,7 @@ public class ProductPresenter {
                     winMsg,
                     finalPrice,
                     productId,
-                    null
-            );
+                    null);
         }
 
         // 6) Notify all the others as “LOSE”, sent _from_ the owner
@@ -384,8 +380,7 @@ public class ProductPresenter {
                             loseMsg,
                             finalPrice,
                             productId,
-                            null
-                    );
+                            null);
                 });
 
         // 7) Audit notification to store-owners
@@ -393,12 +388,9 @@ public class ProductPresenter {
                 "Auction ended for %s. Winner: %s at $%.2f",
                 getProductName(),
                 winner != null ? winner : "—",
-                finalPrice
-        );
+                finalPrice);
         notifyStoreOwners(audit);
     }
-
-
 
     /**
      * Loads the product details from the service and updates the view.
@@ -410,15 +402,14 @@ public class ProductPresenter {
             Result<ShoppingProductDTO> productResult = storeService.getProductFromStore(
                     SecurityContextHolder.token(),
                     storeName,
-                    productId
-            );
+                    productId);
 
             // Remove this premature notification - it's causing the NPE
             // if (notificationSender != null && SecurityContextHolder.isLoggedIn()) {
-            //    notificationSender.sendSystemNotification(
-            //        SecurityContextHolder.email(),
-            //        "Test notification: Viewed product " + product.getName()
-            //    );
+            // notificationSender.sendSystemNotification(
+            // SecurityContextHolder.email(),
+            // "Test notification: Viewed product " + product.getName()
+            // );
             // }
 
             if (productResult.isSuccess() && productResult.getData() != null) {
@@ -465,12 +456,13 @@ public class ProductPresenter {
 
     /**
      * Starts an auction for the current product
+     * 
      * @param startingPrice The starting price
-     * @param endDate The end date/time
+     * @param endDate       The end date/time
      */
     // ────────────────────────────────────────
-// startAuction(...) → broadcast AUCTION_START to all registered users
-// ────────────────────────────────────────
+    // startAuction(...) → broadcast AUCTION_START to all registered users
+    // ────────────────────────────────────────
     public void startAuction(double startingPrice, Date endDate) {
         // 1) Permission checks
         if (!SecurityContextHolder.isLoggedIn()) {
@@ -486,8 +478,7 @@ public class ProductPresenter {
         Result<Void> res = storeService.startAuction(
                 SecurityContextHolder.token(),
                 storeName, productId,
-                startingPrice, endDate
-        );
+                startingPrice, endDate);
         if (!res.isSuccess()) {
             view.showError("Failed to start auction: " + res.getErrorMessage());
             return;
@@ -499,11 +490,10 @@ public class ProductPresenter {
                 storeName,
                 productId,
                 startingPrice,
-                null,        // no bids yet
+                null, // no bids yet
                 null,
                 endDate,
-                endDate.getTime() - System.currentTimeMillis()
-        );
+                endDate.getTime() - System.currentTimeMillis());
         ProductCache.put(productId, auction);
         view.displayAuctionInfo(auction);
         scheduleAuctionRefresh();
@@ -520,11 +510,9 @@ public class ProductPresenter {
                     startMsg,
                     startingPrice,
                     productId,
-                    null
-            );
+                    null);
         }
     }
-
 
     /**
      * Adds the current product to the user's cart
@@ -533,7 +521,8 @@ public class ProductPresenter {
         try {
             logger.info("Adding to cart: " + productId + " from store: " + storeName);
             String token = SecurityContextHolder.token();
-            logger.info("Current token: " + (token != null ? token.substring(0, Math.min(10, token.length())) + "..." : "null"));
+            logger.info("Current token: "
+                    + (token != null ? token.substring(0, Math.min(10, token.length())) + "..." : "null"));
 
             // For guests, create a session if needed
             if (token == null || token.isEmpty()) {
@@ -570,6 +559,7 @@ public class ProductPresenter {
 
     /**
      * Load all bids for the current product (regular bids, not auction)
+     * 
      * @return List of bids or empty list if none found
      */
     public Result<List<BidDTO>> loadProductBids() {
@@ -577,8 +567,7 @@ public class ProductPresenter {
             return storeService.getProductBids(
                     SecurityContextHolder.token(),
                     storeName,
-                    productId
-            );
+                    productId);
         } catch (Exception e) {
             logger.severe("Error loading bids: " + e.getMessage());
             return Result.failure("Failed to load bids: " + e.getMessage());
@@ -587,8 +576,9 @@ public class ProductPresenter {
 
     /**
      * Accept a bid from a specific user - requires approval from all owners
+     * 
      * @param bidderEmail Email of the bidder
-     * @param bidPrice Price of the bid
+     * @param bidPrice    Price of the bid
      * @return Success or failure result
      */
     public Result<Void> acceptBid(String bidderEmail, double bidPrice) {
@@ -604,8 +594,7 @@ public class ProductPresenter {
             Result<List<String>> ownersResult = storeService.getAllOwners(
                     SecurityContextHolder.token(),
                     storeName,
-                    SecurityContextHolder.email()
-            );
+                    SecurityContextHolder.email());
 
             if (ownersResult.isSuccess() && ownersResult.getData() != null) {
                 List<String> owners = ownersResult.getData();
@@ -653,7 +642,7 @@ public class ProductPresenter {
     /**
      * Finalizes an accepted bid after all approvals
      */
-    private void finalizeAcceptedBid(String bidder, double price){
+    private void finalizeAcceptedBid(String bidder, double price) {
         notificationSender.send(
                 NotificationType.BID_ACCEPTED,
                 bidder,
@@ -666,32 +655,31 @@ public class ProductPresenter {
         notificationSender.sendToMany(
                 loadOwners(),
                 NotificationType.BID_ACCEPTED,
-                "Bid accepted by all owners",         // human-text for owners
+                "Bid accepted by all owners", // human-text for owners
                 price,
                 productId,
                 bidder);
     }
-
 
     /**
      * Records an owner's approval for a bid
      * In a real implementation, this would persist the approval in a database
      */
     public void recordOwnerApproval(String ownerEmail,
-                                    String bidderEmail,
-                                    double bidPrice) {
+            String bidderEmail,
+            double bidPrice) {
 
         currentApprovals++;
 
-        notificationSender.send(                    // NEW
+        notificationSender.send( // NEW
                 NotificationType.BID_APPROVAL_OK,
                 bidderEmail,
                 null,
                 bidPrice,
                 productId,
-                ownerEmail);    // who approved
+                ownerEmail); // who approved
 
-        if(currentApprovals >= totalOwnersCount){
+        if (currentApprovals >= totalOwnersCount) {
             finalizeAcceptedBid(bidderEmail, bidPrice);
         }
     }
@@ -699,7 +687,7 @@ public class ProductPresenter {
     /**
      * Places a bid in an auction with validation
      */
-// In ProductPresenter.java - Fix the placeBid method
+    // In ProductPresenter.java - Fix the placeBid method
     /**
      * Places a bid in an auction with validation
      */
@@ -709,8 +697,10 @@ public class ProductPresenter {
      * and correct previous‐bidder notifications.
      */
     /**
-     * Places a bid in an auction, always syncing with server to get the real highest bidder.
-     * Ensures only the actual winner gets "win" notification, and losers get "lose" notification.
+     * Places a bid in an auction, always syncing with server to get the real
+     * highest bidder.
+     * Ensures only the actual winner gets "win" notification, and losers get "lose"
+     * notification.
      * Store owners get full bid event notifications.
      */
     /**
@@ -736,9 +726,9 @@ public class ProductPresenter {
             return;
         }
 
-        String prevLeader   = auction.getHighestBidder();
-        Double prevAmount   = auction.getHighestBid();
-        String me           = SecurityContextHolder.email();
+        String prevLeader = auction.getHighestBidder();
+        Double prevAmount = auction.getHighestBid();
+        String me = SecurityContextHolder.email();
 
         auction.setHighestBid(amount);
         auction.setHighestBidder(me);
@@ -746,7 +736,7 @@ public class ProductPresenter {
         view.updateAuctionHighestBid(amount, me);
 
         Result<Void> r = storeService.sendAuctionOffer(
-                        SecurityContextHolder.token(), storeName, productId, amount);
+                SecurityContextHolder.token(), storeName, productId, amount);
         if (!r.isSuccess()) {
 
             auction.setHighestBid(prevAmount);
@@ -761,7 +751,6 @@ public class ProductPresenter {
         AuctionParticipationTracker.mark(productId);
         GlobalAuctionRegistry.addBidder(productId, me);
 
-
         List<String> ownerEmails = loadOwners();
         if (!ownerEmails.isEmpty()) {
             String notifText = me + " placed a bid of $"
@@ -773,13 +762,10 @@ public class ProductPresenter {
                         notifText,
                         amount,
                         productId,
-                        null
-                );
+                        null);
             }
         }
     }
-
-
 
     /**
      * Submit a bid offer for a product (regular bid, not auction)
@@ -802,13 +788,13 @@ public class ProductPresenter {
             return;
         }
 
-        // 2) hand it off to the service (which persists the bid and notifies DB-side listeners)
+        // 2) hand it off to the service (which persists the bid and notifies DB-side
+        // listeners)
         Result<Void> res = storeService.submitBidToShoppingItem(
                 SecurityContextHolder.token(),
                 storeName,
                 productId,
-                amount
-        );
+                amount);
         if (!res.isSuccess()) {
             view.showError("Failed to submit offer: " + res.getErrorMessage());
             return;
@@ -816,16 +802,14 @@ public class ProductPresenter {
 
         // 3) build your human-friendly message
         String buyer = SecurityContextHolder.email();
-        String msg   = String.format("%s made an offer of $%.2f on %s",
+        String msg = String.format("%s made an offer of $%.2f on %s",
                 buyer, amount, getProductName());
 
         // 4) fetch the real owner list (no more guard! 🎉)
-        Result<List<String>> ownersResult =
-                storeService.getAllOwners(
-                        SecurityContextHolder.token(),
-                        storeName,
-                        /* operatorEmail—now irrelevant */ buyer
-                );
+        Result<List<String>> ownersResult = storeService.getAllOwners(
+                SecurityContextHolder.token(),
+                storeName,
+                /* operatorEmail—now irrelevant */ buyer);
 
         List<String> owners = ownersResult.isSuccess()
                 ? ownersResult.getData()
@@ -844,14 +828,12 @@ public class ProductPresenter {
                     msg,
                     amount,
                     productId,
-                    buyer   // extra → who placed the bid
+                    buyer // extra → who placed the bid
             );
         }
 
         view.showSuccess("Offer submitted — notifying store owners");
     }
-
-
 
     /**
      * Called by each owner when clicking “Approve”.
@@ -864,7 +846,7 @@ public class ProductPresenter {
         }
         // all approved → notify buyer
         String buyer = BidApprovalTracker.finish(bidId);
-        double amt   = BidApprovalTracker.amount(bidId);
+        double amt = BidApprovalTracker.amount(bidId);
         sendFinalAccept(buyer, amt);
     }
 
@@ -886,8 +868,7 @@ public class ProductPresenter {
                         + ownerEmail,
                 amt,
                 productId,
-                null
-        );
+                null);
     }
 
     /**
@@ -902,9 +883,9 @@ public class ProductPresenter {
                         + " has been accepted by all owners!",
                 amount,
                 productId,
-                null
-        );
+                null);
     }
+
     /**
      * Gets the product name
      */
@@ -981,11 +962,11 @@ public class ProductPresenter {
     }
     // Add this to ProductPresenter.java
 
-
     // Helper method for currency formatting
     private String formatCurrency(double amount) {
         return String.format("%,.2f", amount);
     }
+
     public ShoppingProductDTO getProduct() {
         return product;
     }

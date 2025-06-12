@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import com.SEGroup.DTO.BidDTO;
+
 import jakarta.persistence.*;
 /*
  * Represents a product in a store, including its details, bidding information, and ratings.
@@ -130,7 +133,7 @@ public class ShoppingProduct {
     }
 
     // Bidding logic
-    public void addBid(String bidderEmail, double amount) {
+    public Integer addBid(String bidderEmail, double amount) {
         // prevent duplicate bid
         boolean exists = bids.stream()
             .anyMatch(bid -> bid.getBidderEmail().equals(bidderEmail)
@@ -138,7 +141,9 @@ public class ShoppingProduct {
         if (exists) {
             throw new IllegalArgumentException("Bid already exists");
         }
-        bids.add(new Bid(bidderEmail, amount));
+        Bid bid = new Bid(bidderEmail, amount);
+        bids.add(bid);
+        return bid.getId();
     }
 
     public void removeBid(String bidderEmail, double amount) {
@@ -219,6 +224,29 @@ public class ShoppingProduct {
     }
     public Map<String, Rating> getAllRatings() {
         return Collections.unmodifiableMap(ratings);
+    }
+
+    public Bid getBidById(Integer bidId) {
+        return bids.stream()
+                .filter(bid -> bid.getId().equals(bidId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Bid not found for ID: " + bidId));
+    }
+
+    public Bid getBidByEmail(String email) {
+        return bids.stream()
+                .filter(bid -> bid.getBidderEmail().equals(email))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Bid not found for email: " + email));
+    }
+
+    public void updateBid(BidDTO bid){
+        Bid existingBid = getBidById(bid.getId());
+        if (existingBid == null) {
+            throw new IllegalArgumentException("Bid not found for ID: " + bid.getId());
+        }
+        existingBid.setState(bid.getState());
+        existingBid.setAmount(bid.getPrice());
     }
 
 }

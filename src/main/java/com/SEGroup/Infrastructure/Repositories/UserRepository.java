@@ -1,6 +1,7 @@
 package com.SEGroup.Infrastructure.Repositories;
 
 import com.SEGroup.Domain.IUserRepository;
+import com.SEGroup.Domain.Store.Bid;
 import com.SEGroup.Domain.Store.ManagerPermission;
 import com.SEGroup.Domain.User.Address;
 import com.SEGroup.Domain.User.Role;
@@ -10,6 +11,9 @@ import com.SEGroup.Infrastructure.Repositories.RepositoryData.InMemoryUserData;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.UserData;
 import com.SEGroup.Mapper.BasketMapper;
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.BidDTO;
+import com.SEGroup.DTO.BidDTOforUser;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
 import com.SEGroup.DTO.AddressDTO;
 import org.springframework.context.annotation.Profile;
@@ -469,5 +473,68 @@ public class UserRepository implements IUserRepository {
         user.setUserName(newUsername);
         userData.updateUser(user);
     }
+
+    @Override
+    public CreditCardDTO getCreditCard(String email) {
+        User user = userData.getUserByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + email);
+        }
+        if (user.getCreditCard() == null) {
+            throw new IllegalArgumentException("Credit card not set for user: " + email);
+        }
+        return user.getCreditCard();
+    }
+
+    @Override
+    public void setCreditCard(String email, CreditCardDTO creditCardDTO, AddressDTO addressDTO) {
+        User user = userData.getUserByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + email);
+        }
+        if (creditCardDTO == null) {
+            throw new IllegalArgumentException("Credit card cannot be null");
+        }
+        if (addressDTO == null) {
+            throw new IllegalArgumentException("Address cannot be null");
+        }
+        Address address = new Address(addressDTO);
+        user.setCreditCard(creditCardDTO);
+        user.setAddress(address);
+        userData.updateUser(user); 
+    }
+
+    @Override
+    public void addBidToUser(String email, BidDTO bid) {
+        User user = userData.getUserByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + email);
+        }
+        BidDTOforUser bidDTOforUser = new BidDTOforUser(bid.getId(), bid.getStoreName(), bid.getProductId());
+        user.addBid(bidDTOforUser);
+        userData.updateUser(user);
+    }
+
+    @Override
+    public void removeBidFromUser(String email, BidDTO bid) {
+        User user = userData.getUserByEmail(bid.getOriginalBidderEmail());
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + email);
+        }
+        user.removeBid(new BidDTOforUser(bid.getId(), bid.getStoreName(), bid.getProductId()));
+        userData.updateUser(user);
+    }
+
+    @Override
+    public Set<BidDTOforUser> getActiveBids(String email) {
+        User user = userData.getUserByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + email);
+        }
+        return user.getActiveBids();
+    }
+
+
+
 
 }
