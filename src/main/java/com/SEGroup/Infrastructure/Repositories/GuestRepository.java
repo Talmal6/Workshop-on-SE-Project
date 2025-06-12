@@ -31,7 +31,7 @@ public class GuestRepository implements IGuestRepository {
         this.guestData = new InMemoryGuestData();
     }
     public GuestRepository(GuestData guestData) {
-        this.guestData = guestData;
+        this.guestData = new InMemoryGuestData();
     }
     @Override
     public Guest create() {

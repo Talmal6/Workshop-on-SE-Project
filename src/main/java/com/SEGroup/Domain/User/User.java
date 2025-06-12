@@ -1,5 +1,8 @@
 package com.SEGroup.Domain.User;
 
+import com.SEGroup.DTO.BidDTO;
+import com.SEGroup.DTO.BidDTOforUser;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
 import com.SEGroup.Domain.Store.Store;
 
@@ -33,8 +36,14 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Map<String, EnumSet<Role>> storeRoles = new ConcurrentHashMap<>();
 
+
     @Column(name = "username", nullable = false)
     private String username;
+
+    
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_active_bids", joinColumns = @JoinColumn(name = "user_email"))
+    private Set<BidDTOforUser> activeBids = ConcurrentHashMap.newKeySet();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "is_admin", nullable = false)
@@ -48,6 +57,21 @@ public class User {
         @AttributeOverride(name = "zip",      column = @Column(name = "zip_code"))
     })
     private Address address;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "cardNumber", column = @Column(name = "card_number")),
+        @AttributeOverride(name = "cardHolder", column = @Column(name = "card_holder")),
+        @AttributeOverride(name = "expiryDate", column = @Column(name = "expiry_date")),
+        @AttributeOverride(name = "cvv",        column = @Column(name = "cvv")),
+        @AttributeOverride(name = "address",    column = @Column(name = "billing_address")),
+        @AttributeOverride(name = "city",       column = @Column(name = "billing_city")),
+        @AttributeOverride(name = "zipCode",    column = @Column(name = "billing_zip_code")),
+        @AttributeOverride(name = "country",    column = @Column(name = "billing_country"))
+    })
+    private CreditCardDTO creditCard;
+
+
 
     /**
      * ← one-to-one from user → shopping_cart, cascades so saving User persists
@@ -249,6 +273,35 @@ public class User {
         return suspension;
     }
 
+    public Set<BidDTOforUser> getActiveBids() {
+        return Collections.unmodifiableSet(activeBids);
+    }
+
+    public void addBid(BidDTOforUser bid) {
+        if (bid == null) {
+            throw new IllegalArgumentException("Bid cannot be null");
+        }
+        activeBids.add(bid);
+    }
+
+    public void removeBid(BidDTOforUser bid) {
+        if (bid == null) {
+            throw new IllegalArgumentException("Bid cannot be null");
+        }
+        if (activeBids.isEmpty()) {
+            throw new IllegalStateException("No active bids to remove");
+        }
+        Optional<BidDTOforUser> bidToRemove = activeBids.stream()
+            .filter(b -> b.getBidId() == bid.getBidId())
+            .findFirst();
+        if (bidToRemove.isEmpty()) {
+            throw new NoSuchElementException("No active bid found: " + bid);
+        }
+        BidDTOforUser bidToRemoveObj = bidToRemove.get();
+        activeBids.remove(bidToRemoveObj);
+    }
+
+
     public Address getAddress() {
         return address;
     }
@@ -256,5 +309,15 @@ public class User {
     public void setAddress(Address address) {
         this.address = address;
     }
+
+    public CreditCardDTO getCreditCard() {
+        return creditCard;
+    }
+
+    public void setCreditCard(CreditCardDTO creditCard) {
+        this.creditCard = creditCard;
+    }
+
+
 
 }

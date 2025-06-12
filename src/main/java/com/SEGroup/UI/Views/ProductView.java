@@ -37,8 +37,6 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
-
-
 /**
  * View for displaying a single product's details.
  */
@@ -63,7 +61,6 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         this.view = view;
         this.storeService = storeService;
     }
-
 
     @Override
     public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
@@ -90,6 +87,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
             showError("Error loading product: " + e.getMessage());
         }
     }
+
     /**
      * Displays auction information with enhanced UI and real-time updates
      */
@@ -116,8 +114,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 // Bid callback
                 bid -> presenter.placeBid(bid),
                 // Auction end callback
-                () -> presenter.processAuctionEnd()
-        );
+                () -> presenter.processAuctionEnd());
 
         // Set an attribute for easier identification
         auctionPanel.getElement().setAttribute("auction-panel", "true");
@@ -169,10 +166,10 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                     "this.onerror = function() {" +
                             "  console.log('Image failed to load: ' + this.src);" +
                             "  this.style.display = 'none';" + // Hide the broken image
-                            "  document.getElementById('product-icon-fallback').style.display = 'flex';" + // Show the fallback
+                            "  document.getElementById('product-icon-fallback').style.display = 'flex';" + // Show the
+                                                                                                           // fallback
                             "  return true;" + // Prevent infinite error loop
-                            "};"
-            );
+                            "};");
         } else {
             // No image URL available, use icon immediately
             System.out.println("No image URL available for product: " + product.getName());
@@ -218,9 +215,8 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
 
         Div storeInfo = new Div();
         Span storeLabel = new Span("Sold by: ");
-        Button storeLink = new Button(product.getStoreName(), e ->
-                getUI().ifPresent(ui -> ui.navigate("store/" + product.getStoreName()))
-        );
+        Button storeLink = new Button(product.getStoreName(),
+                e -> getUI().ifPresent(ui -> ui.navigate("store/" + product.getStoreName())));
         storeLink.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         storeLink.getStyle().set("font-weight", "bold");
         storeInfo.add(storeLabel, storeLink);
@@ -229,14 +225,12 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 productName,
                 ratingDiv,
                 description,
-                storeInfo
-        );
+                storeInfo);
 
         // Setup product layout with image and info
         HorizontalLayout productLayout = new HorizontalLayout(
                 imageContainer,
-                productInfo
-        );
+                productInfo);
         productLayout.setAlignItems(FlexComponent.Alignment.START);
         productLayout.setWidthFull();
 
@@ -262,8 +256,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 immediateTitle,
                 priceHeader,
                 new Paragraph("Buy now at the listed price."),
-                addToCartBtn
-        );
+                addToCartBtn);
 
         // 2. Make an Offer Panel
         Div bidPanel = new Div();
@@ -306,8 +299,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         bidPanel.add(
                 bidTitle,
                 bidInfo,
-                new HorizontalLayout(bidField, bidButton)
-        );
+                new HorizontalLayout(bidField, bidButton));
 
         // 3. Auction Panel (for owners or showing active auction)
         Div auctionPanel = new Div();
@@ -325,19 +317,16 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
             // Display active auction info
             Span highestBidLabel = new Span("Current highest bid: ");
             Span highestBidValue = new Span("$" + String.format("%.2f",
-                    currentAuction.getHighestBid() != null ?
-                            currentAuction.getHighestBid() :
-                            currentAuction.getStartingPrice()));
+                    currentAuction.getHighestBid() != null ? currentAuction.getHighestBid()
+                            : currentAuction.getStartingPrice()));
             highestBidValue.getStyle().set("font-weight", "bold");
 
             Span highestBidderLabel = new Span("Highest bidder: ");
-            Span highestBidderValue = new Span(currentAuction.getHighestBidder() != null ?
-                    currentAuction.getHighestBidder() : "None yet");
-
+            Span highestBidderValue = new Span(
+                    currentAuction.getHighestBidder() != null ? currentAuction.getHighestBidder() : "None yet");
 
             HorizontalLayout bidderInfo = new HorizontalLayout(
-                    highestBidderLabel, highestBidderValue
-            );
+                    highestBidderLabel, highestBidderValue);
 
             // Create auction timer component
             AuctionTimer timer = new AuctionTimer();
@@ -356,9 +345,8 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 auctionBidField.setPlaceholder("Enter bid amount");
                 auctionBidField.setPrefixComponent(new Span("$"));
 
-                double minBid = currentAuction.getHighestBid() != null ?
-                        currentAuction.getHighestBid() + 0.01 :
-                        currentAuction.getStartingPrice();
+                double minBid = currentAuction.getHighestBid() != null ? currentAuction.getHighestBid() + 0.01
+                        : currentAuction.getStartingPrice();
 
                 auctionBidField.setHelperText("Min: $" + String.format("%.2f", minBid));
 
@@ -381,8 +369,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                         bidderInfo,
                         timerLabel,
                         timer,
-                        new HorizontalLayout(auctionBidField, auctionBidBtn)
-                );
+                        new HorizontalLayout(auctionBidField, auctionBidBtn));
             } else {
                 // For owners - show auction management
                 auctionPanel.add(
@@ -391,12 +378,12 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                         bidInfo,
                         bidderInfo,
                         timerLabel,
-                        timer
-                );
+                        timer);
             }
         } else if (presenter.isOwner()) {
             // For owners when no auction exists
-            Paragraph auctionInfo = new Paragraph("Start an auction to let buyers place competitive bids with a time limit. The highest bidder will automatically win.");
+            Paragraph auctionInfo = new Paragraph(
+                    "Start an auction to let buyers place competitive bids with a time limit. The highest bidder will automatically win.");
             auctionInfo.getStyle()
                     .set("font-style", "italic")
                     .set("color", "var(--lumo-secondary-text-color)");
@@ -408,8 +395,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
             auctionPanel.add(
                     auctionTitle,
                     auctionInfo,
-                    startAuctionBtn
-            );
+                    startAuctionBtn);
         } else {
             // For buyers when no auction exists
             Paragraph auctionInfo = new Paragraph("No auction is currently running for this product.");
@@ -419,8 +405,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
 
             auctionPanel.add(
                     auctionTitle,
-                    auctionInfo
-            );
+                    auctionInfo);
         }
 
         // Owner Management Actions
@@ -438,19 +423,13 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
 
             Button manageOffersBtn = new Button("Manage Offers", VaadinIcon.USERS.create());
             manageOffersBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            manageOffersBtn.addClickListener(e ->
-                    getUI().ifPresent(ui ->
-                            ui.navigate(
-                                    String.format("product/%s/%s/bids", productId, storeName)
-                            )
-                    )
-            );
+            manageOffersBtn.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate(
+                    String.format("product/%s/%s/bids", productId, storeName))));
 
             ownerPanel.add(
                     ownerTitle,
                     new Paragraph("Manage customer offers and auctions for this product."),
-                    manageOffersBtn
-            );
+                    manageOffersBtn);
         } else {
             // No content for non-owners
             ownerPanel.setVisible(false);
@@ -467,8 +446,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 immediatePanel,
                 bidPanel,
                 auctionPanel,
-                ownerPanel
-        );
+                ownerPanel);
         content.setPadding(false);
         content.setSpacing(true);
 
@@ -485,14 +463,12 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         backToMarketButton.getStyle()
                 .set("margin-bottom", "20px")
                 .set("margin-right", "10px");
-        backToMarketButton.addClickListener(e -> getUI().ifPresent(ui ->
-                ui.navigate("catalog")));
+        backToMarketButton.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("catalog")));
 
         // Button to go back to the store
         Button backToStoreButton = new Button("Back to " + storeName, VaadinIcon.STORAGE.create());
         backToStoreButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backToStoreButton.addClickListener(e -> getUI().ifPresent(ui ->
-                ui.navigate("store/" + storeName)));
+        backToStoreButton.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("store/" + storeName)));
 
         HorizontalLayout navigationBar = new HorizontalLayout(backToMarketButton, backToStoreButton);
         navigationBar.setSpacing(true);
@@ -646,7 +622,8 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         H4 productName = new H4(presenter.getProductName());
         productName.getStyle().set("margin", "0 0 0.5rem 0");
 
-        Paragraph productDesc = new Paragraph("Starting an auction will allow users to bid on this product until the auction ends. The highest bidder will win the product.");
+        Paragraph productDesc = new Paragraph(
+                "Starting an auction will allow users to bid on this product until the auction ends. The highest bidder will win the product.");
         productDesc.getStyle().set("margin", "0");
 
         productInfo.add(productName, productDesc);
@@ -709,8 +686,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 durationOptions,
                 customDuration,
                 reservePrice,
-                reservePriceField
-        );
+                reservePriceField);
 
         // Add columns to content
         content.add(leftColumn, rightColumn);
@@ -776,7 +752,6 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
      */
     public void openBidsDialog() {
 
-
         Dialog bidsDialog = new Dialog();
         bidsDialog.setHeaderTitle("Offers for " + presenter.getProductName());
         bidsDialog.setWidth("800px");
@@ -788,8 +763,9 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         } else {
             // Create a grid for bids
             Grid<BidDTO> bidsGrid = new Grid<>();
-            bidsGrid.addColumn(BidDTO::getBidderEmail).setHeader("Customer").setAutoWidth(true);
-            bidsGrid.addColumn(bid -> String.format("$%.2f", bid.getPrice())).setHeader("Offered Price").setAutoWidth(true);
+            bidsGrid.addColumn(BidDTO::getOriginalBidderEmail).setHeader("Customer").setAutoWidth(true);
+            bidsGrid.addColumn(bid -> String.format("$%.2f", bid.getPrice())).setHeader("Offered Price")
+                    .setAutoWidth(true);
 
             // Add actions column
             bidsGrid.addComponentColumn(bid -> {
@@ -805,7 +781,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 counterBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST, ButtonVariant.LUMO_SMALL);
 
                 acceptBtn.addClickListener(e -> {
-                    Result<Void> result = presenter.acceptBid(bid.getBidderEmail(), bid.getPrice());
+                    Result<Void> result = presenter.acceptBid(bid.getOriginalBidderEmail(), bid.getPrice());
                     if (result.isSuccess()) {
                         showSuccess("Offer accepted! The customer has been notified.");
                         bidsDialog.close();
@@ -815,14 +791,13 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
                 });
 
                 rejectBtn.addClickListener(e -> {
-                    presenter.rejectBid(bid.getBidderEmail(), bid.getPrice());
+                    presenter.rejectBid(bid.getOriginalBidderEmail(), bid.getPrice());
                     showSuccess("Offer declined. The customer has been notified.");
                     bidsDialog.close();
                 });
 
-
                 counterBtn.addClickListener(e -> {
-                    makeCounterOffer(bid.getBidderEmail(), bid.getPrice());
+                    makeCounterOffer(bid.getOriginalBidderEmail(), bid.getPrice());
                     bidsDialog.close();
                 });
 
@@ -877,8 +852,7 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         VerticalLayout layout = new VerticalLayout(
                 new Paragraph("The customer will be notified of your counter offer"),
                 priceField,
-                messageField
-        );
+                messageField);
 
         counterDialog.add(layout);
         counterDialog.getFooter().add(cancelBtn, sendBtn);
@@ -1054,7 +1028,6 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
         }
     }
 
-
     public void updateAuctionHighestBid(double amount, String bidder) {
         // Find the auction panel
         getChildren().forEach(c -> {
@@ -1065,7 +1038,5 @@ public class ProductView extends VerticalLayout implements HasUrlParameter<Strin
             }
         });
     }
-
-
 
 }

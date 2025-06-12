@@ -1,8 +1,12 @@
 package com.SEGroup.acceptance;
 
 import com.SEGroup.Domain.*;
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.DTO.BasketDTO;
 import com.SEGroup.DTO.BidDTO;
+import com.SEGroup.DTO.BidDTOforUser;
+import com.SEGroup.DTO.BidState;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.DTO.TransactionDTO;
 import com.SEGroup.Domain.Report.ReportCenter;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
@@ -13,7 +17,7 @@ import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
 import com.SEGroup.Service.*;
-import io.jsonwebtoken.SignatureAlgorithm;      
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -278,21 +282,23 @@ public class TransactionServiceAcceptanceTests {
 
         }
 
-        //{{gil notes}} - need to do when you finish with shipping
-//        @Test
-//        public void purchaseShoppingCart_WithShippingError_ShouldNotProcessPayment() throws Exception {
-//                // Given: Customer trying to purchase with a shipping error
-//                // adjust shipping mock to throw an exception on ship method call
-//                //todo need to fix this test according to the new shipping interface
-////                doThrow(new RuntimeException("Shipping error")).when(shippingService)
-////                                .ship(any(BasketDTO.class), anyString());
-//                userService.addToUserCart(
-//                                SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
-//                assertFalse(
-//                                transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL, PAYMENT_TOKEN)
-//                                                .isSuccess(),
-//                                "Expected purchase to fail due to shipping error");
-//        }
+        // {{gil notes}} - need to do when you finish with shipping
+        // @Test
+        // public void purchaseShoppingCart_WithShippingError_ShouldNotProcessPayment()
+        // throws Exception {
+        // // Given: Customer trying to purchase with a shipping error
+        // // adjust shipping mock to throw an exception on ship method call
+        // //todo need to fix this test according to the new shipping interface
+        //// doThrow(new RuntimeException("Shipping error")).when(shippingService)
+        //// .ship(any(BasketDTO.class), anyString());
+        // userService.addToUserCart(
+        // SESSION_KEY, USER_EMAIL, ACTUAL_PRODUCT_ID, STORE_ID);
+        // assertFalse(
+        // transactionService.purchaseShoppingCart(SESSION_KEY, USER_EMAIL,
+        // PAYMENT_TOKEN)
+        // .isSuccess(),
+        // "Expected purchase to fail due to shipping error");
+        // }
 
         @Test
         public void purchaseShoppingCart_WithPaymentFailure_ShouldRollbackProductRemoval() {
@@ -333,6 +339,11 @@ public class TransactionServiceAcceptanceTests {
                                 SELLER_TOKEN, STORE_ID);
                 String buyerAuth = regLoginAndGetSession("Buyer", USER_EMAIL, USER_PASSWORD);
                 // sending a big on ACTUAL_PRODUCT_ID
+                CreditCardDTO creditCard = new CreditCardDTO("1234567890123456", "12/25", "123", "John Doe",
+                                "123 Main St", "City", "12345", "Country", "cc-1");
+                AddressDTO address = new AddressDTO("123 Main St", "City", "12345", "Country");
+                userService.setUserPaymentDetails(buyerAuth, buyerAuth, creditCard, address);
+
                 Result<Void> bidResult = storeService.submitBidToShoppingItem(
                                 buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 100.0);
 
@@ -344,10 +355,23 @@ public class TransactionServiceAcceptanceTests {
                 assertEquals(1, bidsResult.getData().size(), "Expected exactly one bid");
                 BidDTO bid = bidsResult.getData().get(0);
                 assertEquals(100.0, bid.getPrice(), 0.001, "Bid amount should be 100.0");
-                assertEquals(USER_EMAIL, bid.getBidderEmail(), "Bidder email should match");
-                // accept the bid
+                assertEquals(USER_EMAIL, bid.getOriginalBidderEmail(), "Bidder email should match");
+                // get store product quantity
+                Result<Integer> productQuantity = storeService.getProductQuantity(
+                                SELLER_TOKEN, STORE_ID, ACTUAL_PRODUCT_ID);
+                assertTrue(productQuantity.isSuccess(),
+                                "Failed to get product quantity: " + productQuantity.getErrorMessage());
+
                 Result<Void> acceptBidResult = transactionService.acceptBid(SELLER_TOKEN, STORE_ID, bid);
                 assertTrue(acceptBidResult.isSuccess(), "Failed to accept bid: " + acceptBidResult.getErrorMessage());
+
+                // Verify that the product quantity has been reduced
+                Result<Integer> updatedQuantity = storeService.getProductQuantity(
+                                SELLER_TOKEN, STORE_ID, ACTUAL_PRODUCT_ID);
+                assertTrue(updatedQuantity.isSuccess(),
+                                "Failed to get updated product quantity: " + updatedQuantity.getErrorMessage());
+                assertEquals(productQuantity.getData() - 1, updatedQuantity.getData(),
+                                "Product quantity should be reduced by 1 after accepting the bid");
 
         }
 
@@ -378,6 +402,10 @@ public class TransactionServiceAcceptanceTests {
         public void acceptBid_ByNonOwner_ShouldFail() throws Exception {
                 // Submit a bid so there's something to accept
                 String buyerAuth = regLoginAndGetSession("BuyerZ", "buyerz@example.com", "password123");
+                CreditCardDTO creditCard = new CreditCardDTO("1234567890123456", "12/25", "123", "John Doe",
+                                "123 Main St", "City", "12345", "Country", "cc-1");
+                AddressDTO address = new AddressDTO("123 Main St", "City", "12345", "Country");
+                userService.setUserPaymentDetails(buyerAuth, buyerAuth, creditCard, address);
                 storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 60.0);
 
                 BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
@@ -391,6 +419,10 @@ public class TransactionServiceAcceptanceTests {
         public void acceptBid_ShouldReduceStockAndCreateTransaction() throws Exception {
                 // Buyer submits a bid for 2 units
                 String buyerAuth = regLoginAndGetSession("BuyerStock", "buystock@example.com", "password123");
+                CreditCardDTO creditCard = new CreditCardDTO("1234567890123456", "12/25", "123", "John Doe",
+                                "123 Main St", "City", "12345", "Country", "cc-1");
+                AddressDTO address = new AddressDTO("123 Main St", "City", "12345", "Country");
+                userService.setUserPaymentDetails(buyerAuth, buyerAuth, creditCard, address);
                 storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 75.0);
 
                 BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
@@ -418,6 +450,10 @@ public class TransactionServiceAcceptanceTests {
         public void rejectBid_ShouldRemoveItFromList() throws Exception {
                 // Buyer submits a bid
                 String buyerAuth = regLoginAndGetSession("BuyerReject", "buyerrej@example.com", "password123");
+                CreditCardDTO creditCard = new CreditCardDTO("1234567890123456", "12/25", "123", "John Doe",
+                                "123 Main St", "City", "12345", "Country", "cc-1");
+                AddressDTO address = new AddressDTO("123 Main St", "City", "12345", "Country");
+                userService.setUserPaymentDetails(buyerAuth, buyerAuth, creditCard, address);
                 storeService.submitBidToShoppingItem(buyerAuth, STORE_ID, ACTUAL_PRODUCT_ID, 85.0);
 
                 BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
@@ -480,6 +516,44 @@ public class TransactionServiceAcceptanceTests {
                                 || result.getErrorMessage().toLowerCase().contains("permission"),
                                 "Expected error message to indicate lack of permissions");
         }
-        // Inject error
 
+        @Test
+        public void sendBid_ThenCounterOffer_ThenUserAccepts_ShouldSucceed() throws Exception {
+                // Arrange
+                String buyerToken = regLoginAndGetSession("Bidder", "bidder@example.com", "password123");
+                CreditCardDTO creditCard = new CreditCardDTO("1234567890123456", "12/25", "123", "John Doe",
+                                "123 Main St", "City", "12345", "Country", "cc-1");
+                AddressDTO address = new AddressDTO("123 Main St", "City", "12345", "Country");
+                userService.setUserPaymentDetails(buyerToken, "bidder@example.com", creditCard, address);
+
+                // Buyer submits a bid
+                Result<Void> bidResult = storeService.submitBidToShoppingItem(
+                                buyerToken, STORE_ID, ACTUAL_PRODUCT_ID, 100.0);
+                assertTrue(bidResult.isSuccess(), "Failed to submit bid: " + bidResult.getErrorMessage());
+
+                // Seller gets the bid and sends a counter-offer
+                BidDTO bid = storeService.getAllBids(SELLER_TOKEN, STORE_ID).getData().get(0);
+                double counterOffer = 120.0;
+
+                bid.setPrice(counterOffer);
+                Result<Void> r = storeService.sendCounterOfferFromSeller(SELLER_TOKEN, STORE_ID, bid);
+                assertTrue(r.isSuccess(), "Failed to send counter-offer: " + r.getErrorMessage());
+                Result<List<BidDTO>> getUserBids = storeService.getUserBids(buyerToken);
+                assertTrue(getUserBids.isSuccess() && !getUserBids.getData().isEmpty(),
+                                "Expected active bids for user after counter-offer");
+                BidDTO counterBid = getUserBids.getData().get(0);
+                Result<Void> acceptResult = transactionService.acceptBid(buyerToken, STORE_ID, counterBid);
+                assertTrue(acceptResult.isSuccess(),
+                                "Buyer failed to accept counter-offer: " + acceptResult.getErrorMessage());
+
+                // Verify transaction exists for the buyer
+                Result<List<TransactionDTO>> history = transactionService.getTransactionHistory(
+                                buyerToken, "bidder@example.com");
+                assertTrue(history.isSuccess() && !history.getData().isEmpty(),
+                                "Expected a transaction after accepting counter-offer");
+                TransactionDTO tx = history.getData().get(0);
+                assertEquals("bidder@example.com", tx.buyersEmail);
+                assertEquals(STORE_ID, tx.getSellerStore());
+                assertEquals(counterOffer, tx.getCost());
+        }
 }

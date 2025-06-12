@@ -2,6 +2,7 @@ package com.SEGroup.UI.Presenter;
 
 import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.Domain.User.Basket;
 import com.SEGroup.Domain.User.ShoppingCart;
@@ -44,7 +45,8 @@ public class CartPresenter {
             boolean isLoggedIn = SecurityContextHolder.isLoggedIn();
 
             System.out.println("Loading cart for " + (isLoggedIn ? "authenticated user" : "guest user"));
-            System.out.println("Token: " + (token != null ? token.substring(0, Math.min(token.length(), 10)) + "..." : "null"));
+            System.out.println(
+                    "Token: " + (token != null ? token.substring(0, Math.min(token.length(), 10)) + "..." : "null"));
 
             // Handle guest users or missing tokens
             if (token == null || token.isEmpty()) {
@@ -52,7 +54,8 @@ public class CartPresenter {
                 Result<String> guestResult = userService.guestLogin();
                 if (guestResult.isSuccess()) {
                     token = guestResult.getData();
-                    System.out.println("Created guest token: " + token.substring(0, Math.min(token.length(), 10)) + "...");
+                    System.out.println(
+                            "Created guest token: " + token.substring(0, Math.min(token.length(), 10)) + "...");
                     SecurityContextHolder.storeGuestToken(token);
                 } else {
                     view.showError("Failed to create guest session: " + guestResult.getErrorMessage());
@@ -67,7 +70,7 @@ public class CartPresenter {
                 // For registered users
                 String email = SecurityContextHolder.email();
                 Result<List<BasketDTO>> result = userService.getUserCart(token, email);
-                
+
                 if (!result.isSuccess()) {
                     System.out.println("Error loading cart: " + result.getErrorMessage());
                     view.showError("Error loading cart: " + result.getErrorMessage());
@@ -178,17 +181,18 @@ public class CartPresenter {
 
                     // Fetch actual product details from store
                     System.out.println("Fetching product: " + productId + " from store: " + storeName);
-                    Result<ShoppingProductDTO> productResult = storeService.getProductFromStore(SecurityContextHolder.token(),storeName, productId);
+                    Result<ShoppingProductDTO> productResult = storeService
+                            .getProductFromStore(SecurityContextHolder.token(), storeName, productId);
 
                     if (productResult.isSuccess() && productResult.getData() != null) {
                         ShoppingProductDTO product = productResult.getData();
-                        // Create CartView.ShoppingCartProduct with 4 parameters to match the class definition
+                        // Create CartView.ShoppingCartProduct with 4 parameters to match the class
+                        // definition
                         CartView.ShoppingCartProduct cartProduct = new CartView.ShoppingCartProduct(
                                 productId,
                                 product.getName(),
                                 storeName,
-                                product.getPrice()
-                        );
+                                product.getPrice());
                         products.add(cartProduct);
                         System.out.println("Added product to cart: " + product.getName());
                     } else {
@@ -198,8 +202,7 @@ public class CartPresenter {
                                 productId,
                                 "Product " + productId,
                                 storeName,
-                                0.0
-                        ));
+                                0.0));
                     }
                 }
             }
@@ -271,7 +274,8 @@ public class CartPresenter {
      */
     public void clearCart() {
         try {
-            // We need to manually clear each item since there might not be a direct clearCart method
+            // We need to manually clear each item since there might not be a direct
+            // clearCart method
             String token = SecurityContextHolder.token();
             if (token == null || token.isEmpty()) {
                 view.showError("No active session found");
@@ -297,11 +301,11 @@ public class CartPresenter {
      */
     public void checkout() {
         try {
-//            if (!SecurityContextHolder.isLoggedIn()) {
-//                UI.getCurrent().navigate("signin");
-//                view.showError("Please sign in to checkout");
-//                return;
-//            }
+            // if (!SecurityContextHolder.isLoggedIn()) {
+            // UI.getCurrent().navigate("signin");
+            // view.showError("Please sign in to checkout");
+            // return;
+            // }
 
             CheckoutDialog dialog = new CheckoutDialog(this);
             dialog.open();
@@ -316,7 +320,7 @@ public class CartPresenter {
      * @param creditCardDetails The credit card and shipping details
      * @return True if checkout was successful, false otherwise
      */
-    public boolean onCheckout(CheckoutDialog.CreditCardDetails creditCardDetails) {
+    public boolean onCheckout(CreditCardDTO creditCardDetails) {
         LoggerWrapper.info("Processing checkout with credit card details: " + creditCardDetails);
         try {
             String token = SecurityContextHolder.token();
@@ -333,8 +337,7 @@ public class CartPresenter {
             Result<Void> result = transactionService.purchaseShoppingCart(
                     token,
                     email,
-                    paymentDetails
-            );
+                    paymentDetails);
 
             if (result.isSuccess()) {
                 view.showSuccess("Order placed successfully!");
@@ -356,27 +359,27 @@ public class CartPresenter {
      *
      * @return A formatted payment details string
      */
-    private String createPaymentDetailsString(CheckoutDialog.CreditCardDetails cc) {
+    private String createPaymentDetailsString(CreditCardDTO cc) {
         ObjectMapper mapper = new ObjectMapper();
 
-        // 1️⃣  split the expiry date (supports “MM/YY” or “MM/YYYY”)
+        // 1️⃣ split the expiry date (supports “MM/YY” or “MM/YYYY”)
         String[] exp = cc.getExpiryDate().split("/");
         String month = exp.length > 0 ? exp[0] : "";
-        String year  = exp.length > 1 ? (exp[1].length() == 2 ? "20" + exp[1] : exp[1]) : "";
+        String year = exp.length > 1 ? (exp[1].length() == 2 ? "20" + exp[1] : exp[1]) : "";
 
-        // 2️⃣  build payload
+        // 2️⃣ build payload
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("action_type", "pay");
-        payload.put("amount",      String.valueOf(getCartTotalAfterDiscount()));
-        payload.put("currency",    "USD");
+        payload.put("amount", String.valueOf(getCartTotalAfterDiscount()));
+        payload.put("currency", "USD");
         payload.put("card_number", cc.getCardNumber());
-        payload.put("month",       month);
-        payload.put("year",        year);
-        payload.put("holder",      cc.getCardHolder());
-        payload.put("cvv",         cc.getCvv());
-        payload.put("id",          cc.getId());
+        payload.put("month", month);
+        payload.put("year", year);
+        payload.put("holder", cc.getCardHolder());
+        payload.put("cvv", cc.getCvv());
+        payload.put("id", cc.getId());
 
-        // 3️⃣  convert to compact JSON string
+        // 3️⃣ convert to compact JSON string
         try {
             return mapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {
@@ -399,7 +402,7 @@ public class CartPresenter {
         Result<Map<String, Double>> result = transactionService.getDiscountsForCart(SecurityContextHolder.token());
         if (!result.isSuccess()) {
             view.showError("Failed to get discounts: " + result.getErrorMessage());
-        }else {
+        } else {
             Map<String, Double> discounts = result.getData();
             double totalAfterDiscount = 0;
             for (double discountedPrice : discounts.values()) {
@@ -411,14 +414,18 @@ public class CartPresenter {
     }
 
     public boolean doesAddressOnFileExist() {
-        if (!SecurityContextHolder.isLoggedIn()) return false;
-        Result<AddressDTO> addressResult = userService.getUserAddress(SecurityContextHolder.token(), SecurityContextHolder.email());
-        return addressResult.isSuccess() && addressResult.getData() != null && !addressResult.getData().getAddress().isEmpty();
-        //return true; // For now, we assume address always exists, until backend is implemented
-        //todo implement address check in backend
+        if (!SecurityContextHolder.isLoggedIn())
+            return false;
+        Result<AddressDTO> addressResult = userService.getUserAddress(SecurityContextHolder.token(),
+                SecurityContextHolder.email());
+        return addressResult.isSuccess() && addressResult.getData() != null
+                && !addressResult.getData().getAddress().isEmpty();
+        // return true; // For now, we assume address always exists, until backend is
+        // implemented
+        // todo implement address check in backend
     }
 
-    public boolean onCheckout(CheckoutDialog.CreditCardDetails creditCardDetails, AddressDTO addressDTO) {
+    public boolean onCheckout(CreditCardDTO creditCardDetails, AddressDTO addressDTO) {
         LoggerWrapper.info("Processing checkout + address with credit card details: " + creditCardDetails);
         try {
             boolean isLoggedIn = SecurityContextHolder.isLoggedIn();
@@ -429,17 +436,17 @@ public class CartPresenter {
             String paymentDetails = createPaymentDetailsString(creditCardDetails);
             // Use the TransactionService for checkout rather than UserService
             Result<Void> result;
-            if (isLoggedIn) result = transactionService.purchaseShoppingCartWithAddress(
-                    token,
-                    email,
-                    paymentDetails,
-                    addressDTO
-            );
-            else result = transactionService.purchaseGuestShoppingCart(
-                    token,
-                    paymentDetails,
-                    addressDTO
-            );
+            if (isLoggedIn)
+                result = transactionService.purchaseShoppingCartWithAddress(
+                        token,
+                        email,
+                        paymentDetails,
+                        addressDTO);
+            else
+                result = transactionService.purchaseGuestShoppingCart(
+                        token,
+                        paymentDetails,
+                        addressDTO);
 
             if (result.isSuccess()) {
                 view.showSuccess("Order placed successfully!");

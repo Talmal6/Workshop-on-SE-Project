@@ -231,7 +231,7 @@ public interface IStoreRepository {
          */
         ShoppingProductDTO getProduct(String storeName, String productID);
 
-        void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount);
+        Integer submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount);
 
         void sendAuctionOffer(String Email, String storeName, String productId, double bidAmount);
 
@@ -242,6 +242,8 @@ public interface IStoreRepository {
         List<String> getAllBidManagers(String storeName);
 
         List<BidDTO> getAllBids(String owner, String storeName);
+
+        void updateBid(String storeName, String productId, BidDTO bidDTO);
 
         BidDTO getAuctionHighestBidByProduct(String storeName, String productId);
 
@@ -282,6 +284,10 @@ public interface IStoreRepository {
         void closeAuction(String storeName, String userId, String productId);
 
 
+        void sendCounterOfferFromSeller(String storeName, String email, BidDTO bidDTO);
+        void sendCounterOfferFromCostumer(String storeName, String email, BidDTO bidDTO);
+
+
         void addSimpleDiscountToEntireStore(String storeName, String operatorEmail,int percentage,String Coupon);
         void addSimpleDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon);
         void addSimpleDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon);
@@ -293,5 +299,6 @@ public interface IStoreRepository {
         void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email, String productId, int percentage, List<String> products, List<Integer> minAmounts,List<Integer> maxAmount ,int minPrice, String coupon, String logicType);
         void addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String storeName, String email, String category, int percentage, List<String> products, List<Integer> minAmounts, List<Integer> maxAmount, int minPrice, String coupon, String logicType);
         void addLogicalCompositeConditionalDiscountToEntireStore(String storeName, String email, int percentage, List<String> products, List<Integer> minAmounts, List<Integer> maxAmount, int minPrice, String coupon, String logicType);
-
+        BidDTO getBidByEmail(String email, String storeName, String productId);
+        BidDTO getBidById(Integer bidId , String storeName, String productId);
 }

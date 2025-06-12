@@ -18,8 +18,7 @@ import com.SEGroup.Infrastructure.Repositories.RepositoryData.StoreData;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.UserData;
 import com.SEGroup.Mapper.StoreMapper;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Repository;
-;
+import org.springframework.stereotype.Repository;;
 
 //implement iStore
 /**
@@ -30,16 +29,19 @@ import org.springframework.stereotype.Repository;
  * manage store products, owners, and managers.
  */
 @Repository
-@Profile({"prod","db"})
+@Profile({ "prod", "db" })
 public class StoreRepository implements IStoreRepository {
     private final StoreData storeData;
     private StoreMapper storeMapper = new StoreMapper();
+
     public StoreRepository(StoreData storeData) {
         this.storeData = storeData;
     }
-    public StoreRepository(){
+
+    public StoreRepository() {
         this.storeData = new InMemoryStoreData();
     }
+
     /**
      * Retrieves all stores in the system.
      *
@@ -131,12 +133,12 @@ public class StoreRepository implements IStoreRepository {
      */
     @Override
     public ShoppingProductDTO updateShoppingProduct(String email, String storeName, String catalogID, double price,
-                                                    String description) {
+            String description) {
         Store store = findByName(storeName);
         if (!store.isOwnerOrHasManagerPermissions(email)) {
             throw new RuntimeException("User is not authorized to update product");
         }
-        ShoppingProductDTO productDTO = convertProductToDTO(store.updateShoppingProduct(catalogID,price,description));
+        ShoppingProductDTO productDTO = convertProductToDTO(store.updateShoppingProduct(catalogID, price, description));
         storeData.updateStore(store);
         return productDTO;
     }
@@ -155,11 +157,12 @@ public class StoreRepository implements IStoreRepository {
      */
     @Override
     public String addProductToStore(String email, String storeName, String catalogID, String product_name,
-                                    String description, double price,
-                                    int quantity, boolean isAdmin, String imageURL,List<String> categories) {
+            String description, double price,
+            int quantity, boolean isAdmin, String imageURL, List<String> categories) {
         Store store = findByName(storeName);
         if (store.isOwnerOrHasManagerPermissions(email)) {
-            String productid = store.addProductToStore(email, storeName ,catalogID, product_name, description, price, quantity, isAdmin, imageURL,categories);
+            String productid = store.addProductToStore(email, storeName, catalogID, product_name, description, price,
+                    quantity, isAdmin, imageURL, categories);
             storeData.updateStore(store);
             return productid;
         }
@@ -177,8 +180,6 @@ public class StoreRepository implements IStoreRepository {
     public Store findByName(String name) {
         return storeData.findByName(name);
     }
-
-
 
     /**
      * Checks if a store with the specified name exists.
@@ -242,7 +243,7 @@ public class StoreRepository implements IStoreRepository {
      */
     @Override
     public void appointManager(String storeName, String ownerEmail, String managerEmail, List<String> permissions,
-                               boolean isAdmin) {
+            boolean isAdmin) {
         Store store = findByName(storeName);
         Set<ManagerPermission> permissionSet = new HashSet<>();
         for (String perm : permissions) {
@@ -264,7 +265,7 @@ public class StoreRepository implements IStoreRepository {
      */
     @Override
     public void updateManagerPermissions(String storeName, String ownerEmail, String managerEmail,
-                                         List<String> newPermissions) {
+            List<String> newPermissions) {
         Store store = findByName(storeName);
         Set<ManagerPermission> permissionSet = new HashSet<>();
         for (String perm : newPermissions) {
@@ -359,7 +360,7 @@ public class StoreRepository implements IStoreRepository {
     @Override
     public ShoppingProductDTO rateProduct(String email, String storeName, String productID, int rating, String review) {
         Store store = findByName(storeName);
-        ShoppingProductDTO productDTO = convertProductToDTO(store.rateProduct(email,productID,rating,review));
+        ShoppingProductDTO productDTO = convertProductToDTO(store.rateProduct(email, productID, rating, review));
         storeData.updateStore(store);
         return productDTO;
     }
@@ -392,8 +393,8 @@ public class StoreRepository implements IStoreRepository {
 
     @Override
     public void addToBalance(String operatorEmail,
-                             String storeName,
-                             double amount) {
+            String storeName,
+            double amount) {
 
         if (amount <= 0)
             throw new IllegalArgumentException("Amount must be positive");
@@ -426,10 +427,8 @@ public class StoreRepository implements IStoreRepository {
                 product.getQuantity(),
                 product.averageRating(),
                 product.getImageUrl(),
-                product.getCategories()
-        );
+                product.getCategories());
     }
-
 
     @Override
     public Map<BasketDTO, Double> removeItemsFromStores(List<BasketDTO> basketDTOList) {
@@ -468,6 +467,7 @@ public class StoreRepository implements IStoreRepository {
         }
         return basketToTotalPrice;
     }
+
     @Override
     public Map<String, Double> CalculateDiscountToStores(List<BasketDTO> basketDTOList) {
         Map<String, Double> discountedPrices = new HashMap<>();
@@ -490,7 +490,7 @@ public class StoreRepository implements IStoreRepository {
             }
 
             double price = calculatePrice(store, basketDTO);
-            if(store.getDiscounts()==null){
+            if (store.getDiscounts() == null) {
                 for (Map.Entry<ShoppingProduct, Integer> entry : productsWithQuantities.entrySet()) {
                     ShoppingProduct product = entry.getKey();
                     int quantity = entry.getValue();
@@ -509,6 +509,7 @@ public class StoreRepository implements IStoreRepository {
 
         return discountedPrices;
     }
+
     private double calculatePrice(Store store, BasketDTO basketDTO) {
         double total = 0.0;
         for (Map.Entry<String, Integer> entry : basketDTO.prod2qty().entrySet()) {
@@ -524,6 +525,7 @@ public class StoreRepository implements IStoreRepository {
         }
         return total;
     }
+
     @Override
     public void rollBackItemsToStores(List<BasketDTO> basketDTOList) {
         for (BasketDTO basketDTO : basketDTOList) {
@@ -550,10 +552,14 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount) {
+    public Integer submitBidToShoppingItem(String Email, String storeName, String productId, double bidAmount) {
         Store store = findByName(storeName);
-        store.submitBidToShoppingItem(productId, bidAmount, Email);
+        Integer bidId = store.submitBidToShoppingItem(productId, bidAmount, Email);
+        
+        
         storeData.updateStore(store);
+        
+        return bidId;
     }
 
     @Override
@@ -579,7 +585,8 @@ public class StoreRepository implements IStoreRepository {
         store.submitAuctionOffer(productId, bidAmount, email);
         storeData.updateStore(store);
     }
-    public void closeAuction(String storeName, String userId, String productId){
+
+    public void closeAuction(String storeName, String userId, String productId) {
         Store store = findByName(storeName);
         ShoppingProduct product = store.getProduct(productId);
         if (product == null) {
@@ -593,6 +600,7 @@ public class StoreRepository implements IStoreRepository {
         storeData.updateStore(store);
 
     }
+
     @Override
     public Integer getProductQuantity(String storeName, String productId) {
         Store store = findByName(storeName);
@@ -625,17 +633,20 @@ public class StoreRepository implements IStoreRepository {
         List<BidDTO> allBids = new ArrayList<>();
         for (ShoppingProduct product : store.getAllProducts()) {
             for (Bid bid : product.getBids()) {
-                allBids.add(convertBidToDTO(bid, product.getProductId()));
+                allBids.add(convertBidToDTO(bid, product.getProductId(), storeName));
             }
         }
         return allBids;
     }
 
-    private BidDTO convertBidToDTO(Bid bid, String productId) {
+    private BidDTO convertBidToDTO(Bid bid, String productId, String storeName) {
         return new BidDTO(
+                bid.getId(),
                 bid.getBidderEmail(),
                 productId,
-                bid.getAmount());
+                bid.getAmount(),
+                bid.getState(),
+                storeName);
     }
 
     @Override
@@ -649,16 +660,20 @@ public class StoreRepository implements IStoreRepository {
         if (auc == null) {
             throw new RuntimeException("Auction not found for product: " + productId);
         }
-        return convertBidToDTO(auc.getHighestBid(), productId);
+        return convertBidToDTO(auc.getHighestBid(), productId, storeName);
     }
 
     @Override
-    public void acceptBid(String storeName, String assigneeUsername, String productId, BidDTO bidDTO) {
+    public void acceptBid(String storeName, String assigneeEmail, String productId, BidDTO bidDTO) {
         Store store = findByName(storeName);
         if (store == null) {
             throw new RuntimeException("Store not found");
         }
-        if (!store.isOwnerOrHasManagerBidPermission(assigneeUsername, ManagerPermission.MANAGE_BIDS)) {
+        if (bidDTO.getState() == BidState.PENDINGFORSELLER && !store.isOwnerOrHasManagerBidPermission(assigneeEmail, ManagerPermission.MANAGE_BIDS)) {
+            throw new RuntimeException("User is not authorized to accept bid");
+        }
+
+        if (bidDTO.getState() == BidState.PENDINGFORCOSTUMER && !bidDTO.getOriginalBidderEmail().equals(assigneeEmail)) {
             throw new RuntimeException("User is not authorized to accept bid");
         }
         ShoppingProduct product = store.getProduct(productId);
@@ -668,16 +683,17 @@ public class StoreRepository implements IStoreRepository {
 
 
         if (product.getQuantity() == 0) {
-            store.removeProduct(productId);
+            throw new RuntimeException("Product is out of stock");
         } else {
+            product.setQuantity(product.getQuantity() - 1);
             store.updateProduct(productId, product);
         }
         storeData.updateStore(store);
     }
 
-    public void executeAuctionBid(String Email, String storeName, BidDTO bidDTO) {
+    public void executeAuctionBid(String email, String storeName, BidDTO bidDTO) {
         Store store = findByName(storeName);
-        if (!store.isOwnerOrHasManagerBidPermission(Email, ManagerPermission.MANAGE_BIDS)) {
+        if (!store.isOwnerOrHasManagerBidPermission(email, ManagerPermission.MANAGE_BIDS)) {
             throw new RuntimeException("User is not authorized to execute auction bid");
         }
         if (store == null) {
@@ -698,7 +714,7 @@ public class StoreRepository implements IStoreRepository {
             throw new RuntimeException("No bids found for auction");
         }
 
-        if (auc.getHighestBid().getBidderEmail().equals(bidDTO.getBidderEmail())) {
+        if (auc.getHighestBid().getBidderEmail().equals(bidDTO.getOriginalBidderEmail())) {
             product.setQuantity(product.getQuantity() - 1);
             if (product.getQuantity() == 0) {
                 store.removeProduct(bidDTO.getProductId());
@@ -773,7 +789,7 @@ public class StoreRepository implements IStoreRepository {
         }
         List<BidDTO> bids = new ArrayList<>();
         for (Bid bid : product.getBids()) {
-            bids.add(convertBidToDTO(bid, productId));
+            bids.add(convertBidToDTO(bid, productId, storeName));
         }
         return bids;
     }
@@ -791,7 +807,7 @@ public class StoreRepository implements IStoreRepository {
         if (product == null) {
             throw new RuntimeException("Product not found in store ");
         }
-        product.removeBid(bidDTO.getBidderEmail(), bidDTO.getPrice());
+        product.removeBid(bidDTO.getOriginalBidderEmail(), bidDTO.getPrice());
         storeData.updateStore(store);
     }
 
@@ -810,11 +826,11 @@ public class StoreRepository implements IStoreRepository {
 
     @Override
     public List<StoreDTO> getStoresOwnedBy(String ownerEmail) {
-        List<Store> stores  = storeData.getStoresOwnedBy(ownerEmail);
-        return stores.stream()                      // iterate over the list
+        List<Store> stores = storeData.getStoresOwnedBy(ownerEmail);
+        return stores.stream() // iterate over the list
                 .filter(s -> s.isOwner(ownerEmail)) // or s.getAllOwners().contains(ownerEmail)
-                .map(storeMapper::toDTO)       // convert to DTO
-                .toList();                     // Java 16 +  (Collectors.toList() for older)
+                .map(storeMapper::toDTO) // convert to DTO
+                .toList(); // Java 16 + (Collectors.toList() for older)
     }
 
     @Override
@@ -842,7 +858,7 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public List<RatingDto> getProductRatings(String storeName,String productId) {
+    public List<RatingDto> getProductRatings(String storeName, String productId) {
         Store store = findByName(storeName);
 
         Map<String, Rating> products_ratings = store.getAllRatings();
@@ -854,6 +870,7 @@ public class StoreRepository implements IStoreRepository {
 
         return dtoList;
     }
+
     @Override
     public Review getReviewById(String storeName, String reviewId) {
         Store store = findByName(storeName);
@@ -862,6 +879,7 @@ public class StoreRepository implements IStoreRepository {
         }
         return store.getStoreReviewById(reviewId);
     }
+
     @Override
     public List<Review> getStoreReviews(String storeName) {
         Store store = findByName(storeName);
@@ -870,19 +888,19 @@ public class StoreRepository implements IStoreRepository {
         }
         return store.getAllStoreReviews();
     }
+
     @Override
     public void giveStoreComment(String userName, String storeName, String reviewId, String comment) {
         Store store = findByName(storeName);
         if (store == null) {
             throw new RuntimeException("Store not found");
         }
-        store.giveManagementComment(userName, reviewId,comment);
+        store.giveManagementComment(userName, reviewId, comment);
         storeData.updateStore(store);
     }
 
-
     @Override
-    public void giveStoreReview(String storeName, String userId, String review , String rating) {
+    public void giveStoreReview(String storeName, String userId, String review, String rating) {
         Store store = findByName(storeName);
         if (!store.isActive()) {
             throw new RuntimeException("Store is closed - cannot be rated ");
@@ -906,50 +924,56 @@ public class StoreRepository implements IStoreRepository {
         storeData.updateStore(store);
     }
 
-
     @Override
-    public void addSimpleDiscountToEntireStore(String storeName, String operatorEmail,int percentage,String Coupon){
+    public void addSimpleDiscountToEntireStore(String storeName, String operatorEmail, int percentage, String Coupon) {
         Store store = findByName(storeName);
         store.addSimpleDiscountToEntireStore(operatorEmail, percentage, Coupon);
         storeData.updateStore(store);
     }
+
     @Override
-    public void addSimpleDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage, String coupon) {
+    public void addSimpleDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category,
+            int percentage, String coupon) {
         Store store = findByName(storeName);
         store.addSimpleDiscountToEntireCategoryInStore(operatorEmail, category, percentage, coupon);
         storeData.updateStore(store);
     }
 
     @Override
-    public void addSimpleDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage, String coupon) {
+    public void addSimpleDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail,
+            String productId, int percentage, String coupon) {
         Store store = findByName(storeName);
         store.addSimpleDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage, coupon);
         storeData.updateStore(store);
     }
 
     @Override
-    public void addConditionalDiscountToEntireStore(String storeName, String operatorEmail, int percentage,int minPrice,String coupon) {
+    public void addConditionalDiscountToEntireStore(String storeName, String operatorEmail, int percentage,
+            int minPrice, String coupon) {
         Store store = findByName(storeName);
-        store.addConditionalDiscountToEntireStore(operatorEmail, percentage,minPrice, coupon);
+        store.addConditionalDiscountToEntireStore(operatorEmail, percentage, minPrice, coupon);
         storeData.updateStore(store);
     }
 
     @Override
-    public void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category, int percentage,int minPrice, String coupon) {
+    public void addConditionalDiscountToEntireCategoryInStore(String storeName, String operatorEmail, String category,
+            int percentage, int minPrice, String coupon) {
         Store store = findByName(storeName);
-        store.addConditionalDiscountToEntireCategoryInStore(operatorEmail, category, percentage,minPrice, coupon);
+        store.addConditionalDiscountToEntireCategoryInStore(operatorEmail, category, percentage, minPrice, coupon);
         storeData.updateStore(store);
     }
 
     @Override
-    public void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail, String productId, int percentage,int minimumPrice,int minAmount, int maxAmount , String coupon) {
+    public void addConditionalDiscountToSpecificProductInStorePercentage(String storeName, String operatorEmail,
+            String productId, int percentage, int minimumPrice, int minAmount, int maxAmount, String coupon) {
         Store store = findByName(storeName);
-        store.addConditionalDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage,minimumPrice,minAmount, maxAmount,coupon);
+        store.addConditionalDiscountToSpecificProductInStorePercentage(operatorEmail, productId, percentage,
+                minimumPrice, minAmount, maxAmount, coupon);
         storeData.updateStore(store);
     }
 
     @Override
-    public void applyCouponToCart(List<BasketDTO> basketDTOList,String Coupon){
+    public void applyCouponToCart(List<BasketDTO> basketDTOList, String Coupon) {
         Map<String, Double> discountedPrices = new HashMap<>();
 
         for (BasketDTO basketDTO : basketDTOList) {
@@ -961,25 +985,119 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email, String productId, int percentage, List<String> products, List<Integer> minAmount, List<Integer> maxAmount, int minPrice, String coupon, String logicType) {
+    public void addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(String storeName, String email,
+            String productId, int percentage, List<String> products, List<Integer> minAmount, List<Integer> maxAmount,
+            int minPrice, String coupon, String logicType) {
         Store store = findByName(storeName);
-        store.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(email, productId, percentage, minPrice, products, minAmount,maxAmount, coupon, logicType);
-        storeData.updateStore(store);
-    }
-    @Override
-    public void addLogicalCompositeConditionalDiscountToEntireStore(String storeName, String email, int percentage, List<String> products, List<Integer> minAmount, List<Integer> maxAmount, int minPrice, String coupon, String logicType) {
-        Store store = findByName(storeName);
-        store.addLogicalCompositeConditionalDiscountToEntireStore(email ,percentage, minPrice, products, minAmount, maxAmount,coupon, logicType);
+        store.addLogicalCompositeConditionalDiscountToSpecificProductInStorePercentage(email, productId, percentage,
+                minPrice, products, minAmount, maxAmount, coupon, logicType);
         storeData.updateStore(store);
     }
 
     @Override
-    public void addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String storeName, String email, String category, int percentage, List<String> products, List<Integer> minAmount, List<Integer> maxAmount, int minPrice, String coupon, String logicType) {
+    public void addLogicalCompositeConditionalDiscountToEntireStore(String storeName, String email, int percentage,
+            List<String> products, List<Integer> minAmount, List<Integer> maxAmount, int minPrice, String coupon,
+            String logicType) {
         Store store = findByName(storeName);
-        store.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(email, category, percentage, minPrice, products, minAmount, maxAmount,coupon, logicType);
+        store.addLogicalCompositeConditionalDiscountToEntireStore(email, percentage, minPrice, products, minAmount,
+                maxAmount, coupon, logicType);
         storeData.updateStore(store);
     }
+
+    @Override
+    public void addLogicalCompositeConditionalDiscountToEntireCategoryInStore(String storeName, String email,
+            String category, int percentage, List<String> products, List<Integer> minAmount, List<Integer> maxAmount,
+            int minPrice, String coupon, String logicType) {
+        Store store = findByName(storeName);
+        store.addLogicalCompositeConditionalDiscountToEntireCategoryInStore(email, category, percentage, minPrice,
+                products, minAmount, maxAmount, coupon, logicType);
+        storeData.updateStore(store);
+    }
+
+    @Override
+    public void updateBid(String storeName, String productId, BidDTO bidDTO) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateBid'");
+    }
+
+    @Override
+    public void sendCounterOfferFromSeller(String storeName, String email, BidDTO bidDTO) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(bidDTO.getProductId());
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+        
+        Bid bid = product.getBidById(bidDTO.getId());
+        if (bid == null) {
+            throw new RuntimeException("Bid not found for ID: " + bidDTO.getId());
+        }
+        if (!store.isOwnerOrHasManagerPermissions(email)) {
+            throw new RuntimeException("User is not authorized to send counter offer");
+        }
+
+        if (bid.getState() != BidState.PENDINGFORSELLER){
+            throw new RuntimeException("Bid is in " + bid.getState() + " state, cannot send counter offer");
+        }
+        bid.setState(BidState.PENDINGFORCOSTUMER);
+        bid.setAmount(bidDTO.getPrice());
+        storeData.updateStore(store);
+    }
+
+    @Override
+    public void sendCounterOfferFromCostumer(String storeName, String email, BidDTO bidDTO) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(bidDTO.getProductId());
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+        
+        Bid bid = product.getBidById(bidDTO.getId());
+        if (bid == null) {
+            throw new RuntimeException("Bid not found for ID: " + bidDTO.getId());
+        }
+        if (!store.isOwnerOrHasManagerPermissions(email)) {
+            throw new RuntimeException("User is not authorized to send counter offer");
+        }
+
+        if (bid.getState() != BidState.PENDINGFORCOSTUMER){
+            throw new RuntimeException("Bid is in " + bid.getState() + " state, cannot send counter offer");
+        }
+        // Update the bid state to COUNTEROFFERED
+        bid.setState(BidState.PENDINGFORSELLER);
+        bid.setAmount(bidDTO.getPrice());
+        storeData.updateStore(store);
+    }
+
+
+    @Override
+    public BidDTO getBidByEmail(String email, String storeName, String productId) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+
+        Bid bid = product.getBidByEmail(email);
+        if (bid == null) {
+            throw new RuntimeException("Bid not found for email: " + email);
+        }
+        return bid.toDTO(productId, storeName);
+    }
+
+    @Override
+    public BidDTO getBidById(Integer bidId, String storeName, String productId) {
+        Store store = findByName(storeName);
+        ShoppingProduct product = store.getProduct(productId);
+        if (product == null) {
+            throw new RuntimeException("Product not found in store ");
+        }
+
+        Bid bid = product.getBidById(bidId);
+        if (bid == null) {
+            throw new RuntimeException("Bid not found for ID: " + bidId);
+        }
+        return bid.toDTO(productId, storeName);
+    }
+
 }
-
-
-

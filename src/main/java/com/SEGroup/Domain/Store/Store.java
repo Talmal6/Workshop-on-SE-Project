@@ -198,7 +198,7 @@ public class Store {
         * @param bidderEmail The email of the bidder.
         * @return true if the bid was successfully submitted, false otherwise.
      */
-    public boolean submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail) {
+    public Integer submitBidToShoppingItem(String itemName, double bidAmount, String bidderEmail) {
         ShoppingProduct product = products.get(itemName);
 
         if (product == null) {
@@ -209,8 +209,8 @@ public class Store {
             throw new IllegalArgumentException("Invalid bid amount or bidder email");
         }
 
-        product.addBid(bidderEmail, bidAmount);
-        return true;
+        Integer bidId = product.addBid(bidderEmail, bidAmount);
+        return bidId;
     }
 
     /*

@@ -1,9 +1,12 @@
 package com.SEGroup.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.BidDTO;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
 import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.Domain.IAuthenticationService;
@@ -15,7 +18,7 @@ import com.SEGroup.Infrastructure.PasswordEncoder;
 import com.SEGroup.Infrastructure.Repositories.GuestRepository;
 import com.SEGroup.Domain.Report.Report;
 import com.SEGroup.Domain.Report.ReportCenter;
-import com.SEGroup.UI.Views.CheckoutDialog;
+
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -651,6 +654,7 @@ public class UserService {
         return userRepository.getAllSuspendedUsers();
     }
 
+    @Transactional(readOnly = true)
     public Result<AddressDTO> getUserAddress(String sessionKey, String email) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -661,6 +665,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public Result<Void> setUserAddress(String sessionKey, AddressDTO address) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -672,6 +677,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public Result<Void> setUserName(String sessionKey, String newName) {
         try {
             authenticationService.checkSessionKey(sessionKey);
@@ -683,13 +689,27 @@ public class UserService {
         }
     }
 
-    public Result<CheckoutDialog.CreditCardDetails> getUserPaymentDetails(String token, String email) {
-        //todo implement this method
-        return Result.failure("Method not implemented yet");
+    @Transactional(readOnly = true)
+    public Result<CreditCardDTO> getUserPaymentDetails(String token, String email) {
+        try {
+            authenticationService.checkSessionKey(token);
+            return Result.success(userRepository.getCreditCard(email));
+        } catch (Exception e) {
+            return Result.failure("Error retrieving user payment details: " + e.getMessage());
+        }
     }
 
-    public Result<Void> setUserPaymentDetails(String token, String email, CheckoutDialog.CreditCardDetails creditCardDetails, AddressDTO address) {
-        //todo implement this method
-        return Result.failure("Method not implemented yet");
+    @Transactional
+    public Result<Void> setUserPaymentDetails(String token, String email,
+            CreditCardDTO creditCardDetails, AddressDTO address) {
+        try {
+            authenticationService.checkSessionKey(token);
+            userRepository.setCreditCard(authenticationService.getUserBySession(token), creditCardDetails, address);
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure("Error setting user payment details: " + e.getMessage());
+        }
     }
+
+
 }

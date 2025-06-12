@@ -11,10 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.SEGroup.Domain.IAuthenticationService;
 import com.SEGroup.Infrastructure.NotificationCenter.NotificationCenter;
-import com.SEGroup.Infrastructure.Repositories.ProductCatalogRepository;
 import com.SEGroup.Infrastructure.Repositories.JpaDatabase.JpaStoreRepository;
 import com.SEGroup.Infrastructure.Repositories.RepositoryData.DbStoreData;
-import com.SEGroup.Infrastructure.Repositories.StoreRepository;
 import com.SEGroup.Infrastructure.Repositories.*;
 import com.SEGroup.Infrastructure.Security;
 import com.SEGroup.Infrastructure.SecurityAdapter;
@@ -25,13 +23,14 @@ import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.DTO.BidDTO;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.DTO.ShoppingProductDTO;
 import com.SEGroup.DTO.StoreDTO;
 import com.SEGroup.Domain.IUserRepository;
 import com.SEGroup.Domain.Report.ReportCenter;
-import com.SEGroup.Service.Result;
-import com.SEGroup.Service.StoreService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -403,7 +402,12 @@ public class StoreServiceJpaTests {
                 "Desc", 20.0, 5,"");
         assertTrue(added.isSuccess());
         String productId = added.getData();
-
+        storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5, "").getData();
+        CreditCardDTO creditCard = new CreditCardDTO("1234567890123456", "12/25", "123", "John Doe",
+                "123 Main St", "City", "12345", "Country", "cc-1");
+        AddressDTO address = new AddressDTO("123 Main St", "City", "12345", "Country");
+        userService.setUserPaymentDetails(VALID_SESSION, OWNER_EMAIL, creditCard, address);
         Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0);
 
         assertTrue(result.isSuccess());
@@ -430,7 +434,12 @@ public class StoreServiceJpaTests {
         addProductsToStore();
         productCatalog.addCatalogProduct(CATALOG_ID, "ProductName", "Brand", "Desc", List.of("Cat"));
         // When: A user sends a bid
-        String productId = storeService.addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5,"").getData();
+        String productId = storeService
+                .addProductToStore(VALID_SESSION, STORE_NAME, CATALOG_ID, "ProductName", "Desc", 20.0, 5, "").getData();
+        CreditCardDTO creditCard = new CreditCardDTO("1234567890123456", "12/25", "123", "John Doe",
+                "123 Main St", "City", "12345", "Country", "cc-1");
+        AddressDTO address = new AddressDTO("123 Main St", "City", "12345", "Country");
+        userService.setUserPaymentDetails(VALID_SESSION, OWNER_EMAIL, creditCard, address);
         Result<Void> result = storeService.submitBidToShoppingItem(VALID_SESSION, STORE_NAME, productId, 15.0);
         assertTrue(result.isSuccess());
 
@@ -440,6 +449,7 @@ public class StoreServiceJpaTests {
         assertFalse(bids.isEmpty());
         assertEquals(productId, bids.get(0).getProductId());
     }
+
     @Test
     public void startAuction_WithValidData_ShouldSucceed() throws Exception {
         storeService.createStore(VALID_SESSION, STORE_NAME);

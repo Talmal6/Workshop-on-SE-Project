@@ -1,6 +1,7 @@
 package com.SEGroup.UI.Views;
 
 import com.SEGroup.DTO.AddressDTO;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.UI.MainLayout;
 import com.SEGroup.UI.Presenter.CartPresenter;
 import com.vaadin.flow.component.button.Button;
@@ -23,8 +24,8 @@ import com.vaadin.flow.data.validator.StringLengthValidator;
 public class CheckoutDialog extends Dialog {
     private final CartPresenter presenter;
     private final MainLayout mainLayout;
-    private final Binder<CreditCardDetails> binder;
-    private final CreditCardDetails creditCardDetails;
+    private final Binder<CreditCardDTO> binder;
+    private final CreditCardDTO creditCardDetails;
     private final TextField cardNumber;
     private final TextField cardHolder;
     private final TextField expiryDate;
@@ -40,8 +41,8 @@ public class CheckoutDialog extends Dialog {
     public CheckoutDialog(CartPresenter presenter) {
         this.presenter = presenter;
         this.mainLayout = MainLayout.getInstance();
-        this.creditCardDetails = new CreditCardDetails();
-        this.binder = new Binder<>(CreditCardDetails.class);
+        this.creditCardDetails = new CreditCardDTO();
+        this.binder = new Binder<>(CreditCardDTO.class);
 
         setWidth("500px");
         setCloseOnEsc(true);
@@ -65,8 +66,7 @@ public class CheckoutDialog extends Dialog {
         FormLayout formLayout = new FormLayout();
         formLayout.setResponsiveSteps(
                 new FormLayout.ResponsiveStep("0", 1),
-                new FormLayout.ResponsiveStep("500px", 2)
-        );
+                new FormLayout.ResponsiveStep("500px", 2));
 
         // Payment information
         H3 paymentTitle = new H3("Payment Information");
@@ -145,7 +145,7 @@ public class CheckoutDialog extends Dialog {
             zipCode.setVisible(!useAddress);
             country.setVisible(!useAddress);
             shippingTitle.setVisible(!useAddress);
-            
+
             // Update required state
             address.setRequired(!useAddress);
             city.setRequired(!useAddress);
@@ -187,7 +187,7 @@ public class CheckoutDialog extends Dialog {
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         Button checkoutButton = new Button("Complete Purchase", e -> {
-            BinderValidationStatus<CreditCardDetails> status = binder.validate();
+            BinderValidationStatus<CreditCardDTO> status = binder.validate();
             if (useAddressOnFile.getValue()) {
                 if (status.isOk()) {
                     // Ensure the bean is updated with the latest values
@@ -196,14 +196,14 @@ public class CheckoutDialog extends Dialog {
                     if (success) {
                         close();
                     }
-                }
-                else {
-                    //get the validation issue
+                } else {
+                    // get the validation issue
                     StringBuilder errorMessage = new StringBuilder("Please fill in all fields correctly:\n");
                     status.getFieldValidationErrors().forEach(error -> {
                         errorMessage.append(error.getField()).append(": ").append(error.getMessage()).append("\n");
                     });
-                    Notification notification = Notification.show(errorMessage.toString(), 3000, Notification.Position.MIDDLE);
+                    Notification notification = Notification.show(errorMessage.toString(), 3000,
+                            Notification.Position.MIDDLE);
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             } else {
@@ -211,14 +211,15 @@ public class CheckoutDialog extends Dialog {
                 if (binder.validate().isOk()) {
                     // Ensure the bean is updated with the latest values
                     binder.writeBeanIfValid(creditCardDetails);
-                    
+
                     // Validate that address fields are not empty
                     if (address.getValue() == null || address.getValue().trim().isEmpty() ||
-                        city.getValue() == null || city.getValue().trim().isEmpty() ||
-                        zipCode.getValue() == null || zipCode.getValue().trim().isEmpty() ||
-                        country.getValue() == null || country.getValue().trim().isEmpty()) {
-                        
-                        Notification notification = Notification.show("Please fill in all shipping address fields", 3000, Notification.Position.MIDDLE);
+                            city.getValue() == null || city.getValue().trim().isEmpty() ||
+                            zipCode.getValue() == null || zipCode.getValue().trim().isEmpty() ||
+                            country.getValue() == null || country.getValue().trim().isEmpty()) {
+
+                        Notification notification = Notification.show("Please fill in all shipping address fields",
+                                3000, Notification.Position.MIDDLE);
                         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                     }
@@ -226,14 +227,14 @@ public class CheckoutDialog extends Dialog {
                             address.getValue(),
                             city.getValue(),
                             country.getValue(),
-                            zipCode.getValue()
-                    );
+                            zipCode.getValue());
                     boolean success = presenter.onCheckout(creditCardDetails, addressDTO);
                     if (success) {
                         close();
                     }
                 } else {
-                    Notification notification = Notification.show("Please fill in all fields correctly", 3000, Notification.Position.MIDDLE);
+                    Notification notification = Notification.show("Please fill in all fields correctly", 3000,
+                            Notification.Position.MIDDLE);
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             }
@@ -257,59 +258,6 @@ public class CheckoutDialog extends Dialog {
 
     private void updateTotalDisplay(double total) {
         totalAmount.setText(String.format("Total: $%.2f", total));
-    }
-
-    public static class CreditCardDetails {
-        private String cardNumber;
-        private String cardHolder;
-        private String expiryDate;
-        private String cvv;
-        private String address;
-        private String city;
-        private String zipCode;
-        private String country;
-        private String id;
-
-        public String getCardNumber() { return cardNumber; }
-        public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
-        public String getCardHolder() { return cardHolder; }
-        public void setCardHolder(String cardHolder) { this.cardHolder = cardHolder; }
-        public String getExpiryDate() { return expiryDate; }
-        public void setExpiryDate(String expiryDate) { this.expiryDate = expiryDate; }
-        public String getCvv() { return cvv; }
-        public void setCvv(String cvv) { this.cvv = cvv; }
-        public String getAddress() { return address; }
-        public void setAddress(String address) { this.address = address; }
-        public String getCity() { return city; }
-        public void setCity(String city) { this.city = city; }
-        public String getZipCode() { return zipCode; }
-        public void setZipCode(String zipCode) { this.zipCode = zipCode; }
-        public String getCountry() { return country; }
-        public void setCountry(String country) { this.country = country; }
-        public void setId(String id) { this.id = id; }
-        public String getId(){return id;}
-
-        @Override
-        public String toString() {
-            try {
-                return '{' +
-                        "\"card_number\":\"" + cardNumber + "\"," +
-                        "\"holder\":\"" + cardHolder + "\"," +
-                        "\"month\":\"" + expiryDate.substring(0,2) + "\"," +
-                        "\"year\":\"" + expiryDate.substring(3) + "\"," +
-                        "\"cvv\":\"" + cvv + "\"," +
-                        "\"address\":\"" + address + "\"," +
-                        "\"city\":\"" + city + "\"," +
-                        "\"zipCode\":\"" + zipCode + "\"," +
-                        "\"country\":\"" + country + '"' +
-                        '}';
-            }
-            catch (Exception e){
-                return e.toString();
-            }
-
-        }
-
     }
 
     /**
@@ -338,43 +286,42 @@ public class CheckoutDialog extends Dialog {
         binder.removeBean();
         binder.forField(cardNumber)
                 .withValidator(new StringLengthValidator("Card number must be 16 digits", 16, 19))
-                .bind(CreditCardDetails::getCardNumber, CreditCardDetails::setCardNumber);
+                .bind(CreditCardDTO::getCardNumber, CreditCardDTO::setCardNumber);
 
         binder.forField(cardHolder)
                 .withValidator(new StringLengthValidator("Card holder name is required", 1, null))
-                .bind(CreditCardDetails::getCardHolder, CreditCardDetails::setCardHolder);
+                .bind(CreditCardDTO::getCardHolder, CreditCardDTO::setCardHolder);
 
         binder.forField(expiryDate)
                 .withValidator(new StringLengthValidator("Expiry date must be in MM/YY format", 5, 5))
-                .bind(CreditCardDetails::getExpiryDate, CreditCardDetails::setExpiryDate);
+                .bind(CreditCardDTO::getExpiryDate, CreditCardDTO::setExpiryDate);
 
         binder.forField(cvv)
                 .withValidator(new StringLengthValidator("CVV must be 3 digits", 3, 3))
-                .bind(CreditCardDetails::getCvv, CreditCardDetails::setCvv);
-
+                .bind(CreditCardDTO::getCvv, CreditCardDTO::setCvv);
 
         binder.forField(id)
                 .withValidator(new StringLengthValidator("Id is required", 9, 9))
-                .bind(CreditCardDetails::getId, CreditCardDetails::setId);
+                .bind(CreditCardDTO::getId, CreditCardDTO::setId);
         // Set the bean to be bound
         binder.setBean(creditCardDetails);
 
         if (!isAddressOnFile) {
             binder.forField(address)
                     .withValidator(new StringLengthValidator("Address is required", 1, null))
-                    .bind(CreditCardDetails::getAddress, CreditCardDetails::setAddress);
+                    .bind(CreditCardDTO::getAddress, CreditCardDTO::setAddress);
 
             binder.forField(city)
                     .withValidator(new StringLengthValidator("City is required", 1, null))
-                    .bind(CreditCardDetails::getCity, CreditCardDetails::setCity);
+                    .bind(CreditCardDTO::getCity, CreditCardDTO::setCity);
 
             binder.forField(zipCode)
                     .withValidator(new StringLengthValidator("Zip/Postal code is required", 1, null))
-                    .bind(CreditCardDetails::getZipCode, CreditCardDetails::setZipCode);
+                    .bind(CreditCardDTO::getZipCode, CreditCardDTO::setZipCode);
 
             binder.forField(country)
                     .withValidator(new StringLengthValidator("Country is required", 1, null))
-                    .bind(CreditCardDetails::getCountry, CreditCardDetails::setCountry);
+                    .bind(CreditCardDTO::getCountry, CreditCardDTO::setCountry);
 
         }
         binder.setBean(creditCardDetails);

@@ -7,6 +7,9 @@ import com.SEGroup.Domain.User.ShoppingCart;
 import com.SEGroup.Domain.User.User;
 import com.SEGroup.DTO.AddressDTO;
 import com.SEGroup.DTO.BasketDTO;
+import com.SEGroup.DTO.BidDTO;
+import com.SEGroup.DTO.BidDTOforUser;
+import com.SEGroup.DTO.CreditCardDTO;
 import com.SEGroup.DTO.UserSuspensionDTO;
 
 import java.util.List;
@@ -155,5 +158,14 @@ public interface IUserRepository {
 
     void setUserName(String email, String newUsername);
 
-    
+    CreditCardDTO getCreditCard(String email);
+    void setCreditCard(String email, CreditCardDTO creditCardDTO, AddressDTO addressDTO);
+
+
+    void addBidToUser(String email, BidDTO bid);
+
+    void removeBidFromUser(String email, BidDTO bid);
+    Set<BidDTOforUser> getActiveBids(String email);
+
+
 }
