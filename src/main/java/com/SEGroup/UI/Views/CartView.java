@@ -214,13 +214,15 @@ public class CartView extends VerticalLayout {
             applyCouponButton.setVisible(true);
         }
 
+
         totalPriceLabel.setText(String.format("Total: $%.2f", totalPrice));
         double discountedPrice = presenter.getCartTotalAfterDiscount();
-        if(totalPrice != discountedPrice) {
-            totalAfterDiscountLabel.setText(String.format("Total after discount: $%.2f", discountedPrice));
+        String origText = String.format("%.2f", totalPrice);
+        String discText = String.format("%.2f", discountedPrice);
+        if (!discText.equals(origText)) {
+            totalAfterDiscountLabel.setText("Total after discount: $" + discText);
             totalAfterDiscountLabel.setVisible(true);
-        }
-        else{
+        } else {
             totalAfterDiscountLabel.setVisible(false);
         }
         checkoutButton.setEnabled(!cartItems.isEmpty());
